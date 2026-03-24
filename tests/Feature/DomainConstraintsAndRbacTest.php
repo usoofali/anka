@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Enums\InvoiceStatus;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Shipment;
+use App\Models\Shipper;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Models\Wallet;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Database\QueryException;
 
@@ -59,4 +62,29 @@ it('enforces one payment per invoice at the database', function () {
 
     expect(fn () => Payment::factory()->create(['invoice_id' => $invoice->id]))
         ->toThrow(QueryException::class);
+});
+
+it('stores invoices and wallets in the configured financial currency', function () {
+    $shipment = Shipment::factory()->create();
+    $invoice = new Invoice([
+        'invoice_number' => 'INV-USD-1',
+        'shipment_id' => $shipment->id,
+        'status' => InvoiceStatus::Draft->value,
+        'subtotal' => '100.00',
+        'tax_amount' => '0.00',
+        'total_amount' => '100.00',
+    ]);
+    $invoice->forceFill(['currency' => 'EUR']);
+    $invoice->save();
+
+    expect($invoice->refresh()->currency)->toBe(config('financial.currency'));
+
+    $wallet = new Wallet([
+        'shipper_id' => Shipper::factory()->create()->id,
+        'balance' => '0.00',
+    ]);
+    $wallet->forceFill(['currency' => 'GBP']);
+    $wallet->save();
+
+    expect($wallet->refresh()->currency)->toBe(config('financial.currency'));
 });

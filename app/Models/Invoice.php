@@ -21,13 +21,19 @@ final class Invoice extends Model
         'invoice_number',
         'shipment_id',
         'status',
-        'currency',
         'subtotal',
         'tax_amount',
         'total_amount',
         'issued_at',
         'due_at',
     ];
+
+    protected static function booted(): void
+    {
+        self::saving(function (Invoice $invoice): void {
+            $invoice->currency = (string) config('financial.currency');
+        });
+    }
 
     protected function casts(): array
     {

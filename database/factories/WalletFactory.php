@@ -20,7 +20,6 @@ class WalletFactory extends Factory
     {
         return [
             'shipper_id' => Shipper::factory(),
-            'currency' => 'USD',
             'balance' => fake()->randomFloat(2, 0, 10000),
         ];
     }

@@ -26,7 +26,6 @@ class InvoiceFactory extends Factory
             'invoice_number' => 'INV-'.fake()->unique()->numerify('########'),
             'shipment_id' => Shipment::factory(),
             'status' => InvoiceStatus::Draft->value,
-            'currency' => 'USD',
             'subtotal' => $subtotal,
             'tax_amount' => $tax,
             'total_amount' => $subtotal + $tax,

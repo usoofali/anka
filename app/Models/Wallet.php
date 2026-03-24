@@ -17,9 +17,15 @@ final class Wallet extends Model
 
     protected $fillable = [
         'shipper_id',
-        'currency',
         'balance',
     ];
+
+    protected static function booted(): void
+    {
+        self::saving(function (Wallet $wallet): void {
+            $wallet->currency = (string) config('financial.currency');
+        });
+    }
 
     protected function casts(): array
     {
