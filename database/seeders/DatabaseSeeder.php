@@ -2,8 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\ChargeItem;
+use App\Models\DocumentType;
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -13,11 +14,31 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->call(RolePermissionSeeder::class);
+
+        ChargeItem::query()->firstOrCreate(
+            ['item' => 'Storage'],
+            ['description' => 'Per-day vehicle storage'],
+        );
+
+        DocumentType::query()->firstOrCreate(
+            ['slug' => 'bill-of-lading'],
+            ['name' => 'Bill of lading', 'description' => 'Shipping BOL'],
+        );
+
+        $admin = User::factory()->create([
+            'name' => 'Super Admin',
+            'email' => 'admin@example.com',
+        ]);
+        $admin->assignRole('super_admin');
 
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        if (app()->environment('local')) {
+            $this->command?->info('Seeded roles; admin login: admin@example.com / password (if unchanged in UserFactory)');
+        }
     }
 }
