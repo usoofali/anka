@@ -67,10 +67,10 @@ final class RolePermissionSeeder extends Seeder
             'documents.manage',
         ]);
 
-        $shipperOwner = Role::query()->firstOrCreate(
-            ['name' => 'shipper_owner', 'guard_name' => 'web'],
+        $shipper = Role::query()->firstOrCreate(
+            ['name' => 'shipper', 'guard_name' => 'web'],
         );
-        $shipperOwner->syncPermissions([
+        $shipper->syncPermissions([
             'shipments.view',
             'invoices.view',
             'payments.manage',

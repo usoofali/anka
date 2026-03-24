@@ -26,9 +26,9 @@ it('assigns super_admin broad abilities', function () {
         ->and($user->can('roles.manage'))->toBeTrue();
 });
 
-it('scopes shipper_owner permissions narrowly', function () {
+it('scopes shipper permissions narrowly', function () {
     $user = User::factory()->create();
-    $user->assignRole('shipper_owner');
+    $user->assignRole('shipper');
 
     expect($user->can('shipments.view'))->toBeTrue()
         ->and($user->can('shipments.delete'))->toBeFalse();
