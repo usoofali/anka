@@ -88,3 +88,13 @@ it('stores invoices and wallets in the configured financial currency', function 
 
     expect($wallet->refresh()->currency)->toBe(config('financial.currency'));
 });
+
+it('links shipper to a consistent country, state, and city', function () {
+    $shipper = Shipper::factory()->create();
+
+    expect($shipper->city)->not->toBeNull()
+        ->and($shipper->state)->not->toBeNull()
+        ->and($shipper->country)->not->toBeNull()
+        ->and($shipper->state_id)->toBe($shipper->city->state_id)
+        ->and($shipper->country_id)->toBe($shipper->state->country_id);
+});

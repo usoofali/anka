@@ -30,7 +30,14 @@
                 </flux:sidebar.item>
             </flux:sidebar.nav>
 
-            <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />
+            <div
+                class="hidden items-center gap-1 border-t border-zinc-200 p-2 dark:border-zinc-700 lg:flex"
+            >
+                <x-notification-dropdown class="shrink-0 self-center" />
+                <div class="min-w-0 flex-1">
+                    <x-desktop-user-menu :name="auth()->user()->name" />
+                </div>
+            </div>
         </flux:sidebar>
 
         <!-- Mobile User Menu -->
@@ -38,6 +45,8 @@
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
 
             <flux:spacer />
+
+            <x-notification-dropdown menu-position="bottom" class="shrink-0" />
 
             <flux:dropdown position="top" align="end">
                 <flux:profile

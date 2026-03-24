@@ -29,4 +29,9 @@ final class City extends Model
     {
         return $this->hasMany(Port::class);
     }
+
+    public function shippers(): HasMany
+    {
+        return $this->hasMany(Shipper::class);
+    }
 }

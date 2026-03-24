@@ -14,30 +14,15 @@ return new class extends Migration
             $table->string('company_name')->nullable();
             $table->string('phone')->nullable();
             $table->string('address')->nullable();
-            $table->timestamps();
-        });
-
-        Schema::create('staff', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->unique()->constrained()->cascadeOnDelete();
-            $table->string('job_title')->nullable();
-            $table->string('phone')->nullable();
-            $table->timestamps();
-        });
-
-        Schema::create('drivers', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('phone')->nullable();
-            $table->string('license_number')->nullable();
+            $table->foreignId('country_id')->nullable()->constrained()->restrictOnDelete();
+            $table->foreignId('state_id')->nullable()->constrained()->restrictOnDelete();
+            $table->foreignId('city_id')->nullable()->constrained()->restrictOnDelete();
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('drivers');
-        Schema::dropIfExists('staff');
         Schema::dropIfExists('shippers');
     }
 };

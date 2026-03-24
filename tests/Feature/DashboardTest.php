@@ -13,4 +13,5 @@ test('authenticated users can visit the dashboard', function () {
 
     $response = $this->get(route('dashboard'));
     $response->assertOk();
+    expect($response->getContent())->toContain('notifications-menu-button');
 });
