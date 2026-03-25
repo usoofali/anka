@@ -13,9 +13,28 @@
                 </flux:subheading>
             </div>
             <div class="space-y-4">
-                <flux:input name="name" :label="__('Your name')" type="text" required autofocus autocomplete="name" :value="old('name')" />
+                <flux:input
+                    name="name"
+                    :label="__('Your name')"
+                    type="text"
+                    required
+                    autofocus
+                    autocomplete="name"
+                    :value="old('name')"
+                    icon:leading="user"
+                    class="[&_[data-flux-icon]]:text-sky-600 dark:[&_[data-flux-icon]]:text-cyan-300"
+                />
 
-                <flux:input name="email" :label="__('Email address')" type="email" required autocomplete="username" :value="old('email')" />
+                <flux:input
+                    name="email"
+                    :label="__('Email address')"
+                    type="email"
+                    required
+                    autocomplete="username"
+                    :value="old('email')"
+                    icon:leading="envelope"
+                    class="[&_[data-flux-icon]]:text-sky-600 dark:[&_[data-flux-icon]]:text-cyan-300"
+                />
             </div>
         </section>
 
@@ -29,11 +48,37 @@
                 </flux:subheading>
             </div>
             <div class="space-y-4">
-                <flux:input name="company_name" :label="__('Company name')" type="text" required :value="old('company_name')" />
+                <flux:input
+                    name="company_name"
+                    :label="__('Company name')"
+                    type="text"
+                    required
+                    :value="old('company_name')"
+                    icon:leading="building-office-2"
+                    class="[&_[data-flux-icon]]:text-sky-600 dark:[&_[data-flux-icon]]:text-cyan-300"
+                />
 
-                <flux:input name="phone" :label="__('Phone')" type="tel" required :value="old('phone')" autocomplete="tel" />
+                <flux:input
+                    name="phone"
+                    :label="__('Phone')"
+                    type="tel"
+                    required
+                    :value="old('phone')"
+                    autocomplete="tel"
+                    icon:leading="phone"
+                    class="[&_[data-flux-icon]]:text-sky-600 dark:[&_[data-flux-icon]]:text-cyan-300"
+                />
 
-                <flux:input name="address" :label="__('Address')" type="text" required :value="old('address')" autocomplete="street-address" />
+                <flux:input
+                    name="address"
+                    :label="__('Address')"
+                    type="text"
+                    required
+                    :value="old('address')"
+                    autocomplete="street-address"
+                    icon:leading="map-pin"
+                    class="[&_[data-flux-icon]]:text-sky-600 dark:[&_[data-flux-icon]]:text-cyan-300"
+                />
             </div>
         </section>
 
@@ -63,9 +108,27 @@
                 </flux:subheading>
             </div>
             <div class="space-y-4">
-                <flux:input name="password" :label="__('Password')" type="password" required autocomplete="new-password" viewable />
+                <flux:input
+                    name="password"
+                    :label="__('Password')"
+                    type="password"
+                    required
+                    autocomplete="new-password"
+                    viewable
+                    icon:leading="lock-closed"
+                    class="[&_[data-flux-icon]]:text-sky-600 dark:[&_[data-flux-icon]]:text-cyan-300"
+                />
 
-                <flux:input name="password_confirmation" :label="__('Confirm password')" type="password" required autocomplete="new-password" viewable />
+                <flux:input
+                    name="password_confirmation"
+                    :label="__('Confirm password')"
+                    type="password"
+                    required
+                    autocomplete="new-password"
+                    viewable
+                    icon:leading="key"
+                    class="[&_[data-flux-icon]]:text-sky-600 dark:[&_[data-flux-icon]]:text-cyan-300"
+                />
             </div>
         </section>
 
