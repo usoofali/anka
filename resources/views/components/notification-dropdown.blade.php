@@ -1,22 +1,11 @@
 @props([
-    'unreadCount' => 0,
     'menuPosition' => 'top',
 ])
 
 @php
-    /** @var list<array{title: string, body: string, time: string}> $notifications */
-    $notifications = [
-        [
-            'title' => __('Shipment REF-2401 updated'),
-            'body' => __('Status changed to Inland'),
-            'time' => __('2 hours ago'),
-        ],
-        [
-            'title' => __('Invoice INV-1008 ready'),
-            'body' => __('Your invoice is available to view'),
-            'time' => __('Yesterday'),
-        ],
-    ];
+    /** @var \Illuminate\Database\Eloquent\Collection<int, \Illuminate\Notifications\DatabaseNotification> $items */
+    $items = auth()->user()->unreadNotifications()->latest()->limit(10)->get();
+    $unreadCount = auth()->user()->unreadNotifications()->count();
 @endphp
 
 <flux:dropdown :position="$menuPosition" align="end" {{ $attributes }}>
@@ -48,21 +37,56 @@
         </div>
         <flux:menu.separator />
 
-        <flux:menu.radio.group>
-            @foreach ($notifications as $note)
-                <flux:menu.item class="items-start whitespace-normal">
-                    <div class="grid max-w-64 gap-0.5 text-start">
-                        <span class="font-medium text-zinc-800 dark:text-zinc-100">{{ $note['title'] }}</span>
-                        <flux:text class="text-xs">{{ $note['body'] }}</flux:text>
-                        <flux:text class="text-xs text-zinc-500 dark:text-zinc-400">{{ $note['time'] }}</flux:text>
-                    </div>
-                </flux:menu.item>
-            @endforeach
-        </flux:menu.radio.group>
+        @if ($items->isEmpty())
+            <div class="px-3 py-6 text-center">
+                <flux:text class="text-sm text-zinc-500">{{ __('No unread notifications.') }}</flux:text>
+            </div>
+        @else
+            <flux:menu.radio.group>
+                @foreach ($items as $notification)
+                    @php
+                        $data = $notification->data;
+                        $title = data_get($data, 'title', __('Notification'));
+                        $body = data_get($data, 'body', '');
+                        $baseUrl = data_get($data, 'url');
+                        $href = null;
+                        if ($baseUrl) {
+                            $sep = str_contains($baseUrl, '?') ? '&' : '?';
+                            $href = $baseUrl.$sep.'notification='.urlencode($notification->id);
+                        }
+                    @endphp
+                    @if ($href)
+                        <flux:menu.item class="items-start whitespace-normal" :href="$href" wire:navigate>
+                            <div class="grid max-w-64 gap-0.5 text-start">
+                                <span class="font-medium text-zinc-800 dark:text-zinc-100">{{ $title }}</span>
+                                @if ($body !== '')
+                                    <flux:text class="text-xs">{{ $body }}</flux:text>
+                                @endif
+                                <flux:text class="text-xs text-zinc-500 dark:text-zinc-400">
+                                    {{ $notification->created_at->diffForHumans() }}
+                                </flux:text>
+                            </div>
+                        </flux:menu.item>
+                    @else
+                        <flux:menu.item class="items-start whitespace-normal">
+                            <div class="grid max-w-64 gap-0.5 text-start">
+                                <span class="font-medium text-zinc-800 dark:text-zinc-100">{{ $title }}</span>
+                                @if ($body !== '')
+                                    <flux:text class="text-xs">{{ $body }}</flux:text>
+                                @endif
+                                <flux:text class="text-xs text-zinc-500 dark:text-zinc-400">
+                                    {{ $notification->created_at->diffForHumans() }}
+                                </flux:text>
+                            </div>
+                        </flux:menu.item>
+                    @endif
+                @endforeach
+            </flux:menu.radio.group>
+        @endif
 
         <flux:menu.separator />
         <flux:menu.radio.group>
-            <flux:menu.item icon="arrow-top-right-on-square" disabled>
+            <flux:menu.item icon="arrow-top-right-on-square" :href="route('notifications.index')" wire:navigate>
                 {{ __('View all notifications') }}
             </flux:menu.item>
         </flux:menu.radio.group>

@@ -80,6 +80,16 @@ test('new users can register', function () {
     Notification::assertSentTo($superAdmin, ShipperRegisteredInternalNotification::class);
     Notification::assertSentTo($staffUser, ShipperRegisteredInternalNotification::class);
     Notification::assertNotSentTo($user, ShipperRegisteredInternalNotification::class);
+
+    Notification::assertSentTo(
+        $superAdmin,
+        ShipperRegisteredInternalNotification::class,
+        function (ShipperRegisteredInternalNotification $notification, array $channels) use ($superAdmin, $shipper): bool {
+            $data = $notification->toArray($superAdmin);
+
+            return ($data['url'] ?? null) === route('shippers.show', $shipper, absolute: true);
+        },
+    );
 });
 
 test('registration requires terms acceptance', function () {

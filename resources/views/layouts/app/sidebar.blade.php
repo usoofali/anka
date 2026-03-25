@@ -102,6 +102,6 @@
         {{-- flux:toast is not available in this Flux install; session flash uses x-ui-toast --}}
         <x-ui-toast />
 
-        @fluxScripts
+        @include('partials.scripts')
     </body>
 </html>

@@ -2,25 +2,7 @@
     :title="__('Register as a shipper')"
     :description="__('Create your company account to manage shipments and bookings.')"
 >
-    <form
-        method="POST"
-        action="{{ route('register.store') }}"
-        class="flex flex-col gap-8"
-        x-data="{
-            countries: @js($geoCountries),
-            countryId: @js(old('country_id') !== null && old('country_id') !== '' ? (string) old('country_id') : ''),
-            stateId: @js(old('state_id') !== null && old('state_id') !== '' ? (string) old('state_id') : ''),
-            cityId: @js(old('city_id') !== null && old('city_id') !== '' ? (string) old('city_id') : ''),
-            get states() {
-                const c = this.countries.find((x) => String(x.id) === String(this.countryId));
-                return c?.states ?? [];
-            },
-            get cities() {
-                const s = this.states.find((x) => String(x.id) === String(this.stateId));
-                return s?.cities ?? [];
-            },
-        }"
-    >
+    <form method="POST" action="{{ route('register.store') }}" class="flex flex-col gap-8">
         @csrf
 
         <section class="space-y-4">
@@ -64,57 +46,11 @@
                     {{ __('Where your company is based.') }}
                 </flux:subheading>
             </div>
-            <div class="space-y-4">
-                <flux:field>
-                    <flux:label>{{ __('Country') }}</flux:label>
-                    <select
-                        name="country_id"
-                        x-model="countryId"
-                        @change="stateId = ''; cityId = '';"
-                        class="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-xs focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/10 focus:outline-hidden dark:border-white/10 dark:bg-zinc-900 dark:text-white dark:focus:border-white dark:focus:ring-white/20"
-                        required
-                    >
-                        <option value="">{{ __('Select country') }}</option>
-                        <template x-for="c in countries" :key="c.id">
-                            <option :value="String(c.id)" x-text="c.name"></option>
-                        </template>
-                    </select>
-                    <flux:error name="country_id" />
-                </flux:field>
-
-                <flux:field>
-                    <flux:label>{{ __('State / region') }}</flux:label>
-                    <select
-                        name="state_id"
-                        x-model="stateId"
-                        @change="cityId = '';"
-                        class="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-xs focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/10 focus:outline-hidden dark:border-white/10 dark:bg-zinc-900 dark:text-white dark:focus:border-white dark:focus:ring-white/20"
-                        required
-                    >
-                        <option value="">{{ __('Select state') }}</option>
-                        <template x-for="s in states" :key="s.id">
-                            <option :value="String(s.id)" x-text="s.name"></option>
-                        </template>
-                    </select>
-                    <flux:error name="state_id" />
-                </flux:field>
-
-                <flux:field>
-                    <flux:label>{{ __('City') }}</flux:label>
-                    <select
-                        name="city_id"
-                        x-model="cityId"
-                        class="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-xs focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/10 focus:outline-hidden dark:border-white/10 dark:bg-zinc-900 dark:text-white dark:focus:border-white dark:focus:ring-white/20"
-                        required
-                    >
-                        <option value="">{{ __('Select city') }}</option>
-                        <template x-for="ci in cities" :key="ci.id">
-                            <option :value="String(ci.id)" x-text="ci.name"></option>
-                        </template>
-                    </select>
-                    <flux:error name="city_id" />
-                </flux:field>
-            </div>
+            <livewire:auth.register-geo-selects
+                :initial-country-id="old('country_id')"
+                :initial-state-id="old('state_id')"
+                :initial-city-id="old('city_id')"
+            />
         </section>
 
         <flux:separator variant="subtle" />
@@ -137,7 +73,13 @@
 
         <flux:field variant="inline">
             <flux:checkbox name="terms" value="1" :checked="(bool) old('terms')" />
-            <flux:label>{{ __('I agree to the terms and conditions') }}</flux:label>
+            <flux:label>
+                <span class="text-sm">{{ __('I agree to the') }}</span>
+                <flux:link :href="route('terms')" class="text-sm">{{ __('terms of service') }}</flux:link>
+                <span class="text-sm">{{ __('and') }}</span>
+                <flux:link :href="route('privacy')" class="text-sm">{{ __('privacy policy') }}</flux:link>
+                <span class="text-sm">.</span>
+            </flux:label>
             <flux:error name="terms" />
         </flux:field>
 
