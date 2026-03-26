@@ -23,7 +23,7 @@
             <div
                 class="hidden items-center gap-1 border-t border-zinc-200 p-2 dark:border-zinc-700 lg:flex"
             >
-                <x-notification-dropdown class="shrink-0 self-center" />
+                <x-notification-dropdown />
                 <div class="min-w-0 flex-1">
                     <x-desktop-user-menu :name="auth()->user()->name" />
                 </div>
@@ -36,7 +36,7 @@
 
             <flux:spacer />
 
-            <x-notification-dropdown menu-position="bottom" class="shrink-0" />
+            <x-notification-dropdown menu-position="bottom" />
 
             <flux:dropdown position="top" align="end">
                 <flux:profile

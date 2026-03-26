@@ -58,3 +58,21 @@ test('user cannot mark another user notification as read', function () {
 
     expect($databaseNotification->fresh()->read_at)->toBeNull();
 });
+
+test('notification dropdown dispatches sound event when unread count increases', function () {
+    $recipient = User::factory()->create();
+    $registered = User::factory()->create();
+    $shipper = Shipper::factory()->create(['user_id' => $registered->id]);
+
+    $this->actingAs($recipient);
+
+    $component = Livewire::test('notification-dropdown')
+        ->call('refreshNotifications')
+        ->assertNotDispatched('notifications:new-unread');
+
+    $recipient->notify(new ShipperRegisteredInternalNotification($registered, $shipper));
+
+    $component
+        ->call('refreshNotifications')
+        ->assertDispatched('notifications:new-unread');
+});

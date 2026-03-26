@@ -2,16 +2,6 @@
 
 <x-layouts::auth.card>
     <div class="flex flex-col gap-8">
-        @if ($systemSetting->logoSrcForWeb())
-            <div class="flex justify-center">
-                <img
-                    src="{{ $systemSetting->logoSrcForWeb() }}"
-                    alt="{{ $systemSetting->company_name ?: config('app.name') }}"
-                    class="max-h-16 w-auto rounded-md object-contain"
-                >
-            </div>
-        @endif
-
         <x-auth-header
             :title="__('Shipper registration')"
             :description="__('Create your company account to manage shipments and bookings.')"
