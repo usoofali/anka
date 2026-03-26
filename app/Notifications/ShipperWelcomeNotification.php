@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Notifications;
 
 use App\Models\Shipper;
+use App\Models\SystemSetting;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -28,10 +29,21 @@ final class ShipperWelcomeNotification extends Notification implements ShouldQue
 
     public function toMail(object $notifiable): MailMessage
     {
+        $setting = SystemSetting::current()->loadMissing(['city', 'state']);
+        $companyName = $setting->company_name ?: config('app.name');
+        $cityName = $setting->city?->name;
+        $stateName = $setting->state?->name;
+        $location = collect([$cityName, $stateName])->filter()->implode(', ');
+
         return (new MailMessage)
-            ->subject(__('Welcome to :app', ['app' => config('app.name')]))
-            ->greeting(__('Hello :name!', ['name' => $notifiable->name]))
-            ->line(__('Your shipper account for :company is ready.', ['company' => $this->shipper->company_name]))
+            ->subject(__('Welcome to :app', ['app' => $companyName]))
+            ->markdown('emails.shipper-welcome', [
+                'notifiable' => $notifiable,
+                'shipper' => $this->shipper,
+                'setting' => $setting,
+                'companyName' => $companyName,
+                'location' => $location,
+            ])
             ->action(__('Go to dashboard'), url('/dashboard'))
             ->line(__('Thank you for registering with us.'));
     }

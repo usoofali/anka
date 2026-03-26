@@ -20,16 +20,6 @@
 
             <flux:spacer />
 
-            <flux:sidebar.nav>
-                <flux:sidebar.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
-                    {{ __('Repository') }}
-                </flux:sidebar.item>
-
-                <flux:sidebar.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">
-                    {{ __('Documentation') }}
-                </flux:sidebar.item>
-            </flux:sidebar.nav>
-
             <div
                 class="hidden items-center gap-1 border-t border-zinc-200 p-2 dark:border-zinc-700 lg:flex"
             >
@@ -98,6 +88,8 @@
         </flux:header>
 
         {{ $slot }}
+
+        <x-dialog />
 
         {{-- flux:toast is not available in this Flux install; session flash uses x-ui-toast --}}
         <x-ui-toast />

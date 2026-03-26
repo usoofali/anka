@@ -6,6 +6,7 @@ use App\Models\Country;
 use App\Models\Shipper;
 use App\Models\Staff;
 use App\Models\State;
+use App\Models\SystemSetting;
 use App\Models\User;
 use App\Notifications\ShipperRegisteredInternalNotification;
 use App\Notifications\ShipperWelcomeNotification;
@@ -19,11 +20,16 @@ beforeEach(function () {
 
 test('registration screen can be rendered', function () {
     $this->seed(RolePermissionSeeder::class);
+    SystemSetting::current()->update([
+        'company_name' => 'Anka Logistics',
+        'logo' => 'https://example.com/logo.png',
+    ]);
 
     $response = $this->get(route('register'));
 
     $response->assertOk()
-        ->assertSee(__('Shipper registration'), escape: false);
+        ->assertSee(__('Shipper registration'), escape: false)
+        ->assertSee('https://example.com/logo.png', escape: false);
 });
 
 test('new users can register', function () {
