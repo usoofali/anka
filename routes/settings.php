@@ -11,6 +11,7 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('settings/system', 'pages::settings.system-setting')->name('system-setting.edit');
+    Route::livewire('settings/system-config', 'pages::settings.system-config')->name('system-config.edit');
 
     Route::livewire('settings/appearance', 'pages::settings.appearance')->name('appearance.edit');
 

@@ -7,16 +7,21 @@ use App\Models\Country;
 use App\Models\State;
 use App\Models\SystemSetting;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\WithFileUploads;
 use WireUi\Traits\WireUiActions;
 
 new #[Title('System settings')] class extends Component {
-    use WireUiActions;
+    use WireUiActions, WithFileUploads;
 
     public string $company_name = '';
     public ?string $logo = null;
+    public ?string $logo_path = null;
+    public TemporaryUploadedFile|null $logo_file = null;
     public string $address = '';
     public string $phone = '';
     public string $zipcode = '';
@@ -37,6 +42,7 @@ new #[Title('System settings')] class extends Component {
         $setting = SystemSetting::current();
         $this->company_name = $setting->company_name ?? '';
         $this->logo = $setting->logo;
+        $this->logo_path = $setting->logo_path;
         $this->address = $setting->address ?? '';
         $this->phone = $setting->phone ?? '';
         $this->zipcode = $setting->zipcode ?? '';
@@ -69,6 +75,7 @@ new #[Title('System settings')] class extends Component {
         $validated = $this->validate([
             'company_name' => ['nullable', 'string', 'max:255'],
             'logo' => ['nullable', 'string'],
+            'logo_file' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:4096'],
             'address' => ['nullable', 'string'],
             'phone' => ['nullable', 'string', 'max:255'],
             'zipcode' => ['nullable', 'string', 'max:255'],
@@ -83,7 +90,35 @@ new #[Title('System settings')] class extends Component {
             'tracking_random_digits' => ['required', 'integer', 'min:1', 'max:20'],
         ]);
 
-        SystemSetting::current()->update($validated);
+        $setting = SystemSetting::current();
+        $previousLogoPath = $setting->logo_path;
+
+        if ($this->logo_file instanceof TemporaryUploadedFile) {
+            $storedPath = $this->logo_file->store('system/logo', 'public');
+            $mimeType = $this->logo_file->getMimeType() ?: 'image/png';
+            $contents = file_get_contents($this->logo_file->getRealPath());
+            $base64 = $contents !== false ? 'data:'.$mimeType.';base64,'.base64_encode($contents) : null;
+
+            $validated['logo_path'] = $storedPath;
+            $validated['logo'] = $base64;
+
+            if (
+                is_string($previousLogoPath)
+                && $previousLogoPath !== ''
+                && $previousLogoPath !== $storedPath
+                && Storage::disk('public')->exists($previousLogoPath)
+            ) {
+                Storage::disk('public')->delete($previousLogoPath);
+            }
+
+            $this->logo_file = null;
+        } else {
+            $validated['logo_path'] = $this->logo_path;
+        }
+
+        $setting->update($validated);
+        $this->logo = $setting->fresh()?->logo;
+        $this->logo_path = $setting->fresh()?->logo_path;
 
         $this->dialog()->show([
             'icon' => 'success',
@@ -127,6 +162,24 @@ new #[Title('System settings')] class extends Component {
             ->orderBy('name')
             ->get();
     }
+
+    #[Computed]
+    public function logoPreviewUrl(): ?string
+    {
+        if ($this->logo_file instanceof TemporaryUploadedFile) {
+            return $this->logo_file->temporaryUrl();
+        }
+
+        if (is_string($this->logo_path) && trim($this->logo_path) !== '') {
+            return Storage::url(trim($this->logo_path));
+        }
+
+        if (is_string($this->logo) && trim($this->logo) !== '') {
+            return $this->logo;
+        }
+
+        return null;
+    }
 }; ?>
 
 <section class="w-full">
@@ -140,8 +193,18 @@ new #[Title('System settings')] class extends Component {
                 <flux:input wire:model="company_name" :label="__('Company name')" />
                 <flux:input wire:model="phone" :label="__('Phone')" />
                 <flux:input wire:model="zipcode" :label="__('Zip code')" />
-                <flux:input wire:model="logo" :label="__('Logo (base64 / URL)')" />
+                <flux:input wire:model="logo_file" type="file" accept="image/*" :label="__('Company logo file')" />
             </div>
+
+            @if ($this->logoPreviewUrl)
+                <div class="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
+                    <flux:text class="mb-2 text-sm">{{ __('Logo preview') }}</flux:text>
+                    <img src="{{ $this->logoPreviewUrl }}" alt="{{ __('Company logo preview') }}" class="max-h-20 w-auto rounded object-contain">
+                    @if ($logo_path)
+                        <flux:text class="mt-2 text-xs text-zinc-500">{{ __('Stored path: :path', ['path' => $logo_path]) }}</flux:text>
+                    @endif
+                </div>
+            @endif
 
             <flux:textarea wire:model="address" :label="__('Address')" rows="3" />
 

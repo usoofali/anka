@@ -2,10 +2,10 @@
 
 <x-layouts::auth.card>
     <div class="flex flex-col gap-8">
-        @if ($systemSetting->logo)
+        @if ($systemSetting->logoSrcForWeb())
             <div class="flex justify-center">
                 <img
-                    src="{{ $systemSetting->logo }}"
+                    src="{{ $systemSetting->logoSrcForWeb() }}"
                     alt="{{ $systemSetting->company_name ?: config('app.name') }}"
                     class="max-h-16 w-auto rounded-md object-contain"
                 >

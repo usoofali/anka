@@ -34,6 +34,7 @@ final class ShipperWelcomeNotification extends Notification implements ShouldQue
         $cityName = $setting->city?->name;
         $stateName = $setting->state?->name;
         $location = collect([$cityName, $stateName])->filter()->implode(', ');
+        $emailLogo = $setting->logoSrcForEmail();
 
         return (new MailMessage)
             ->subject(__('Welcome to :app', ['app' => $companyName]))
@@ -43,6 +44,7 @@ final class ShipperWelcomeNotification extends Notification implements ShouldQue
                 'setting' => $setting,
                 'companyName' => $companyName,
                 'location' => $location,
+                'emailLogo' => $emailLogo,
             ])
             ->action(__('Go to dashboard'), url('/dashboard'))
             ->line(__('Thank you for registering with us.'));

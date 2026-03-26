@@ -8,6 +8,8 @@ use Database\Factories\SystemSettingFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /**
  * Application-wide settings. The logo attribute stores a base64-encoded image,
@@ -21,6 +23,7 @@ final class SystemSetting extends Model
     protected $fillable = [
         'company_name',
         'logo',
+        'logo_path',
         'address',
         'phone',
         'zipcode',
@@ -75,5 +78,55 @@ final class SystemSetting extends Model
     public function city(): BelongsTo
     {
         return $this->belongsTo(City::class);
+    }
+
+    public function logoSrcForWeb(): ?string
+    {
+        if (is_string($this->logo_path) && trim($this->logo_path) !== '') {
+            return Storage::url(trim($this->logo_path));
+        }
+
+        if (! is_string($this->logo) || trim($this->logo) === '') {
+            return null;
+        }
+
+        $logo = trim($this->logo);
+
+        if (Str::startsWith($logo, 'data:image/')) {
+            return $logo;
+        }
+
+        if (Str::startsWith($logo, ['http://', 'https://'])) {
+            return $logo;
+        }
+
+        if (Str::startsWith($logo, '/')) {
+            return $logo;
+        }
+
+        return Storage::url($logo);
+    }
+
+    public function logoSrcForEmail(): ?string
+    {
+        if (is_string($this->logo_path) && trim($this->logo_path) !== '') {
+            return url(Storage::url(trim($this->logo_path)));
+        }
+
+        if (! is_string($this->logo) || trim($this->logo) === '') {
+            return null;
+        }
+
+        $logo = trim($this->logo);
+
+        if (Str::startsWith($logo, ['http://', 'https://'])) {
+            return $logo;
+        }
+
+        if (Str::startsWith($logo, '/')) {
+            return url($logo);
+        }
+
+        return null;
     }
 }

@@ -1,7 +1,7 @@
 <x-mail::message>
-@if (! empty($setting->logo))
+@if (! empty($emailLogo))
 <p style="text-align:center; margin-bottom: 16px;">
-    <img src="{{ $setting->logo }}" alt="{{ $companyName }}" style="max-height:64px; width:auto;">
+    <img src="{{ $emailLogo }}" alt="{{ $companyName }}" style="max-height:64px; width:auto;">
 </p>
 @endif
 
