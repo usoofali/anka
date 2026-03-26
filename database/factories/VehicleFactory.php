@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use App\Models\Shipment;
@@ -30,5 +32,12 @@ class VehicleFactory extends Factory
             'vehicle_type' => 'automobile',
             'is_insurance' => fake()->boolean(),
         ];
+    }
+
+    public function withoutShipment(): static
+    {
+        return $this->state(fn (): array => [
+            'shipment_id' => null,
+        ]);
     }
 }

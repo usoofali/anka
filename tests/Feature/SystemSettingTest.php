@@ -41,3 +41,26 @@ it('encrypts auction and whatsapp api keys in the database', function () {
         ->and($row->auction_api_key)->not->toBe('auction-secret-token')
         ->and($row->whatsapp_api_key)->not->toBe('whatsapp-secret-token');
 });
+
+it('persists tracking number configuration defaults and overrides', function () {
+    $default = SystemSetting::current()->fresh();
+
+    expect($default)->not->toBeNull()
+        ->and($default->tracking_delivery_prefix)->toBe('MRF')
+        ->and($default->tracking_digits)->toBe(5)
+        ->and($default->tracking_number_type)->toBe('auto_increment')
+        ->and($default->tracking_random_digits)->toBe(10);
+
+    $setting = SystemSetting::current();
+    $setting->update([
+        'tracking_delivery_prefix' => 'TRK',
+        'tracking_digits' => 7,
+        'tracking_number_type' => 'random',
+        'tracking_random_digits' => 12,
+    ]);
+
+    expect($setting->fresh()->tracking_delivery_prefix)->toBe('TRK')
+        ->and($setting->fresh()->tracking_digits)->toBe(7)
+        ->and($setting->fresh()->tracking_number_type)->toBe('random')
+        ->and($setting->fresh()->tracking_random_digits)->toBe(12);
+});

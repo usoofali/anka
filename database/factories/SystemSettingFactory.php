@@ -30,6 +30,10 @@ class SystemSettingFactory extends Factory
             'city_id' => null,
             'auction_api_key' => null,
             'whatsapp_api_key' => null,
+            'tracking_delivery_prefix' => 'MRF',
+            'tracking_digits' => 5,
+            'tracking_number_type' => 'auto_increment',
+            'tracking_random_digits' => 10,
         ];
     }
 }

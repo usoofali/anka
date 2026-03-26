@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    'copart_iaai' => [
+        'key' => env('COPART_IAAI_RAPIDAPI_KEY'),
+        'host' => env('COPART_IAAI_RAPIDAPI_HOST', 'api-for-copart-and-iaai.p.rapidapi.com'),
+        'base_url' => env('COPART_IAAI_RAPIDAPI_BASE_URL', 'https://api-for-copart-and-iaai.p.rapidapi.com'),
+        'timeout' => (int) env('COPART_IAAI_TIMEOUT', 30),
+        'rate_limit_per_minute' => (int) env('COPART_IAAI_RATE_LIMIT_PER_MINUTE', 30),
+    ],
+
 ];

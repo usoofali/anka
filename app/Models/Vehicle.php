@@ -10,8 +10,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Each row belongs to exactly one {@see Shipment}. Enforced in the database by a unique
- * shipment_id on the vehicles table (1:1 shipment-to-vehicle).
+ * Belongs to at most one {@see Shipment}. A unique shipment_id enforces at most one vehicle per shipment
+ * when shipment_id is non-null. Rows may exist with a null shipment_id (pre-shipment / prealert). VIN is unique when present.
+ *
+ * Copart/IAAI API rows store `api_snapshot` with first-class `car_photo` (gallery URLs), `sales_history`,
+ * `currency`, plus full `result_item` for parity with the provider payload.
  */
 final class Vehicle extends Model
 {
@@ -47,6 +50,7 @@ final class Vehicle extends Model
         'is_insurance',
         'currency_code_id',
         'api_snapshot',
+        'api_fetched_at',
     ];
 
     protected function casts(): array
@@ -54,7 +58,53 @@ final class Vehicle extends Model
         return [
             'is_insurance' => 'boolean',
             'api_snapshot' => 'array',
+            'api_fetched_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Copart/IAAI RapidAPI `car_photo` object from the `api_snapshot` JSON (`id`, `all_lots_id`, `photo` URL list).
+     * Prefer {@see self::copartCarPhotoUrls()} for image galleries.
+     *
+     * @return array{id?: int, all_lots_id?: string, photo?: list<string>}|null
+     */
+    public function copartCarPhoto(): ?array
+    {
+        $snap = $this->api_snapshot;
+        if (! is_array($snap)) {
+            return null;
+        }
+
+        $block = $snap['car_photo'] ?? null;
+
+        return is_array($block) ? $block : null;
+    }
+
+    /**
+     * Absolute image URLs from the Copart-style `car_photo.photo` array.
+     *
+     * @return list<string>
+     */
+    public function copartCarPhotoUrls(): array
+    {
+        $block = $this->copartCarPhoto();
+        if ($block === null) {
+            return [];
+        }
+
+        $photos = $block['photo'] ?? [];
+        if (! is_array($photos)) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($photos as $url) {
+            if (is_string($url) && $url !== '') {
+                $out[] = $url;
+            }
+        }
+
+        return array_values($out);
     }
 
     /**

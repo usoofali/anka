@@ -51,9 +51,19 @@ final class Shipper extends Model
         return $this->hasMany(Consignee::class);
     }
 
+    public function defaultConsignee(): HasOne
+    {
+        return $this->hasOne(Consignee::class)->where('is_default', true);
+    }
+
     public function shipments(): HasMany
     {
         return $this->hasMany(Shipment::class);
+    }
+
+    public function prealerts(): HasMany
+    {
+        return $this->hasMany(Prealert::class);
     }
 
     public function wallet(): HasOne

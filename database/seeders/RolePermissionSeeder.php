@@ -23,6 +23,10 @@ final class RolePermissionSeeder extends Seeder
             'shipments.view',
             'shipments.update',
             'shipments.delete',
+            'prealerts.view',
+            'prealerts.create',
+            'prealerts.update',
+            'shippers.view',
             'invoices.view',
             'invoices.manage',
             'payments.manage',
@@ -50,6 +54,10 @@ final class RolePermissionSeeder extends Seeder
             'shipments.view',
             'shipments.update',
             'shipments.delete',
+            'prealerts.view',
+            'prealerts.create',
+            'prealerts.update',
+            'shippers.view',
             'invoices.view',
             'invoices.manage',
             'payments.manage',
@@ -64,6 +72,9 @@ final class RolePermissionSeeder extends Seeder
             'shipments.create',
             'shipments.view',
             'shipments.update',
+            'prealerts.view',
+            'prealerts.update',
+            'shippers.view',
             'documents.manage',
         ]);
 
@@ -72,6 +83,9 @@ final class RolePermissionSeeder extends Seeder
         );
         $shipper->syncPermissions([
             'shipments.view',
+            'prealerts.view',
+            'prealerts.create',
+            'shippers.view',
             'invoices.view',
             'payments.manage',
             'documents.manage',

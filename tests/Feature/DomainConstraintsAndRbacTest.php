@@ -23,7 +23,9 @@ it('assigns super_admin broad abilities', function () {
 
     expect($user->hasRole('super_admin'))->toBeTrue()
         ->and($user->can('shipments.delete'))->toBeTrue()
-        ->and($user->can('roles.manage'))->toBeTrue();
+        ->and($user->can('roles.manage'))->toBeTrue()
+        ->and($user->can('prealerts.update'))->toBeTrue()
+        ->and($user->can('shippers.view'))->toBeTrue();
 });
 
 it('scopes shipper permissions narrowly', function () {
@@ -31,7 +33,9 @@ it('scopes shipper permissions narrowly', function () {
     $user->assignRole('shipper');
 
     expect($user->can('shipments.view'))->toBeTrue()
-        ->and($user->can('shipments.delete'))->toBeFalse();
+        ->and($user->can('shipments.delete'))->toBeFalse()
+        ->and($user->can('prealerts.create'))->toBeTrue()
+        ->and($user->can('shippers.view'))->toBeTrue();
 });
 
 it('enforces one vehicle per shipment at the database', function () {

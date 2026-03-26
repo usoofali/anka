@@ -6,7 +6,6 @@ use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Models\City;
 use App\Models\Consignee;
-use App\Models\Shipment;
 use App\Models\Shipper;
 use App\Models\State;
 use App\Models\User;
@@ -93,7 +92,7 @@ class CreateNewUser implements CreatesNewUsers
                 ->pluck('id')
                 ->merge(
                     User::query()->whereHas('staff')->pluck('id'),
-                )Shipment
+                )
                 ->unique()
                 ->filter(fn (int|string $id): bool => (int) $id !== (int) $user->id)
                 ->values();

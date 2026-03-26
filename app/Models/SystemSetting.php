@@ -29,6 +29,10 @@ final class SystemSetting extends Model
         'city_id',
         'auction_api_key',
         'whatsapp_api_key',
+        'tracking_delivery_prefix',
+        'tracking_digits',
+        'tracking_number_type',
+        'tracking_random_digits',
     ];
 
     /**
@@ -39,6 +43,8 @@ final class SystemSetting extends Model
         return [
             'auction_api_key' => 'encrypted',
             'whatsapp_api_key' => 'encrypted',
+            'tracking_digits' => 'integer',
+            'tracking_random_digits' => 'integer',
         ];
     }
 

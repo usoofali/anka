@@ -19,6 +19,7 @@ final class MergeShipmentDefaults
      */
     private const array PASSTHROUGH_KEYS = [
         'reference_no',
+        'gatepass_pin',
         'shipper_id',
         'consignee_id',
         'driver_id',

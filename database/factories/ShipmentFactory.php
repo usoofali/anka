@@ -31,6 +31,7 @@ class ShipmentFactory extends Factory
 
         return [
             'reference_no' => fake()->unique()->bothify('REF-########'),
+            'gatepass_pin' => fake()->optional()->regexify('[A-Z0-9]{11}'),
             'shipper_id' => $shipper,
             'consignee_id' => Consignee::factory()->for($shipper),
             'driver_id' => null,

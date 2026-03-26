@@ -4,6 +4,7 @@ use App\Models\Shipper;
 use App\Models\User;
 use App\Notifications\ShipperRegisteredInternalNotification;
 use Database\Seeders\RolePermissionSeeder;
+use Livewire\Livewire;
 
 beforeEach(function (): void {
     $this->seed(RolePermissionSeeder::class);
@@ -28,9 +29,32 @@ test('user can mark a notification as read', function () {
     expect($databaseNotification)->not->toBeNull()
         ->read_at->toBeNull();
 
-    $this->actingAs($recipient)
-        ->post(route('notifications.read', $databaseNotification->id))
-        ->assertRedirect();
+    $this->actingAs($recipient);
+
+    Livewire::test('pages::notifications.index')
+        ->call('markAsRead', $databaseNotification->id)
+        ->assertHasNoErrors();
 
     expect($databaseNotification->fresh()->read_at)->not->toBeNull();
+});
+
+test('user cannot mark another user notification as read', function () {
+    $owner = User::factory()->create();
+    $intruder = User::factory()->create();
+    $registered = User::factory()->create();
+    $shipper = Shipper::factory()->create(['user_id' => $registered->id]);
+
+    $owner->notify(new ShipperRegisteredInternalNotification($registered, $shipper));
+
+    $databaseNotification = $owner->notifications()->first();
+    expect($databaseNotification)->not->toBeNull()
+        ->read_at->toBeNull();
+
+    $this->actingAs($intruder);
+
+    Livewire::test('pages::notifications.index')
+        ->call('markAsRead', $databaseNotification->id)
+        ->assertHasNoErrors();
+
+    expect($databaseNotification->fresh()->read_at)->toBeNull();
 });

@@ -23,6 +23,7 @@ test('super admin can view any shipper', function () {
 
 test('staff user can view any shipper', function () {
     $staffUser = User::factory()->create();
+    $staffUser->assignRole('staff_operator');
     Staff::factory()->create(['user_id' => $staffUser->id]);
 
     $shipper = Shipper::factory()->create();

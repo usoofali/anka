@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Auth\RegisterGeoOptionsController;
-use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ShipperController;
 use Illuminate\Support\Facades\Route;
 
@@ -19,8 +18,7 @@ Route::middleware(['web', 'throttle:120,1'])->group(function (): void {
 Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 
-    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::livewire('/notifications', 'pages::notifications.index')->name('notifications.index');
 
     Route::get('/shippers/{shipper}', [ShipperController::class, 'show'])->name('shippers.show');
 });

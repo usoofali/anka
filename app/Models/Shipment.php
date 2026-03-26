@@ -22,6 +22,7 @@ final class Shipment extends Model
 
     protected $fillable = [
         'reference_no',
+        'gatepass_pin',
         'shipper_id',
         'consignee_id',
         'driver_id',
@@ -80,7 +81,7 @@ final class Shipment extends Model
     }
 
     /**
-     * At most one {@see Vehicle} per shipment (1:1); each vehicle has a unique shipment_id.
+     * At most one {@see Vehicle} per shipment when a vehicle row is linked (unique shipment_id when set).
      *
      * @return HasOne<Vehicle, $this>
      */

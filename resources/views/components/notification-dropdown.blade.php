@@ -6,6 +6,12 @@
     /** @var \Illuminate\Database\Eloquent\Collection<int, \Illuminate\Notifications\DatabaseNotification> $items */
     $items = auth()->user()->unreadNotifications()->latest()->limit(10)->get();
     $unreadCount = auth()->user()->unreadNotifications()->count();
+    $badgeLabel = $unreadCount >= 10 ? '9+' : (string) $unreadCount;
+    $badgeColorClasses = match (true) {
+        $unreadCount === 0 => 'bg-red-500 text-white ring-red-100 dark:ring-red-900/40',
+        $unreadCount >= 10 => 'bg-emerald-500 text-white ring-emerald-100 dark:ring-emerald-900/40',
+        default => 'bg-amber-500 text-white ring-amber-100 dark:ring-amber-900/40',
+    };
 @endphp
 
 <flux:dropdown :position="$menuPosition" align="end" {{ $attributes }}>
@@ -18,14 +24,15 @@
         data-test="notifications-menu-button"
         aria-label="{{ __('Notifications') }}"
     >
-        @if ($unreadCount > 0)
-            <span
-                class="absolute end-0 top-0 flex min-h-4 min-w-4 translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-accent-600 px-1 text-[10px] font-semibold leading-none text-white ring-2 ring-zinc-50 dark:ring-zinc-900"
-                aria-hidden="true"
-            >
-                {{ $unreadCount > 9 ? '9+' : $unreadCount }}
-            </span>
-        @endif
+        <span
+            @class([
+                'absolute -end-1 -top-1 z-10 inline-flex h-4 min-w-4 items-center justify-center rounded-sm px-1 text-[9px] font-bold leading-none ring-1 ring-zinc-50 dark:ring-zinc-900',
+                $badgeColorClasses,
+            ])
+            aria-hidden="true"
+        >
+            {{ $badgeLabel }}
+        </span>
     </flux:button>
 
     <flux:menu class="max-h-80 min-w-72 overflow-y-auto">

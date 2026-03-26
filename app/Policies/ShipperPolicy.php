@@ -15,6 +15,10 @@ final class ShipperPolicy
             return true;
         }
 
+        if (! $user->can('shippers.view')) {
+            return false;
+        }
+
         if ($user->staff()->exists()) {
             return true;
         }
