@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use App\Enums\LogisticsService;
 use App\Enums\ShipmentStatus;
 use App\Enums\ShippingMode;
+use App\Models\Carrier;
 use App\Models\Consignee;
 use App\Models\Port;
 use App\Models\Shipment;
@@ -32,6 +35,7 @@ class ShipmentFactory extends Factory
             'consignee_id' => Consignee::factory()->for($shipper),
             'driver_id' => null,
             'shipping_company_id' => ShippingCompany::factory(),
+            'carrier_id' => Carrier::factory(),
             'origin_port_id' => Port::factory(),
             'destination_port_id' => Port::factory(),
             'logistics_service' => LogisticsService::Ocean->value,

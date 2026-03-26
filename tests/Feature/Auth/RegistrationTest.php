@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\City;
+use App\Models\Consignee;
 use App\Models\Country;
 use App\Models\Shipper;
 use App\Models\Staff;
@@ -21,7 +22,8 @@ test('registration screen can be rendered', function () {
 
     $response = $this->get(route('register'));
 
-    $response->assertOk();
+    $response->assertOk()
+        ->assertSee(__('Shipper registration'), escape: false);
 });
 
 test('new users can register', function () {
@@ -75,6 +77,12 @@ test('new users can register', function () {
         ->country_id->toBe($country->id)
         ->state_id->toBe($state->id)
         ->city_id->toBe($city->id);
+
+    $consignee = Consignee::query()->where('shipper_id', $shipper->id)->first();
+    expect($consignee)->not->toBeNull()
+        ->name->toBe('Acme Logistics')
+        ->address->toBe('123 Harbor Rd')
+        ->is_default->toBeTrue();
 
     Notification::assertSentTo($user, ShipperWelcomeNotification::class);
     Notification::assertSentTo($superAdmin, ShipperRegisteredInternalNotification::class);

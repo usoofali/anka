@@ -21,9 +21,8 @@ class ConsigneeFactory extends Factory
         return [
             'shipper_id' => Shipper::factory(),
             'name' => fake()->name(),
-            'contact' => fake()->optional()->name(),
-            'phone' => fake()->optional()->phoneNumber(),
             'address' => fake()->optional()->address(),
+            'is_default' => false,
         ];
     }
 }

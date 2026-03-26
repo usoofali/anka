@@ -26,6 +26,7 @@ final class Shipment extends Model
         'consignee_id',
         'driver_id',
         'shipping_company_id',
+        'carrier_id',
         'origin_port_id',
         'destination_port_id',
         'logistics_service',
@@ -63,6 +64,11 @@ final class Shipment extends Model
         return $this->belongsTo(ShippingCompany::class);
     }
 
+    public function carrier(): BelongsTo
+    {
+        return $this->belongsTo(Carrier::class);
+    }
+
     public function originPort(): BelongsTo
     {
         return $this->belongsTo(Port::class, 'origin_port_id');
@@ -73,6 +79,11 @@ final class Shipment extends Model
         return $this->belongsTo(Port::class, 'destination_port_id');
     }
 
+    /**
+     * At most one {@see Vehicle} per shipment (1:1); each vehicle has a unique shipment_id.
+     *
+     * @return HasOne<Vehicle, $this>
+     */
     public function vehicle(): HasOne
     {
         return $this->hasOne(Vehicle::class);

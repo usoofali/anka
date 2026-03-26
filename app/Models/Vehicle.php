@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * Each row belongs to exactly one {@see Shipment}. Enforced in the database by a unique
+ * shipment_id on the vehicles table (1:1 shipment-to-vehicle).
+ */
 final class Vehicle extends Model
 {
     /** @use HasFactory<VehicleFactory> */
@@ -53,6 +57,9 @@ final class Vehicle extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Shipment, Vehicle>
+     */
     public function shipment(): BelongsTo
     {
         return $this->belongsTo(Shipment::class);

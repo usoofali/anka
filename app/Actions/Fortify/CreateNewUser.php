@@ -5,6 +5,8 @@ namespace App\Actions\Fortify;
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Models\City;
+use App\Models\Consignee;
+use App\Models\Shipment;
 use App\Models\Shipper;
 use App\Models\State;
 use App\Models\User;
@@ -69,6 +71,19 @@ class CreateNewUser implements CreatesNewUsers
                 'city_id' => $input['city_id'],
             ]);
 
+            Consignee::query()
+                ->where('shipper_id', $shipper->id)
+                ->update([
+                    'is_default' => false,
+                ]);
+
+            Consignee::create([
+                'shipper_id' => $shipper->id,
+                'name' => $shipper->company_name,
+                'address' => $shipper->address,
+                'is_default' => true,
+            ]);
+
             $user->assignRole('shipper');
 
             $user->notify(new ShipperWelcomeNotification($shipper));
@@ -78,7 +93,7 @@ class CreateNewUser implements CreatesNewUsers
                 ->pluck('id')
                 ->merge(
                     User::query()->whereHas('staff')->pluck('id'),
-                )
+                )Shipment
                 ->unique()
                 ->filter(fn (int|string $id): bool => (int) $id !== (int) $user->id)
                 ->values();
@@ -95,7 +110,7 @@ class CreateNewUser implements CreatesNewUsers
         session()->flash('toast', [
             'type' => 'success',
             'message' => __('Welcome! Your shipper account has been created.'),
-            'timeout' => 6000,
+            'timeout' => 5000,
         ]);
 
         return $user;

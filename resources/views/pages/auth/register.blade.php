@@ -1,8 +1,11 @@
-<x-layouts::auth.card
-    :title="__('Register as a shipper')"
-    :description="__('Create your company account to manage shipments and bookings.')"
->
-    <form method="POST" action="{{ route('register.store') }}" class="flex flex-col gap-8">
+<x-layouts::auth.card>
+    <div class="flex flex-col gap-8">
+        <x-auth-header
+            :title="__('Shipper registration')"
+            :description="__('Create your company account to manage shipments and bookings.')"
+        />
+
+        <form method="POST" action="{{ route('register.store') }}" class="flex flex-col gap-8">
         @csrf
 
         <section class="space-y-4">
@@ -151,8 +154,9 @@
         </div>
     </form>
 
-    <div class="space-x-1 text-center text-sm text-zinc-600 rtl:space-x-reverse dark:text-zinc-400">
-        {{ __('Already have an account?') }}
-        <flux:link :href="route('login')" wire:navigate>{{ __('Log in') }}</flux:link>
+        <div class="space-x-1 text-center text-sm text-zinc-600 rtl:space-x-reverse dark:text-zinc-400">
+            {{ __('Already have an account?') }}
+            <flux:link :href="route('login')" wire:navigate>{{ __('Log in') }}</flux:link>
+        </div>
     </div>
 </x-layouts::auth.card>

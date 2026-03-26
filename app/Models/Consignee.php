@@ -18,10 +18,19 @@ final class Consignee extends Model
     protected $fillable = [
         'shipper_id',
         'name',
-        'contact',
-        'phone',
         'address',
+        'is_default',
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_default' => 'boolean',
+        ];
+    }
 
     public function shipper(): BelongsTo
     {
