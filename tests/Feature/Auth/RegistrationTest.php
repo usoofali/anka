@@ -106,6 +106,43 @@ test('new users can register', function () {
     );
 });
 
+test('registration succeeds without company name and uses user name for default consignee', function () {
+    Notification::fake();
+    $this->seed(RolePermissionSeeder::class);
+
+    $country = Country::factory()->create();
+    $state = State::factory()->create(['country_id' => $country->id]);
+    $city = City::factory()->create(['state_id' => $state->id]);
+
+    $response = $this->post(route('register.store'), [
+        'name' => 'Jane Shipper',
+        'email' => 'no-company@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+        'company_name' => '',
+        'phone' => '+1 555 0200',
+        'address' => '456 Dock Ln',
+        'country_id' => $country->id,
+        'state_id' => $state->id,
+        'city_id' => $city->id,
+        'terms' => '1',
+    ]);
+
+    $response->assertSessionHasNoErrors()
+        ->assertRedirect(route('dashboard', absolute: false));
+
+    $user = User::query()->where('email', 'no-company@example.com')->first();
+    expect($user)->not->toBeNull();
+
+    $shipper = Shipper::query()->where('user_id', $user->id)->first();
+    expect($shipper)->not->toBeNull()
+        ->company_name->toBeNull();
+
+    $consignee = Consignee::query()->where('shipper_id', $shipper->id)->first();
+    expect($consignee)->not->toBeNull()
+        ->name->toBe('Jane Shipper');
+});
+
 test('registration requires terms acceptance', function () {
     $this->seed(RolePermissionSeeder::class);
 

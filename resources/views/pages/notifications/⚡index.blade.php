@@ -39,24 +39,20 @@ new #[Title('Notifications')] class extends Component {
     }
 }; ?>
 
-<div class="mx-auto flex w-full max-w-5xl flex-col gap-6">
-    <div class="flex flex-col gap-1">
-        <flux:heading size="xl">{{ __('Notifications') }}</flux:heading>
-        <flux:text class="text-sm text-zinc-500 dark:text-zinc-400">
-            {{ __('Stay updated with account activity and shipment events.') }}
-        </flux:text>
-    </div>
+<x-crud.page-shell>
+    <x-crud.page-header
+        :heading="__('Notifications')"
+        :subheading="__('Stay updated with account activity and shipment events.')"
+    />
 
     @if ($notifications->isEmpty())
-        <div class="rounded-2xl border border-dashed border-zinc-300 bg-white px-6 py-12 text-center shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-            <flux:icon name="bell" class="mx-auto mb-3 h-10 w-10 text-zinc-400 dark:text-zinc-500" />
-            <flux:heading size="md">{{ __('No notifications yet') }}</flux:heading>
-            <flux:text class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                {{ __('When there is activity, you will see it here.') }}
-            </flux:text>
-        </div>
+        <x-crud.empty-state
+            icon="bell"
+            :title="__('No notifications yet')"
+            :description="__('When there is activity, you will see it here.')"
+        />
     @else
-        <div class="overflow-x-auto rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+        <x-crud.panel>
             <table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-700">
                 <thead class="bg-zinc-50 dark:bg-zinc-800/60">
                     <tr>
@@ -130,10 +126,10 @@ new #[Title('Notifications')] class extends Component {
                     @endforeach
                 </tbody>
             </table>
-        </div>
+        </x-crud.panel>
 
-        <div class="rounded-xl border border-zinc-200 bg-white px-4 py-3 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+        <x-crud.pagination-shell>
             {{ $notifications->links() }}
-        </div>
+        </x-crud.pagination-shell>
     @endif
-</div>
+</x-crud.page-shell>

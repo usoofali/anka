@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Auth\RegisterGeoOptionsController;
-use App\Http\Controllers\ShipperController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login')->name('home');
@@ -20,7 +19,10 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
 
     Route::livewire('/notifications', 'pages::notifications.index')->name('notifications.index');
 
-    Route::get('/shippers/{shipper}', [ShipperController::class, 'show'])->name('shippers.show');
+    Route::livewire('/shippers', 'pages::shippers.index')->name('shippers.index');
+    Route::livewire('/shippers/create', 'pages::shippers.create')->name('shippers.create');
+    Route::livewire('/shippers/{shipper}', 'pages::shippers.show')->name('shippers.show');
+    Route::livewire('/shippers/{shipper}/edit', 'pages::shippers.edit')->name('shippers.edit');
 });
 
 require __DIR__.'/settings.php';

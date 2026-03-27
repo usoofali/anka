@@ -49,15 +49,14 @@
             <div class="space-y-1">
                 <flux:heading size="sm" level="3">{{ __('Company') }}</flux:heading>
                 <flux:subheading size="sm" class="text-zinc-500 dark:text-zinc-400">
-                    {{ __('Legal or trading name and how we can reach your team.') }}
+                    {{ __('Optional legal or trading name and how we can reach your team.') }}
                 </flux:subheading>
             </div>
             <div class="space-y-4">
                 <flux:input
                     name="company_name"
-                    :label="__('Company name')"
+                    :label="__('Company name (optional)')"
                     type="text"
-                    required
                     :value="old('company_name')"
                     icon:leading="building-office-2"
                     class="[&_[data-flux-icon]]:text-sky-600 dark:[&_[data-flux-icon]]:text-cyan-300"

@@ -55,3 +55,125 @@ it('denies shipper view when shippers.view permission is revoked', function () {
 
     expect($owner->can('view', $ownerShipper))->toBeFalse();
 });
+
+it('allows super admin viewAny shippers', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('super_admin');
+
+    expect($admin->can('viewAny', Shipper::class))->toBeTrue();
+});
+
+it('allows staff with shippers.view to viewAny shippers', function () {
+    $staffUser = User::factory()->create();
+    $staffUser->assignRole('staff_operator');
+    Staff::factory()->create(['user_id' => $staffUser->id]);
+
+    expect($staffUser->can('viewAny', Shipper::class))->toBeTrue();
+});
+
+it('allows shipper with profile to viewAny shippers list', function () {
+    $owner = User::factory()->create();
+    $owner->assignRole('shipper');
+    Shipper::factory()->for($owner)->create();
+
+    expect($owner->can('viewAny', Shipper::class))->toBeTrue();
+});
+
+it('denies viewAny when shippers.view is missing', function () {
+    $user = User::factory()->create();
+
+    expect($user->can('viewAny', Shipper::class))->toBeFalse();
+});
+
+it('allows super admin to create shippers', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('super_admin');
+
+    expect($admin->can('create', Shipper::class))->toBeTrue();
+});
+
+it('allows staff with shippers.create to create shippers', function () {
+    $staffUser = User::factory()->create();
+    $staffUser->assignRole('staff_operator');
+    Staff::factory()->create(['user_id' => $staffUser->id]);
+
+    expect($staffUser->can('create', Shipper::class))->toBeTrue();
+});
+
+it('denies shipper from creating shippers via admin', function () {
+    $owner = User::factory()->create();
+    $owner->assignRole('shipper');
+    Shipper::factory()->for($owner)->create();
+
+    expect($owner->can('create', Shipper::class))->toBeFalse();
+});
+
+it('allows super admin to update any shipper', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('super_admin');
+    $shipper = Shipper::factory()->create();
+
+    expect($admin->can('update', $shipper))->toBeTrue();
+});
+
+it('allows staff to update any shipper', function () {
+    $staffUser = User::factory()->create();
+    $staffUser->assignRole('staff_operator');
+    Staff::factory()->create(['user_id' => $staffUser->id]);
+    $shipper = Shipper::factory()->create();
+
+    expect($staffUser->can('update', $shipper))->toBeTrue();
+});
+
+it('allows shipper to update own company', function () {
+    $owner = User::factory()->create();
+    $owner->assignRole('shipper');
+    $shipper = Shipper::factory()->for($owner)->create();
+
+    expect($owner->can('update', $shipper))->toBeTrue();
+});
+
+it('denies shipper from updating another company', function () {
+    $owner = User::factory()->create();
+    $owner->assignRole('shipper');
+    Shipper::factory()->for($owner)->create();
+
+    $other = User::factory()->create();
+    $other->assignRole('shipper');
+    $otherShipper = Shipper::factory()->for($other)->create();
+
+    expect($owner->can('update', $otherShipper))->toBeFalse();
+});
+
+it('allows super admin to delete any shipper', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('super_admin');
+    $shipper = Shipper::factory()->create();
+
+    expect($admin->can('delete', $shipper))->toBeTrue();
+});
+
+it('allows staff with shippers.delete to delete any shipper', function () {
+    $staffUser = User::factory()->create();
+    $staffUser->assignRole('staff_operator');
+    Staff::factory()->create(['user_id' => $staffUser->id]);
+    $shipper = Shipper::factory()->create();
+
+    expect($staffUser->can('delete', $shipper))->toBeTrue();
+});
+
+it('denies shipper from deleting shippers', function () {
+    $owner = User::factory()->create();
+    $owner->assignRole('shipper');
+    $shipper = Shipper::factory()->for($owner)->create();
+
+    expect($owner->can('delete', $shipper))->toBeFalse();
+});
+
+it('denies delete when shippers.delete permission is missing', function () {
+    $user = User::factory()->create();
+    Staff::factory()->create(['user_id' => $user->id]);
+    $shipper = Shipper::factory()->create();
+
+    expect($user->can('delete', $shipper))->toBeFalse();
+});

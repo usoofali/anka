@@ -31,7 +31,7 @@ class CreateNewUser implements CreatesNewUsers
             ...$this->profileRules(),
             'password' => $this->passwordRules(),
             'terms' => ['accepted'],
-            'company_name' => ['required', 'string', 'max:255'],
+            'company_name' => ['nullable', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:50'],
             'address' => ['required', 'string', 'max:500'],
             'country_id' => ['required', 'integer', 'exists:countries,id'],
@@ -60,9 +60,13 @@ class CreateNewUser implements CreatesNewUsers
                 'password' => $input['password'],
             ]);
 
+            $companyName = isset($input['company_name']) && $input['company_name'] !== ''
+                ? $input['company_name']
+                : null;
+
             $shipper = Shipper::create([
                 'user_id' => $user->id,
-                'company_name' => $input['company_name'],
+                'company_name' => $companyName,
                 'phone' => $input['phone'],
                 'address' => $input['address'],
                 'country_id' => $input['country_id'],
@@ -78,7 +82,7 @@ class CreateNewUser implements CreatesNewUsers
 
             Consignee::create([
                 'shipper_id' => $shipper->id,
-                'name' => $shipper->company_name,
+                'name' => $user->name,
                 'address' => $shipper->address,
                 'is_default' => true,
             ]);
