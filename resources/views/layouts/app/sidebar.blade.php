@@ -15,12 +15,9 @@
                     <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="bell" :href="route('notifications.index')" :current="request()->routeIs('notifications.*')" wire:navigate>
-                        {{ __('Notifications') }}
-                    </flux:sidebar.item>
                 </flux:sidebar.group>
 
-                <flux:sidebar.group :heading="__('Operations')" class="grid">
+                <flux:sidebar.group :heading="__('Operations')" class="grid" expandable expanded="false">
                     <flux:sidebar.item icon="building-office-2" :href="route('shippers.index')" :current="request()->routeIs('shippers.*')" wire:navigate>
                         {{ __('Shippers') }}
                     </flux:sidebar.item>

@@ -7,6 +7,7 @@
             @if (auth()->user()?->hasRole('super_admin'))
                 <flux:navlist.item :href="route('system-setting.edit')" wire:navigate>{{ __('System') }}</flux:navlist.item>
                 <flux:navlist.item :href="route('system-config.edit')" wire:navigate>{{ __('System Config') }}</flux:navlist.item>
+                <flux:navlist.item :href="route('roles.edit')" wire:navigate>{{ __('Roles') }}</flux:navlist.item>
             @endif
         </flux:navlist>
     </div>
