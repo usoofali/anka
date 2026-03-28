@@ -47,6 +47,14 @@ it('allows shippers to create prealerts', function () {
     expect($user->can('create', Prealert::class))->toBeTrue();
 });
 
+it('allows authorized staff to create prealerts', function () {
+    $user = User::factory()->create();
+    $user->assignRole('staff_admin');
+    Staff::factory()->create(['user_id' => $user->id]);
+
+    expect($user->can('create', Prealert::class))->toBeTrue();
+});
+
 it('denies prealert creation without prealerts.create permission', function () {
     $user = User::factory()->create();
     Shipper::factory()->for($user)->create();

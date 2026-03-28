@@ -22,6 +22,7 @@ final class Prealert extends Model
         'vehicle_id',
         'carrier_id',
         'destination_port_id',
+        'action_receipt',
         'status',
         'submitted_at',
         'reviewed_by',

@@ -7,11 +7,11 @@
         <div class="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
             <div class="flex w-full max-w-lg flex-col gap-6">
                 <a href="{{ route('home') }}" class="flex flex-col items-center gap-2 font-medium" wire:navigate>
-                    <span class="flex h-9 w-9 items-center justify-center rounded-md">
-                        <x-app-logo-icon class="size-9 fill-current text-black dark:text-white" />
+                    <span class="flex items-center justify-center rounded-md">
+                        <x-app-logo-icon class="h-22 w-auto max-w-[280px] fill-current text-black dark:text-white" />
                     </span>
-
-                    <span class="sr-only">{{ config('app.name', 'Laravel') }}</span>
+    
+                    <span class="text-xl font-semibold text-center dark:text-white">{{ config('app.name', 'Laravel') }}</span>
                 </a>
 
                 <div class="flex flex-col gap-6">

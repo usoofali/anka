@@ -25,6 +25,7 @@ final class UpdatePrealert
             'gatepass_pin' => ['sometimes', 'nullable', 'string', 'max:11'],
             'carrier_id' => ['sometimes', 'nullable', 'integer', 'exists:carriers,id'],
             'destination_port_id' => ['sometimes', 'nullable', 'integer', 'exists:ports,id'],
+            'action_receipt' => ['sometimes', 'nullable', 'string', 'max:255'],
             'status' => ['sometimes', 'string'],
             'submitted_at' => ['sometimes', 'nullable', 'date'],
             'reviewed_by' => ['sometimes', 'nullable', 'integer', 'exists:users,id'],

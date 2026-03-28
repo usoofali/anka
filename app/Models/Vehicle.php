@@ -40,6 +40,7 @@ final class Vehicle extends Model
         'odometer',
         'car_keys',
         'doc_type',
+        'action_receipt',
         'primary_damage',
         'secondary_damage',
         'highlights',

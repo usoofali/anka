@@ -30,6 +30,7 @@ class VehicleFactory extends Factory
             'odometer' => fake()->numberBetween(1000, 200000),
             'color' => fake()->colorName(),
             'vehicle_type' => 'automobile',
+            'action_receipt' => null,
             'is_insurance' => fake()->boolean(),
         ];
     }

@@ -22,13 +22,15 @@ it('creates prealert with gatepass pin carrier and destination port', function (
         'gatepass_pin' => 'AB12CD34EF5',
         'carrier_id' => $carrier->id,
         'destination_port_id' => $destination->id,
+        'action_receipt' => 'documents/prealerts/AR-1001.pdf',
     ]);
 
     expect($prealert->shipper_id)->toBe($shipper->id)
         ->and($prealert->vin)->toBe('2T1BURHE7FC251274')
         ->and($prealert->gatepass_pin)->toBe('AB12CD34EF5')
         ->and($prealert->carrier_id)->toBe($carrier->id)
-        ->and($prealert->destination_port_id)->toBe($destination->id);
+        ->and($prealert->destination_port_id)->toBe($destination->id)
+        ->and($prealert->action_receipt)->toBe('documents/prealerts/AR-1001.pdf');
 });
 
 it('allows duplicate gatepass_pin values in prealerts', function () {
@@ -69,11 +71,13 @@ it('updates prealert gatepass carrier and destination with validation', function
         'gatepass_pin' => 'ZXCVBNM1234',
         'carrier_id' => $carrier->id,
         'destination_port_id' => $destination->id,
+        'action_receipt' => 'documents/prealerts/AR-2002.pdf',
     ]);
 
     expect($updated->gatepass_pin)->toBe('ZXCVBNM1234')
         ->and($updated->carrier_id)->toBe($carrier->id)
-        ->and($updated->destination_port_id)->toBe($destination->id);
+        ->and($updated->destination_port_id)->toBe($destination->id)
+        ->and($updated->action_receipt)->toBe('documents/prealerts/AR-2002.pdf');
 });
 
 it('allows duplicate gatepass_pin values in shipments', function () {

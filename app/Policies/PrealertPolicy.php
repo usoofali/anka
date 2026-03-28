@@ -45,7 +45,11 @@ final class PrealertPolicy
             return true;
         }
 
-        return $user->shipper !== null && $user->can('prealerts.create');
+        if (! $user->can('prealerts.create')) {
+            return false;
+        }
+
+        return $user->shipper !== null || $user->staff()->exists();
     }
 
     public function update(User $user, Prealert $prealert): bool
