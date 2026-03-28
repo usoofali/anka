@@ -30,7 +30,7 @@ new #[Title('Shipper')] class extends Component {
     <x-crud.page-header :heading="$shipper->company_name" :subheading="__('Shipper profile')">
         <x-slot name="actions">
             @can('update', $shipper)
-                <flux:button variant="primary" :href="route('shippers.edit', $shipper)" wire:navigate icon="pencil-square">
+                <flux:button variant="primary" :href="route('shippers.index', ['edit' => $shipper->id])" wire:navigate icon="pencil-square">
                     {{ __('Edit') }}
                 </flux:button>
             @endcan

@@ -29,37 +29,58 @@ test('super admin can open shipper index', function (): void {
         ->assertOk();
 });
 
-test('staff can open shipper create', function (): void {
+test('shipper create route is not registered', function (): void {
+    $this->get('/shippers/create')->assertNotFound();
+});
+
+test('legacy shipper edit URL is not registered', function (): void {
+    $admin = User::factory()->create();
+    $admin->assignRole('super_admin');
+    $shipper = Shipper::factory()->create();
+
+    $this->actingAs($admin)
+        ->get('/shippers/'.$shipper->id.'/edit')
+        ->assertNotFound();
+});
+
+test('super admin can open shipper edit modal from index', function (): void {
+    $admin = User::factory()->create();
+    $admin->assignRole('super_admin');
+    $shipper = Shipper::factory()->create();
+
+    Livewire::actingAs($admin)
+        ->test('pages::shippers.index')
+        ->call('openEditModal', $shipper->id)
+        ->assertSet('showEditModal', true)
+        ->assertSet('shipperEditingId', $shipper->id);
+});
+
+test('staff can open shipper edit modal from index', function (): void {
     $staffUser = User::factory()->create();
     $staffUser->assignRole('staff_operator');
     Staff::factory()->create(['user_id' => $staffUser->id]);
+    $shipper = Shipper::factory()->create();
 
-    $this->actingAs($staffUser)
-        ->get(route('shippers.create'))
-        ->assertOk();
+    Livewire::actingAs($staffUser)
+        ->test('pages::shippers.index')
+        ->call('openEditModal', $shipper->id)
+        ->assertSet('showEditModal', true)
+        ->assertSet('shipperEditingId', $shipper->id);
 });
 
-test('shipper role cannot open shipper create', function (): void {
-    $user = User::factory()->create();
-    $user->assignRole('shipper');
-    Shipper::factory()->create(['user_id' => $user->id]);
+test('shipper cannot open edit modal for own company', function (): void {
+    $owner = User::factory()->create();
+    $owner->assignRole('shipper');
+    $ownShipper = Shipper::factory()->create(['user_id' => $owner->id]);
 
-    $this->actingAs($user)
-        ->get(route('shippers.create'))
-        ->assertForbidden();
+    Livewire::actingAs($owner)
+        ->test('pages::shippers.index')
+        ->call('openEditModal', $ownShipper->id)
+        ->assertSet('showEditModal', false)
+        ->assertSet('shipperEditingId', null);
 });
 
-test('shipper owner can open edit for own company', function (): void {
-    $user = User::factory()->create();
-    $user->assignRole('shipper');
-    $shipper = Shipper::factory()->create(['user_id' => $user->id]);
-
-    $this->actingAs($user)
-        ->get(route('shippers.edit', $shipper))
-        ->assertOk();
-});
-
-test('shipper owner cannot open edit for another company', function (): void {
+test('shipper cannot open edit modal for another company', function (): void {
     $owner = User::factory()->create();
     $owner->assignRole('shipper');
     Shipper::factory()->create(['user_id' => $owner->id]);
@@ -68,9 +89,11 @@ test('shipper owner cannot open edit for another company', function (): void {
     $other->assignRole('shipper');
     $otherShipper = Shipper::factory()->create(['user_id' => $other->id]);
 
-    $this->actingAs($owner)
-        ->get(route('shippers.edit', $otherShipper))
-        ->assertForbidden();
+    Livewire::actingAs($owner)
+        ->test('pages::shippers.index')
+        ->call('openEditModal', $otherShipper->id)
+        ->assertSet('showEditModal', false)
+        ->assertSet('shipperEditingId', null);
 });
 
 test('staff can delete shipper from index', function (): void {

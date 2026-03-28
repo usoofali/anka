@@ -24,15 +24,7 @@ final class ShipperPolicy
 
     public function create(User $user): bool
     {
-        if ($user->hasRole('super_admin')) {
-            return true;
-        }
-
-        if (! $user->can('shippers.create')) {
-            return false;
-        }
-
-        return $user->staff()->exists();
+        return false;
     }
 
     public function view(User $user, Shipper $shipper): bool
@@ -66,15 +58,7 @@ final class ShipperPolicy
             return false;
         }
 
-        if ($user->staff()->exists()) {
-            return true;
-        }
-
-        if ($user->shipper?->is($shipper)) {
-            return true;
-        }
-
-        return false;
+        return $user->staff()->exists();
     }
 
     public function delete(User $user, Shipper $shipper): bool

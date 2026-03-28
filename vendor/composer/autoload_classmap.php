@@ -28,7 +28,6 @@ return array(
     'App\\Http\\Controllers\\Auth\\RegisterGeoOptionsController' => $baseDir . '/app/Http/Controllers/Auth/RegisterGeoOptionsController.php',
     'App\\Http\\Controllers\\Controller' => $baseDir . '/app/Http/Controllers/Controller.php',
     'App\\Http\\Middleware\\MarkNotificationAsReadFromQuery' => $baseDir . '/app/Http/Middleware/MarkNotificationAsReadFromQuery.php',
-    'App\\Http\\Requests\\StoreShipperRequest' => $baseDir . '/app/Http/Requests/StoreShipperRequest.php',
     'App\\Http\\Requests\\UpdateShipperRequest' => $baseDir . '/app/Http/Requests/UpdateShipperRequest.php',
     'App\\Livewire\\Actions\\Logout' => $baseDir . '/app/Livewire/Actions/Logout.php',
     'App\\Models\\ActivityLog' => $baseDir . '/app/Models/ActivityLog.php',

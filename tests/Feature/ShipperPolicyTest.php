@@ -85,27 +85,21 @@ it('denies viewAny when shippers.view is missing', function () {
     expect($user->can('viewAny', Shipper::class))->toBeFalse();
 });
 
-it('allows super admin to create shippers', function () {
+it('denies creating shippers via admin for everyone (registration only)', function () {
     $admin = User::factory()->create();
     $admin->assignRole('super_admin');
 
-    expect($admin->can('create', Shipper::class))->toBeTrue();
-});
-
-it('allows staff with shippers.create to create shippers', function () {
     $staffUser = User::factory()->create();
     $staffUser->assignRole('staff_operator');
     Staff::factory()->create(['user_id' => $staffUser->id]);
 
-    expect($staffUser->can('create', Shipper::class))->toBeTrue();
-});
-
-it('denies shipper from creating shippers via admin', function () {
     $owner = User::factory()->create();
     $owner->assignRole('shipper');
     Shipper::factory()->for($owner)->create();
 
-    expect($owner->can('create', Shipper::class))->toBeFalse();
+    expect($admin->can('create', Shipper::class))->toBeFalse()
+        ->and($staffUser->can('create', Shipper::class))->toBeFalse()
+        ->and($owner->can('create', Shipper::class))->toBeFalse();
 });
 
 it('allows super admin to update any shipper', function () {
@@ -125,24 +119,17 @@ it('allows staff to update any shipper', function () {
     expect($staffUser->can('update', $shipper))->toBeTrue();
 });
 
-it('allows shipper to update own company', function () {
+it('denies shipper from updating any company (staff and super admin only)', function () {
     $owner = User::factory()->create();
     $owner->assignRole('shipper');
-    $shipper = Shipper::factory()->for($owner)->create();
-
-    expect($owner->can('update', $shipper))->toBeTrue();
-});
-
-it('denies shipper from updating another company', function () {
-    $owner = User::factory()->create();
-    $owner->assignRole('shipper');
-    Shipper::factory()->for($owner)->create();
+    $ownShipper = Shipper::factory()->for($owner)->create();
 
     $other = User::factory()->create();
     $other->assignRole('shipper');
     $otherShipper = Shipper::factory()->for($other)->create();
 
-    expect($owner->can('update', $otherShipper))->toBeFalse();
+    expect($owner->can('update', $ownShipper))->toBeFalse()
+        ->and($owner->can('update', $otherShipper))->toBeFalse();
 });
 
 it('allows super admin to delete any shipper', function () {

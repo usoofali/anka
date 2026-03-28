@@ -99,8 +99,9 @@
         {{ $slot }}
 
         <x-dialog />
+        <x-notifications />
 
-        {{-- flux:toast is not available in this Flux install; session flash uses x-ui-toast --}}
+        {{-- Session flash toasts (e.g. Fortify registration); Livewire WireUI actions use x-notifications above --}}
         <x-ui-toast />
 
         @include('partials.scripts')

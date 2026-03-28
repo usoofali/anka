@@ -20,9 +20,9 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::livewire('/notifications', 'pages::notifications.index')->name('notifications.index');
 
     Route::livewire('/shippers', 'pages::shippers.index')->name('shippers.index');
-    Route::livewire('/shippers/create', 'pages::shippers.create')->name('shippers.create');
-    Route::livewire('/shippers/{shipper}', 'pages::shippers.show')->name('shippers.show');
-    Route::livewire('/shippers/{shipper}/edit', 'pages::shippers.edit')->name('shippers.edit');
+    Route::livewire('/shippers/{shipper}', 'pages::shippers.show')
+        ->whereNumber('shipper')
+        ->name('shippers.show');
 });
 
 require __DIR__.'/settings.php';

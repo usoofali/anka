@@ -718,7 +718,6 @@ class ComposerStaticInit851a08a18d274eb3ad3b708ef7bc2ea8
         'App\\Http\\Controllers\\Auth\\RegisterGeoOptionsController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/RegisterGeoOptionsController.php',
         'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',
         'App\\Http\\Middleware\\MarkNotificationAsReadFromQuery' => __DIR__ . '/../..' . '/app/Http/Middleware/MarkNotificationAsReadFromQuery.php',
-        'App\\Http\\Requests\\StoreShipperRequest' => __DIR__ . '/../..' . '/app/Http/Requests/StoreShipperRequest.php',
         'App\\Http\\Requests\\UpdateShipperRequest' => __DIR__ . '/../..' . '/app/Http/Requests/UpdateShipperRequest.php',
         'App\\Livewire\\Actions\\Logout' => __DIR__ . '/../..' . '/app/Livewire/Actions/Logout.php',
         'App\\Models\\ActivityLog' => __DIR__ . '/../..' . '/app/Models/ActivityLog.php',
