@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\RegisterGeoOptionsController;
+use App\Http\Controllers\ShipperOptionsController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login')->name('home');
@@ -23,6 +24,22 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::livewire('/shippers/{shipper}', 'pages::shippers.show')
         ->whereNumber('shipper')
         ->name('shippers.show');
+
+    // Prealerts
+    Route::livewire('/prealerts', 'pages::prealerts.index')->name('prealerts.index');
+    Route::livewire('/prealerts/create', 'pages::prealerts.create')->name('prealerts.create');
+    Route::livewire('/prealerts/{prealert}/edit', 'pages::prealerts.edit')
+        ->whereNumber('prealert')
+        ->name('prealerts.edit');
+
+    Route::get('/api/shippers/search', [ShipperOptionsController::class, 'index'])->name('api.shippers.search');
+
+    // Master Data
+    Route::livewire('/carriers', 'pages::carriers.index')->name('carriers.index');
+    Route::livewire('/ports', 'pages::ports.index')->name('ports.index');
+    Route::livewire('/countries', 'pages::countries.index')->name('countries.index');
+    Route::livewire('/states', 'pages::states.index')->name('states.index');
+    Route::livewire('/cities', 'pages::cities.index')->name('cities.index');
 });
 
 require __DIR__.'/settings.php';

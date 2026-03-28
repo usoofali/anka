@@ -1,0 +1,331 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Models\City;
+use App\Models\Country;
+use App\Models\State;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
+use WireUi\Traits\WireUiActions;
+
+new #[Title('Cities')] class extends Component {
+    use WithPagination;
+    use WireUiActions;
+
+    public bool $showCreateModal = false;
+    public bool $showEditModal = false;
+    public ?int $cityPendingDeleteId = null;
+
+    #[Url(as: 'q')]
+    public string $search = '';
+
+    #[Url(as: 'country')]
+    public ?int $filterCountryId = null;
+
+    #[Url(as: 'state')]
+    public ?int $filterStateId = null;
+
+    // Fields for Create/Edit
+    public ?int $editingCityId = null;
+    public ?int $country_id = null;
+    public ?int $state_id = null;
+    public string $name = '';
+
+    public function mount(): void
+    {
+        $this->authorize('cities.view');
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFilterCountryId(): void
+    {
+        $this->filterStateId = null;
+        $this->resetPage();
+    }
+
+    public function updatedFilterStateId(): void
+    {
+        $this->resetPage();
+    }
+
+    #[Computed]
+    public function filterStates()
+    {
+        if (!$this->filterCountryId) {
+            return collect();
+        }
+        return State::where('country_id', $this->filterCountryId)->orderBy('name')->get();
+    }
+
+    #[Computed]
+    public function countries()
+    {
+        return Country::select('id', 'name')->orderBy('name')->get();
+    }
+
+    #[Computed(cache: false)]
+    public function states()
+    {
+        if (!$this->country_id) {
+            return collect();
+        }
+        return State::where('country_id', $this->country_id)->orderBy('name')->get();
+    }
+
+    #[Computed]
+    public function cities()
+    {
+        return City::query()
+            ->with(['state', 'state.country'])
+            ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%"))
+            ->when($this->filterStateId, fn ($q) => $q->where('state_id', $this->filterStateId))
+            ->when($this->filterCountryId && !$this->filterStateId, fn ($q) => $q->whereHas('state', fn ($sq) => $sq->where('country_id', $this->filterCountryId)))
+            ->orderBy('name')
+            ->paginate(20);
+    }
+
+    public function updatedCountryId(): void
+    {
+        $this->state_id = null;
+    }
+
+    public function openCreateModal(): void
+    {
+        $this->authorize('cities.create');
+        $this->reset(['name', 'country_id', 'state_id', 'editingCityId']);
+        $this->showCreateModal = true;
+    }
+
+    public function saveNewCity(): void
+    {
+        $this->authorize('cities.create');
+
+        $validated = $this->validate([
+            'state_id' => 'required|exists:states,id',
+            'name' => 'required|string|max:255',
+        ]);
+
+        City::create($validated);
+
+        $this->showCreateModal = false;
+        $this->notification()->success(__('City created successfully.'));
+    }
+
+    public function openEditModal(int $id): void
+    {
+        $this->authorize('cities.update');
+        $city = City::with('state')->findOrFail($id);
+        
+        $this->editingCityId = $city->id;
+        $this->country_id = $city->state->country_id;
+        $this->state_id = $city->state_id;
+        $this->name = $city->name;
+
+        $this->showEditModal = true;
+    }
+
+    public function saveCity(): void
+    {
+        $this->authorize('cities.update');
+
+        $validated = $this->validate([
+            'state_id' => 'required|exists:states,id',
+            'name' => 'required|string|max:255',
+        ]);
+
+        City::findOrFail($this->editingCityId)->update($validated);
+
+        $this->showEditModal = false;
+        $this->notification()->success(__('City updated successfully.'));
+    }
+
+    public function openDeleteModal(int $id): void
+    {
+        $this->authorize('cities.delete');
+        $this->cityPendingDeleteId = $id;
+        $this->dispatch('modal-show', name: 'delete-city');
+    }
+
+    public function deleteCity(): void
+    {
+        $this->authorize('cities.delete');
+        
+        if ($this->cityPendingDeleteId) {
+            $city = City::findOrFail($this->cityPendingDeleteId);
+            
+            if ($city->ports()->exists()) {
+                $this->notification()->warning(__('Cannot delete city with associated ports.'));
+            } else {
+                $city->delete();
+                $this->notification()->success(__('City deleted successfully.'));
+            }
+        }
+
+        $this->cityPendingDeleteId = null;
+        $this->dispatch('modal-hide', name: 'delete-city');
+    }
+}; ?>
+
+<div>
+    <x-crud.page-shell>
+        <div class="flex items-center justify-between mb-8">
+            <x-crud.page-header :heading="__('Cities')" :subheading="__('Manage cities and locations.')" icon="map-pin" class="!mb-0" />
+            @can('cities.create')
+                <flux:button variant="primary" icon="plus" wire:click="openCreateModal">{{ __('Create City') }}</flux:button>
+            @endcan
+        </div>
+
+        <div class="mb-4 space-y-3">
+            <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" :placeholder="__('Search cities...')" clearable />
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <flux:select wire:model.live="filterCountryId" icon="flag">
+                    <option value="">{{ __('All Countries') }}</option>
+                    @foreach($this->countries as $c)
+                        <option value="{{ $c->id }}">{{ $c->name }}</option>
+                    @endforeach
+                </flux:select>
+                <flux:select wire:model.live="filterStateId" icon="map" :disabled="!$filterCountryId">
+                    <option value="">{{ __('All States') }}</option>
+                    @foreach($this->filterStates as $s)
+                        <option value="{{ $s->id }}">{{ $s->name }}</option>
+                    @endforeach
+                </flux:select>
+            </div>
+        </div>
+
+        <x-crud.panel class="p-6">
+            <flux:table :paginate="$this->cities">
+                <flux:table.columns>
+                    <flux:table.column icon="map-pin">{{ __('Name') }}</flux:table.column>
+                    <flux:table.column icon="map">{{ __('State') }}</flux:table.column>
+                    <flux:table.column icon="flag">{{ __('Country') }}</flux:table.column>
+                    <flux:table.column align="right">{{ __('Actions') }}</flux:table.column>
+                </flux:table.columns>
+
+                <flux:table.rows>
+                    @foreach ($this->cities as $city)
+                        <flux:table.row :key="$city->id">
+                            <flux:table.cell class="font-medium">{{ $city->name }}</flux:table.cell>
+                            <flux:table.cell>{{ $city->state->name }}</flux:table.cell>
+                            <flux:table.cell>{{ $city->state->country->name }}</flux:table.cell>
+                            <flux:table.cell align="right">
+                                <flux:dropdown align="end" variant="ghost">
+                                    <flux:button variant="ghost" icon="ellipsis-horizontal" size="sm" />
+                                    <flux:menu>
+                                        @can('cities.update')
+                                            <flux:menu.item icon="pencil-square" wire:click="openEditModal({{ $city->id }})">{{ __('Edit') }}</flux:menu.item>
+                                        @endcan
+                                        @can('cities.delete')
+                                            <flux:menu.separator />
+                                            <flux:menu.item icon="trash" variant="danger" wire:click="openDeleteModal({{ $city->id }})">{{ __('Delete') }}</flux:menu.item>
+                                        @endcan
+                                    </flux:menu>
+                                </flux:dropdown>
+                            </flux:table.cell>
+                        </flux:table.row>
+                    @endforeach
+                </flux:table.rows>
+            </flux:table>
+        </x-crud.panel>
+    </x-crud.page-shell>
+
+    {{-- Create Modal --}}
+    <flux:modal wire:model="showCreateModal" class="md:max-w-3xl">
+        <form wire:submit="saveNewCity" class="space-y-6">
+            <div class="flex items-center gap-3">
+                <flux:icon name="map-pin" class="text-zinc-500" />
+                <div>
+                    <flux:heading size="lg">{{ __('Create City') }}</flux:heading>
+                    <flux:subheading>{{ __('Add a new city.') }}</flux:subheading>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <flux:select wire:model.live="country_id" :label="__('Country')" icon="flag" required>
+                    <option value="">{{ __('Select Country') }}</option>
+                    @foreach ($this->countries as $country)
+                        <option value="{{ $country->id }}">{{ $country->name }}</option>
+                    @endforeach
+                </flux:select>
+
+                <flux:select wire:model.live="state_id" :label="__('State')" icon="map" required :disabled="!$country_id">
+                    <option value="">{{ __('Select State') }}</option>
+                    @foreach ($this->states as $state)
+                        <option value="{{ $state->id }}">{{ $state->name }}</option>
+                    @endforeach
+                </flux:select>
+
+                <flux:input wire:model="name" :label="__('City Name')" required placeholder="e.g. Los Angeles" :disabled="!$state_id" />
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <flux:modal.close>
+                    <flux:button variant="ghost">{{ __('Cancel') }}</flux:button>
+                </flux:modal.close>
+                <flux:button type="submit" variant="primary">{{ __('Save City') }}</flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
+    {{-- Edit Modal --}}
+    <flux:modal wire:model="showEditModal" class="md:max-w-3xl">
+        <form wire:submit="saveCity" class="space-y-6">
+            <div class="flex items-center gap-3">
+                <flux:icon name="pencil-square" class="text-zinc-500" />
+                <div>
+                    <flux:heading size="lg">{{ __('Edit City') }}</flux:heading>
+                    <flux:subheading>{{ __('Update city details.') }}</flux:subheading>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <flux:select wire:model.live="country_id" :label="__('Country')" icon="flag" required>
+                    <option value="">{{ __('Select Country') }}</option>
+                    @foreach ($this->countries as $country)
+                        <option value="{{ $country->id }}">{{ $country->name }}</option>
+                    @endforeach
+                </flux:select>
+
+                <flux:select wire:model.live="state_id" :label="__('State')" icon="map" required :disabled="!$country_id">
+                    <option value="">{{ __('Select State') }}</option>
+                    @foreach ($this->states as $state)
+                        <option value="{{ $state->id }}">{{ $state->name }}</option>
+                    @endforeach
+                </flux:select>
+
+                <flux:input wire:model="name" :label="__('City Name')" required :disabled="!$state_id" />
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <flux:modal.close>
+                    <flux:button variant="ghost">{{ __('Cancel') }}</flux:button>
+                </flux:modal.close>
+                <flux:button type="submit" variant="primary">{{ __('Update City') }}</flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
+    <x-modal name="delete-city" :title="__('Delete City')">
+        <div class="p-6">
+            <p class="text-zinc-600 dark:text-zinc-400">
+                {{ __('Are you sure you want to delete this city? This action cannot be undone.') }}
+            </p>
+            <div class="mt-6 flex justify-end gap-3">
+                <flux:button variant="ghost" x-on:click="$dispatch('modal-hide', { name: 'delete-city' })">
+                    {{ __('Cancel') }}
+                </flux:button>
+                <flux:button variant="danger" wire:click="deleteCity">
+                    {{ __('Delete City') }}
+                </flux:button>
+            </div>
+        </div>
+    </x-modal>
+</div>

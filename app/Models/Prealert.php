@@ -20,9 +20,10 @@ final class Prealert extends Model
         'vin',
         'gatepass_pin',
         'vehicle_id',
+        'consignee_id',
         'carrier_id',
         'destination_port_id',
-        'action_receipt',
+        'auction_receipt',
         'status',
         'submitted_at',
         'reviewed_by',
@@ -41,6 +42,11 @@ final class Prealert extends Model
     public function shipper(): BelongsTo
     {
         return $this->belongsTo(Shipper::class);
+    }
+
+    public function consignee(): BelongsTo
+    {
+        return $this->belongsTo(Consignee::class);
     }
 
     public function vehicle(): BelongsTo

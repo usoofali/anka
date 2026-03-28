@@ -18,7 +18,7 @@ test('super admin can view any shipper', function () {
     $this->actingAs($admin)
         ->get(route('shippers.show', $shipper))
         ->assertOk()
-        ->assertSee($shipper->company_name, escape: false);
+        ->assertSee($shipper->company_name);
 });
 
 test('staff user can view any shipper', function () {

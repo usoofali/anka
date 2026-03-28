@@ -8,7 +8,6 @@ use App\Models\Payment;
 use App\Models\Shipment;
 use App\Models\Shipper;
 use App\Models\User;
-use App\Models\Vehicle;
 use App\Models\Wallet;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Database\QueryException;
@@ -36,14 +35,6 @@ it('scopes shipper permissions narrowly', function () {
         ->and($user->can('shipments.delete'))->toBeFalse()
         ->and($user->can('prealerts.create'))->toBeTrue()
         ->and($user->can('shippers.view'))->toBeTrue();
-});
-
-it('enforces one vehicle per shipment at the database', function () {
-    $shipment = Shipment::factory()->create();
-    Vehicle::factory()->create(['shipment_id' => $shipment->id]);
-
-    expect(fn () => Vehicle::factory()->create(['shipment_id' => $shipment->id]))
-        ->toThrow(QueryException::class);
 });
 
 it('enforces one invoice per shipment at the database', function () {

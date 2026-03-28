@@ -259,96 +259,65 @@ new #[Title('Shippers')] class extends Component {
         <x-crud.page-header :heading="__('Shippers')" :subheading="__('Companies registered on the platform.')" class="!mb-0" />
     </div>
 
-    @if ($shippers->isEmpty())
-        <x-crud.empty-state
-            icon="building-office-2"
-            :title="__('No shippers yet')"
-            :description="__('When companies are registered, they will appear here.')"
-        />
-    @else
-        <x-crud.panel>
-            <table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-700">
-                <thead class="bg-zinc-50 dark:bg-zinc-800/60">
-                    <tr>
-                        <th scope="col" class="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500">{{ __('Shipper') }}</th>
-                        <th scope="col" class="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500">{{ __('Company') }}</th>
-                        <th scope="col" class="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500">{{ __('Phone') }}</th>
-                        <th scope="col" class="whitespace-nowrap px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500">{{ __('Actions') }}</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
-                    @foreach ($shippers as $shipper)
-                        <tr wire:key="shipper-row-{{ $shipper->id }}" class="bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
-                            <td class="whitespace-nowrap px-4 py-4 align-middle">
-                                <div class="flex items-center gap-3">
-                                    <div class="flex size-9 items-center justify-center rounded-lg bg-primary-50 text-primary-600 dark:bg-primary-950/30 dark:text-primary-400">
-                                        <flux:icon.user variant="mini" />
-                                    </div>
-                                    <div class="flex flex-col">
-                                        <span class="font-semibold text-zinc-900 dark:text-zinc-100">{{ $shipper->user?->name }}</span>
-                                        @if (filled($shipper->user?->email))
-                                            <span class="text-xs text-zinc-500 dark:text-zinc-400">{{ $shipper->user?->email }}</span>
-                                        @endif
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="whitespace-nowrap px-4 py-4 align-middle">
-                                <div class="flex items-center gap-2">
-                                    <flux:icon.building-office variant="mini" class="text-zinc-400" />
-                                    <span class="font-medium text-zinc-700 dark:text-zinc-300">{{ $shipper->company_name ?: '—' }}</span>
-                                </div>
-                            </td>
-                            <td class="whitespace-nowrap px-4 py-4 align-middle">
-                                <div class="flex items-center gap-2">
-                                    <flux:icon.phone variant="mini" class="text-zinc-400" />
-                                    <span class="text-zinc-600 dark:text-zinc-400">{{ $shipper->phone ?: '—' }}</span>
-                                </div>
-                            </td>
-                            <td class="whitespace-nowrap px-4 py-4 text-end align-middle">
-                                <div class="inline-flex items-center justify-end gap-1">
-                                    @can('view', $shipper)
-                                        <flux:button
-                                            size="sm"
-                                            variant="ghost"
-                                            icon="eye"
-                                            :href="route('shippers.show', $shipper)"
-                                            wire:navigate
-                                            :tooltip="__('View')"
-                                        />
-                                    @endcan
-                                    @can('update', $shipper)
-                                        <flux:button
-                                            size="sm"
-                                            variant="ghost"
-                                            icon="pencil-square"
-                                            wire:click="openEditModal({{ $shipper->id }})"
-                                            wire:key="edit-open-{{ $shipper->id }}"
-                                            :tooltip="__('Edit')"
-                                        />
-                                    @endcan
-                                    @can('delete', $shipper)
-                                        <flux:button
-                                            size="sm"
-                                            variant="ghost"
-                                            icon="trash"
-                                            color="red"
-                                            wire:click="openDeleteModal({{ $shipper->id }})"
-                                            wire:key="delete-open-{{ $shipper->id }}"
-                                            :tooltip="__('Delete')"
-                                        />
-                                    @endcan
-                                </div>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </x-crud.panel>
+    <flux:table :paginate="$shippers">
+        <flux:table.columns>
+            <flux:table.column icon="user">{{ __('Shipper') }}</flux:table.column>
+            <flux:table.column icon="building-office">{{ __('Company') }}</flux:table.column>
+            <flux:table.column icon="phone">{{ __('Phone') }}</flux:table.column>
+            <flux:table.column align="right">{{ __('Actions') }}</flux:table.column>
+        </flux:table.columns>
 
-        <x-crud.pagination-shell class="mt-6">
-            {{ $shippers->links() }}
-        </x-crud.pagination-shell>
-    @endif
+        <flux:table.rows>
+            @forelse ($shippers as $shipper)
+                <flux:table.row :key="$shipper->id">
+                    <flux:table.cell>
+                        <div class="flex items-center gap-3">
+                            <div class="flex size-9 items-center justify-center rounded-lg bg-primary-50 text-primary-600 dark:bg-primary-950/30 dark:text-primary-400">
+                                <flux:icon.user variant="mini" />
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="font-semibold text-zinc-900 dark:text-zinc-100">{{ $shipper->user?->name }}</span>
+                                @if (filled($shipper->user?->email))
+                                    <span class="text-xs text-zinc-500 dark:text-zinc-400">{{ $shipper->user?->email }}</span>
+                                @endif
+                            </div>
+                        </div>
+                    </flux:table.cell>
+                    <flux:table.cell>
+                        <div class="flex items-center gap-2">
+                            <flux:icon.building-office variant="mini" class="text-zinc-400" />
+                            <span class="font-medium text-zinc-700 dark:text-zinc-300">{{ $shipper->company_name ?: '—' }}</span>
+                        </div>
+                    </flux:table.cell>
+                    <flux:table.cell>
+                        <div class="flex items-center gap-2">
+                            <flux:icon.phone variant="mini" class="text-zinc-400" />
+                            <span class="text-zinc-600 dark:text-zinc-400">{{ $shipper->phone ?: '—' }}</span>
+                        </div>
+                    </flux:table.cell>
+                    <flux:table.cell align="right">
+                        <div class="inline-flex items-center justify-end gap-1">
+                            @can('view', $shipper)
+                                <flux:button size="sm" variant="ghost" icon="eye" :href="route('shippers.show', $shipper)" wire:navigate :tooltip="__('View')" />
+                            @endcan
+                            @can('update', $shipper)
+                                <flux:button size="sm" variant="ghost" icon="pencil-square" wire:click="openEditModal({{ $shipper->id }})" wire:key="edit-open-{{ $shipper->id }}" :tooltip="__('Edit')" />
+                            @endcan
+                            @can('delete', $shipper)
+                                <flux:button size="sm" variant="ghost" icon="trash" color="red" wire:click="openDeleteModal({{ $shipper->id }})" wire:key="delete-open-{{ $shipper->id }}" :tooltip="__('Delete')" />
+                            @endcan
+                        </div>
+                    </flux:table.cell>
+                </flux:table.row>
+            @empty
+                <flux:table.row>
+                    <flux:table.cell colspan="4" class="py-12 text-center text-zinc-500">
+                        {{ __('No shippers found.') }}
+                    </flux:table.cell>
+                </flux:table.row>
+            @endforelse
+        </flux:table.rows>
+    </flux:table>
 
     <flux:modal wire:model.self="showEditModal" class="max-w-4xl">
         <div class="max-h-[85vh] space-y-8 overflow-y-auto px-1 pb-4">

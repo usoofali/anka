@@ -27,7 +27,7 @@ final class CreatePrealert
             'gatepass_pin' => ['nullable', 'string', 'max:11'],
             'carrier_id' => ['nullable', 'integer', 'exists:carriers,id'],
             'destination_port_id' => ['nullable', 'integer', 'exists:ports,id'],
-            'action_receipt' => ['nullable', 'string', 'max:255'],
+            'auction_receipt' => ['nullable', 'string', 'max:255'],
             'status' => ['nullable', 'string'],
             'submitted_at' => ['nullable', 'date'],
             'reviewed_by' => ['nullable', 'integer', 'exists:users,id'],

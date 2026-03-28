@@ -32,7 +32,7 @@ class PrealertFactory extends Factory
             'vehicle_id' => null,
             'carrier_id' => null,
             'destination_port_id' => null,
-            'action_receipt' => null,
+            'auction_receipt' => null,
             'status' => PrealertStatus::Draft,
             'submitted_at' => null,
             'reviewed_by' => null,

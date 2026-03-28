@@ -1,0 +1,216 @@
+{
+    "data": {
+        "id": 18199332,
+        "year": 2013,
+        "title": "2013 Mercedes Benz C 350",
+        "vin": "WDDGF5HBXDR299293",
+        "manufacturer": {
+            "id": 88,
+            "name": "Mercedes-Benz"
+        },
+        "model": {
+            "id": 570,
+            "name": "C-klasse",
+            "manufacturer_id": 88
+        },
+        "generation": null,
+        "body_type": {
+            "name": "sedan",
+            "id": 1
+        },
+        "color": {
+            "name": "silver",
+            "id": 1
+        },
+        "engine": {
+            "id": 2,
+            "name": "3.5l 6"
+        },
+        "transmission": {
+            "name": "automatic",
+            "id": 1
+        },
+        "drive_wheel": {
+            "name": "rear",
+            "id": 1
+        },
+        "vehicle_type": {
+            "name": "automobile",
+            "id": 1
+        },
+        "fuel": {
+            "name": "gasoline",
+            "id": 4
+        },
+        "cylinders": 6,
+        "lots": [
+            {
+                "id": 18724245,
+                "lot": "42046156",
+                "domain": {
+                    "name": "copart_com",
+                    "id": 3
+                },
+                "external_id": null,
+                "odometer": {
+                    "km": 185042,
+                    "mi": 114980,
+                    "status": {
+                        "name": "actual",
+                        "id": 1
+                    }
+                },
+                "estimate_repair_price": null,
+                "pre_accident_price": 7321,
+                "clean_wholesale_price": 9200,
+                "actual_cash_value": null,
+                "sale_date": "2026-03-27T14:00:00.000000Z",
+                "sale_date_updated_at": "2026-03-23T17:05:41.000000Z",
+                "bid": 2150,
+                "bid_updated_at": "2026-03-27T12:06:38.000000Z",
+                "buy_now": 0,
+                "buy_now_updated_at": "2026-03-16T21:28:21.000000Z",
+                "final_bid": null,
+                "final_bid_updated_at": null,
+                "status": {
+                    "name": "sale",
+                    "id": 3
+                },
+                "seller": null,
+                "seller_type": null,
+                "title": {
+                    "id": 4235,
+                    "code": null,
+                    "name": "Ct - Clean Title"
+                },
+                "detailed_title": {
+                    "id": 1560,
+                    "code": null,
+                    "name": "Va - Certificate Of Title"
+                },
+                "note": null,
+                "damage": {
+                    "main": {
+                        "id": 37,
+                        "name": "Side"
+                    },
+                    "second": {
+                        "id": 3,
+                        "name": "Front End"
+                    }
+                },
+                "keys_available": true,
+                "airbags": null,
+                "condition": {
+                    "name": "run_and_drives",
+                    "id": 0
+                },
+                "grade_iaai": null,
+                "images": {
+                    "id": 21622363,
+                    "small": [
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/efaebbc3e1dc47828efdbc75f16a63d5_thb.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/5d96b9d567a14ad7aa40f42fda67cf0e_thb.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/716652e3d4664e2d9b2d87fb46ce06d5_thb.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/3e4cc17862954b1e80f8f017f74dee33_thb.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/3f7da7d0dd1b45a5a4b2bfed8bdfd754_thb.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/2ad58bd918cd4ff9a7afe15e6a0da5cd_thb.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/fae3cd97ed294fa7a14d156ec47658f0_thb.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/c45bbece31c14dc9a79509ce2f2c08e3_thb.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/08c5976eb1e84a978222c4777522fc67_thb.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/d879a182a0a44f81b3d521fad237917e_thb.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/15bdb40b64f74278ac4d439b420fe65f_thb.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/2de4a7e88b1c4073aaadfe56bcf440cb_vthb.jpg"
+                    ],
+                    "normal": [
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/efaebbc3e1dc47828efdbc75f16a63d5_hrs.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/5d96b9d567a14ad7aa40f42fda67cf0e_hrs.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/716652e3d4664e2d9b2d87fb46ce06d5_hrs.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/3e4cc17862954b1e80f8f017f74dee33_hrs.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/3f7da7d0dd1b45a5a4b2bfed8bdfd754_hrs.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/2ad58bd918cd4ff9a7afe15e6a0da5cd_hrs.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/fae3cd97ed294fa7a14d156ec47658f0_hrs.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/c45bbece31c14dc9a79509ce2f2c08e3_hrs.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/08c5976eb1e84a978222c4777522fc67_hrs.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/d879a182a0a44f81b3d521fad237917e_hrs.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/15bdb40b64f74278ac4d439b420fe65f_hrs.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/2de4a7e88b1c4073aaadfe56bcf440cb_vhrs.jpg"
+                    ],
+                    "big": [
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/efaebbc3e1dc47828efdbc75f16a63d5_hrs.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/5d96b9d567a14ad7aa40f42fda67cf0e_hrs.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/716652e3d4664e2d9b2d87fb46ce06d5_hrs.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/3e4cc17862954b1e80f8f017f74dee33_hrs.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/3f7da7d0dd1b45a5a4b2bfed8bdfd754_hrs.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/2ad58bd918cd4ff9a7afe15e6a0da5cd_hrs.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/fae3cd97ed294fa7a14d156ec47658f0_hrs.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/c45bbece31c14dc9a79509ce2f2c08e3_hrs.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/08c5976eb1e84a978222c4777522fc67_hrs.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/d879a182a0a44f81b3d521fad237917e_hrs.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/15bdb40b64f74278ac4d439b420fe65f_hrs.jpg",
+                        "https:\/\/cs.copart.com\/v1\/AUTH_svc.pdoc00001\/ids-c-prod-lpp\/0326\/2de4a7e88b1c4073aaadfe56bcf440cb_vhrs.jpg"
+                    ],
+                    "exterior": null,
+                    "interior": null,
+                    "video": null,
+                    "video_youtube_id": null,
+                    "external_panorama_url": null,
+                    "downloaded": [
+                        "https:\/\/cars2.import-motor.com\/copart\/2013\/42046156\/WDDGF5HBXDR299293-1.webp",
+                        "https:\/\/cars2.import-motor.com\/copart\/2013\/42046156\/WDDGF5HBXDR299293-2.webp",
+                        "https:\/\/cars2.import-motor.com\/copart\/2013\/42046156\/WDDGF5HBXDR299293-3.webp",
+                        "https:\/\/cars2.import-motor.com\/copart\/2013\/42046156\/WDDGF5HBXDR299293-4.webp",
+                        "https:\/\/cars2.import-motor.com\/copart\/2013\/42046156\/WDDGF5HBXDR299293-5.webp"
+                    ]
+                },
+                "location": {
+                    "country": {
+                        "iso": "us",
+                        "name": "USA"
+                    },
+                    "state": {
+                        "id": 30,
+                        "code": "va",
+                        "name": "virginia"
+                    },
+                    "city": {
+                        "id": 77,
+                        "name": "sandston"
+                    },
+                    "location": {
+                        "id": 189,
+                        "name": "va - richmond"
+                    },
+                    "latitude": 37.52236,
+                    "longitude": -77.28974,
+                    "postal_code": "23150 2344",
+                    "is_offsite": null,
+                    "raw": "va - richmond",
+                    "offsite": null
+                },
+                "tags": [
+                    "AUTOCHECK",
+                    "CERT-D",
+                    "IV"
+                ],
+                "line": "B\/2004",
+                "selling_branch": {
+                    "name": "va - richmond",
+                    "link": null,
+                    "number": null,
+                    "id": 540489,
+                    "domain_id": 3
+                },
+                "created_at": "2026-03-16T21:31:42.000000Z",
+                "updated_at": "2026-03-28T12:07:09.000000Z",
+                "details": null,
+                "is_timed_auction": false,
+                "seller_reserve": null,
+                "auction_type": {
+                    "name": "pure_sale",
+                    "id": 1
+                }
+            }
+        ]
+    }
+}

@@ -10,23 +10,23 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (! Schema::hasTable('prealerts') || Schema::hasColumn('prealerts', 'action_receipt')) {
+        if (! Schema::hasTable('prealerts') || Schema::hasColumn('prealerts', 'auction_receipt')) {
             return;
         }
 
         Schema::table('prealerts', function (Blueprint $table) {
-            $table->string('action_receipt')->nullable()->after('destination_port_id');
+            $table->string('auction_receipt')->nullable()->after('destination_port_id');
         });
     }
 
     public function down(): void
     {
-        if (! Schema::hasTable('prealerts') || ! Schema::hasColumn('prealerts', 'action_receipt')) {
+        if (! Schema::hasTable('prealerts') || ! Schema::hasColumn('prealerts', 'auction_receipt')) {
             return;
         }
 
         Schema::table('prealerts', function (Blueprint $table) {
-            $table->dropColumn('action_receipt');
+            $table->dropColumn('auction_receipt');
         });
     }
 };

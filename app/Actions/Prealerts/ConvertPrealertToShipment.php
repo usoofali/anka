@@ -24,7 +24,7 @@ final class ConvertPrealertToShipment
             $prealert->loadMissing('shipper.defaultConsignee');
 
             $vehicle = $prealert->vehicle;
-            if (! $vehicle instanceof Vehicle || $vehicle->shipment_id !== null) {
+            if (! $vehicle instanceof Vehicle || $vehicle->shipment()->exists()) {
                 throw new \InvalidArgumentException(__('Prealert must reference a vehicle that is not yet assigned to a shipment.'));
             }
 
@@ -55,7 +55,8 @@ final class ConvertPrealertToShipment
             $attributes = MergeShipmentDefaults::merge($shipmentInput);
             $shipment = Shipment::query()->create($attributes);
 
-            $vehicle->update(['shipment_id' => $shipment->id]);
+            // Update relations: link vehicle to shipment, update prealert status
+            $shipment->update(['vehicle_id' => $vehicle->id]);
             $prealert->delete();
 
             return $shipment->fresh() ?? $shipment;

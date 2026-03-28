@@ -10,23 +10,23 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (! Schema::hasTable('vehicles') || Schema::hasColumn('vehicles', 'action_receipt')) {
+        if (! Schema::hasTable('vehicles') || Schema::hasColumn('vehicles', 'auction_receipt')) {
             return;
         }
 
         Schema::table('vehicles', function (Blueprint $table) {
-            $table->string('action_receipt')->nullable()->after('doc_type');
+            $table->string('auction_receipt')->nullable()->after('doc_type');
         });
     }
 
     public function down(): void
     {
-        if (! Schema::hasTable('vehicles') || ! Schema::hasColumn('vehicles', 'action_receipt')) {
+        if (! Schema::hasTable('vehicles') || ! Schema::hasColumn('vehicles', 'auction_receipt')) {
             return;
         }
 
         Schema::table('vehicles', function (Blueprint $table) {
-            $table->dropColumn('action_receipt');
+            $table->dropColumn('auction_receipt');
         });
     }
 };

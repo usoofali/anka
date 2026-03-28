@@ -82,7 +82,7 @@ class CreateNewUser implements CreatesNewUsers
 
             Consignee::create([
                 'shipper_id' => $shipper->id,
-                'name' => $user->name,
+                'name' => $companyName ?? $user->name,
                 'address' => $shipper->address,
                 'is_default' => true,
             ]);

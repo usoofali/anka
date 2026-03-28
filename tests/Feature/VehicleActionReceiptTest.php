@@ -4,24 +4,24 @@ declare(strict_types=1);
 
 use App\Models\Vehicle;
 
-test('vehicle action_receipt path can be persisted and updated', function () {
+test('vehicle auction_receipt path can be persisted and updated', function () {
     $vehicle = Vehicle::factory()->withoutShipment()->create([
-        'action_receipt' => 'documents/vehicles/initial-receipt.pdf',
+        'auction_receipt' => 'documents/vehicles/initial-receipt.pdf',
     ]);
 
-    expect($vehicle->action_receipt)->toBe('documents/vehicles/initial-receipt.pdf');
+    expect($vehicle->auction_receipt)->toBe('documents/vehicles/initial-receipt.pdf');
 
     $vehicle->update([
-        'action_receipt' => 'documents/vehicles/updated-receipt.pdf',
+        'auction_receipt' => 'documents/vehicles/updated-receipt.pdf',
     ]);
 
-    expect($vehicle->fresh()->action_receipt)->toBe('documents/vehicles/updated-receipt.pdf');
+    expect($vehicle->fresh()->auction_receipt)->toBe('documents/vehicles/updated-receipt.pdf');
 });
 
-test('vehicle action_receipt allows null value', function () {
+test('vehicle auction_receipt allows null value', function () {
     $vehicle = Vehicle::factory()->withoutShipment()->create([
-        'action_receipt' => null,
+        'auction_receipt' => null,
     ]);
 
-    expect($vehicle->action_receipt)->toBeNull();
+    expect($vehicle->auction_receipt)->toBeNull();
 });

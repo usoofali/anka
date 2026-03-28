@@ -25,68 +25,44 @@ afterEach(function (): void {
 function sampleCopartApiPayload(string $vin): array
 {
     return [
-        'result' => [[
+        'data' => [
             'id' => 16_100_096,
-            'auction_name' => 'COPART_COM',
-            'body_style' => 'SEDAN',
-            'car_keys' => true,
-            'color' => 'CHARCOAL',
-            'cylinders' => '4',
-            'doc_type' => 'FL - ',
-            'drive' => 'FRONT',
-            'engine_type' => '1.8L 4',
-            'est_retail_value' => 15_578,
-            'fuel' => 'GASOLINE',
-            'highlights' => 'RUNS AND DRIVES',
-            'location' => 'FL - WEST PALM BEACH',
-            'lot_number' => '91392225',
-            'make' => 'TOYOTA',
-            'model' => 'COROLLA',
-            'odometer' => 105_893,
-            'primary_damage' => 'WATER/FLOOD',
-            'secondary_damage' => '',
-            'seller' => null,
-            'series' => 'L',
-            'transmission' => 'AUTOMATIC',
-            'vehicle_type' => 'AUTOMOBILE',
             'vin' => $vin,
             'year' => 2015,
-            'is_insurance' => 1,
-            'currency_code_id' => 1,
-            'car_info' => null,
-            'car_photo' => [
-                'id' => 216_309,
-                'all_lots_id' => '91392225',
-                'photo' => [
-                    'https://cs.copart.com/v1/AUTH_svc.pdoc00001/example_hrs.jpg',
-                    'https://cs.copart.com/v1/AUTH_svc.pdoc00001/example_ful.jpg',
-                ],
-            ],
-            'sales_history' => [
+            'manufacturer' => ['name' => 'TOYOTA'],
+            'model' => ['name' => 'COROLLA'],
+            'body_type' => ['name' => 'SEDAN'],
+            'color' => ['name' => 'CHARCOAL'],
+            'engine' => ['name' => '1.8L 4'],
+            'transmission' => ['name' => 'AUTOMATIC'],
+            'drive_wheel' => ['name' => 'FRONT'],
+            'vehicle_type' => ['name' => 'AUTOMOBILE'],
+            'fuel' => ['name' => 'GASOLINE'],
+            'cylinders' => 4,
+            'lots' => [
                 [
-                    'id' => 248_087,
-                    'all_lots_id' => '91392225',
-                    'lot_number' => 63_852_874,
-                    'purchase_price' => 2650,
-                    'sale_status' => 'Sold',
-                    'sold' => 1,
-                    'buyer_id' => 46_111,
-                    'buyer_state' => 'NG',
-                    'buyer_country' => 'NGA',
-                    'sale_date' => 1_706_032_800,
+                    'lot' => '91392225',
+                    'keys_available' => true,
+                    'odometer' => ['mi' => 105_893],
+                    'pre_accident_price' => 15578,
+                    'damage' => [
+                        'main' => ['name' => 'WATER/FLOOD'],
+                        'second' => ['name' => ''],
+                    ],
+                    'location' => ['raw' => 'FL - WEST PALM BEACH'],
+                    'selling_branch' => ['name' => 'COPART_COM'],
+                    'title' => ['name' => 'FL - '],
+                    'buy_now' => null,
+                    'seller' => null,
+                    'images' => [
+                        'normal' => [
+                            'https://cs.copart.com/v1/AUTH_svc.pdoc00001/example_hrs.jpg',
+                            'https://cs.copart.com/v1/AUTH_svc.pdoc00001/example_ful.jpg',
+                        ],
+                    ],
                 ],
             ],
-            'active_bidding' => [],
-            'buy_now_car' => null,
-            'currency' => [
-                'id' => 1,
-                'name' => 'US Dollar',
-                'char_code' => 'USD',
-                'iso_code' => 840,
-                'code_id' => 1,
-            ],
-        ]],
-        'api_request_left' => 42,
+        ],
     ];
 }
 
@@ -108,10 +84,10 @@ it('returns already on shipment for the same shipper', function () {
         'shipper_id' => $shipper->id,
         'consignee_id' => $consignee->id,
     ]);
-    Vehicle::factory()->create([
-        'shipment_id' => $shipment->id,
+    $vehicle = Vehicle::factory()->create([
         'vin' => VinNormalizer::normalize($vin),
     ]);
+    $shipment->update(['vehicle_id' => $vehicle->id]);
 
     $result = app(VinLookupService::class)->lookup($vin, $shipper->id);
 
@@ -130,10 +106,10 @@ it('flags another shipper when vin is on an active shipment', function () {
         'shipper_id' => $owner->id,
         'consignee_id' => $consignee->id,
     ]);
-    Vehicle::factory()->create([
-        'shipment_id' => $shipment->id,
+    $vehicle = Vehicle::factory()->create([
         'vin' => VinNormalizer::normalize($vin),
     ]);
+    $shipment->update(['vehicle_id' => $vehicle->id]);
 
     $result = app(VinLookupService::class)->lookup($vin, $other->id);
 
@@ -165,7 +141,7 @@ it('fetches from api and persists a vehicle', function () {
     $payload = sampleCopartApiPayload($vin);
 
     Http::fake([
-        'https://api-for-copart-and-iaai.p.rapidapi.com/search-vin/*' => Http::response($payload, 200),
+        'https://api-for-copart-and-iaai.p.rapidapi.com/search-vin/*' => Http::response($payload, 200, ['x-ratelimit-requests-remaining' => 42]),
     ]);
 
     $result = app(VinLookupService::class)->lookup($vin, $shipper->id);
@@ -174,14 +150,14 @@ it('fetches from api and persists a vehicle', function () {
         ->and($result->vehicle)->not->toBeNull()
         ->and($result->vehicle->vin)->toBe(VinNormalizer::normalize($vin))
         ->and($result->vehicle->make)->toBe('TOYOTA')
-        ->and($result->vehicle->shipment_id)->toBeNull()
+        ->and($result->vehicle->shipment()->exists())->toBeFalse()
         ->and($result->apiRequestsLeft)->toBe(42)
         ->and($result->vehicle->api_snapshot)->toBeArray()
         ->and($result->vehicle->api_snapshot['car_photo'])->toBeArray()
         ->and($result->vehicle->api_snapshot['car_photo']['photo'])->toHaveCount(2)
         ->and($result->vehicle->copartCarPhotoUrls())->toHaveCount(2)
-        ->and($result->vehicle->api_snapshot['sales_history'])->toHaveCount(1)
-        ->and($result->vehicle->api_snapshot['currency']['char_code'] ?? null)->toBe('USD')
+        ->and($result->vehicle->api_snapshot['sales_history'])->toHaveCount(0)
+        ->and($result->vehicle->api_snapshot['currency'])->toBeNull()
         ->and(Cache::get('vin-api:api-request-left'))->toBe(42);
 });
 
@@ -192,9 +168,8 @@ it('returns vin not found when api has empty result', function () {
 
     Http::fake([
         'https://api-for-copart-and-iaai.p.rapidapi.com/search-vin/*' => Http::response([
-            'result' => [],
-            'api_request_left' => 0,
-        ], 200),
+            'data' => null,
+        ], 200, ['x-ratelimit-requests-remaining' => 0]),
     ]);
 
     $result = app(VinLookupService::class)->lookup($vin, $shipper->id);
@@ -209,9 +184,8 @@ it('applies rate limiting before outbound api calls', function () {
 
     Http::fake([
         'https://api-for-copart-and-iaai.p.rapidapi.com/search-vin/*' => Http::response([
-            'result' => [],
-            'api_request_left' => 0,
-        ], 200),
+            'data' => null,
+        ], 200, ['x-ratelimit-requests-remaining' => 0]),
     ]);
 
     $service = app(VinLookupService::class);

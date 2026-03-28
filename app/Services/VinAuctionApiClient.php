@@ -42,6 +42,11 @@ final class VinAuctionApiClient
         /** @var array<string, mixed> $data */
         $data = $response->json() ?? [];
 
+        $requestsLeft = $response->header('x-ratelimit-requests-remaining');
+        if (is_numeric($requestsLeft)) {
+            $data['api_request_left'] = (int) $requestsLeft;
+        }
+
         if (array_key_exists('api_request_left', $data)) {
             Cache::put(
                 'vin-api:api-request-left',

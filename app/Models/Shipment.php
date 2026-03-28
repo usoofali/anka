@@ -27,6 +27,7 @@ final class Shipment extends Model
         'consignee_id',
         'driver_id',
         'shipping_company_id',
+        'vehicle_id',
         'carrier_id',
         'origin_port_id',
         'destination_port_id',
@@ -81,13 +82,13 @@ final class Shipment extends Model
     }
 
     /**
-     * At most one {@see Vehicle} per shipment when a vehicle row is linked (unique shipment_id when set).
+     * Shipment belongs to a specific Vehicle.
      *
-     * @return HasOne<Vehicle, $this>
+     * @return BelongsTo<Vehicle, $this>
      */
-    public function vehicle(): HasOne
+    public function vehicle(): BelongsTo
     {
-        return $this->hasOne(Vehicle::class);
+        return $this->belongsTo(Vehicle::class);
     }
 
     public function trackings(): HasMany

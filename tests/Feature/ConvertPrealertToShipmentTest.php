@@ -53,8 +53,8 @@ it('converts a prealert into a shipment and deletes the prealert', function () {
         ->and($shipment->destination_port_id)->toBe($prealertDestination->id)
         ->and($shipment->reference_no)->not->toBeEmpty();
 
-    $vehicle->refresh();
-    expect($vehicle->shipment_id)->toBe($shipment->id);
+    $shipment->refresh();
+    expect($shipment->vehicle_id)->toBe($vehicle->id);
 });
 
 it('requires a default consignee during conversion', function () {
@@ -74,7 +74,8 @@ it('requires a default consignee during conversion', function () {
 it('rejects conversion when the vehicle is already assigned', function () {
     $shipper = Shipper::factory()->create();
     $existing = Shipment::factory()->create(['shipper_id' => $shipper->id]);
-    $vehicle = Vehicle::factory()->create(['shipment_id' => $existing->id]);
+    $vehicle = Vehicle::factory()->create();
+    $existing->update(['vehicle_id' => $vehicle->id]);
     $prealert = Prealert::factory()->for($shipper)->withVehicle($vehicle)->create();
 
     expect(fn () => app(ConvertPrealertToShipment::class)->execute($prealert, [

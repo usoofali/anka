@@ -14,7 +14,7 @@ use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 
-final class VinLookupService
+class VinLookupService
 {
     public function __construct(
         private readonly VinAuctionApiClient $apiClient,
@@ -34,8 +34,9 @@ final class VinLookupService
 
         $vehicle = Vehicle::query()->where('vin', $vin)->first();
 
-        if ($vehicle instanceof Vehicle && $vehicle->shipment_id !== null) {
-            $shipment = Shipment::query()->find($vehicle->shipment_id);
+        $shipment = $vehicle instanceof Vehicle ? $vehicle->shipment : null;
+
+        if ($vehicle instanceof Vehicle && $shipment instanceof Shipment) {
             if ($shipment instanceof Shipment) {
                 $other = $shipment->shipper_id !== $shipperId;
 
@@ -86,17 +87,12 @@ final class VinLookupService
                 }
 
                 $apiRequestsLeft = isset($envelope['api_request_left']) ? (int) $envelope['api_request_left'] : null;
-                $results = $envelope['result'] ?? [];
-                if (! is_array($results) || $results === []) {
+                $data = $envelope['data'] ?? null;
+                if (! is_array($data) || empty($data)) {
                     return VinLookupResult::vinNotFound();
                 }
 
-                $first = $results[0] ?? null;
-                if (! is_array($first)) {
-                    return VinLookupResult::vinNotFound();
-                }
-
-                $attributes = MapCopartApiVehicleItemToVehicleAttributes::map($first, $envelope);
+                $attributes = MapCopartApiVehicleItemToVehicleAttributes::map($data, $envelope);
 
                 try {
                     $created = Vehicle::query()->create($attributes);

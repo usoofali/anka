@@ -7,11 +7,11 @@ namespace App\Models;
 use Database\Factories\VehicleFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
- * Belongs to at most one {@see Shipment}. A unique shipment_id enforces at most one vehicle per shipment
- * when shipment_id is non-null. Rows may exist with a null shipment_id (pre-shipment / prealert). VIN is unique when present.
+ * Belongs to at most one {@see Shipment}. A unique vehicle_id enforces at most one vehicle per shipment
+ * when vehicle_id is non-null on the shipment. Rows may exist without a shipment (pre-shipment / prealert). VIN is unique when present.
  *
  * Copart/IAAI API rows store `api_snapshot` with first-class `car_photo` (gallery URLs), `sales_history`,
  * `currency`, plus full `result_item` for parity with the provider payload.
@@ -22,7 +22,6 @@ final class Vehicle extends Model
     use HasFactory;
 
     protected $fillable = [
-        'shipment_id',
         'vin',
         'lot_number',
         'make',
@@ -40,7 +39,7 @@ final class Vehicle extends Model
         'odometer',
         'car_keys',
         'doc_type',
-        'action_receipt',
+        'auction_receipt',
         'primary_damage',
         'secondary_damage',
         'highlights',
@@ -109,10 +108,10 @@ final class Vehicle extends Model
     }
 
     /**
-     * @return BelongsTo<Shipment, Vehicle>
+     * @return HasOne<Shipment, $this>
      */
-    public function shipment(): BelongsTo
+    public function shipment(): HasOne
     {
-        return $this->belongsTo(Shipment::class);
+        return $this->hasOne(Shipment::class);
     }
 }

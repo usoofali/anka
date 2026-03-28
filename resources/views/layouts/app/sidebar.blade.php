@@ -12,14 +12,35 @@
 
             <flux:sidebar.nav>
                 <flux:sidebar.group :heading="__('Platform')" class="grid">
-                    <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
+                    <flux:sidebar.item icon="home" icon-class="text-indigo-500" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group :heading="__('Operations')" class="grid" expandable expanded="false">
-                    <flux:sidebar.item icon="building-office-2" :href="route('shippers.index')" :current="request()->routeIs('shippers.*')" wire:navigate>
+                    <flux:sidebar.item icon="bell" icon-class="text-amber-500" :href="route('prealerts.index')" :current="request()->routeIs('prealerts.*')" wire:navigate>
+                        {{ __('Prealerts') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="building-office-2" icon-class="text-blue-500" :href="route('shippers.index')" :current="request()->routeIs('shippers.*')" wire:navigate>
                         {{ __('Shippers') }}
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+
+                <flux:sidebar.group :heading="__('Settings')" class="grid" expandable expanded="false">
+                    <flux:sidebar.item icon="truck" icon-class="text-emerald-500" :href="route('carriers.index')" :current="request()->routeIs('carriers.*')" wire:navigate>
+                        {{ __('Carriers') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="map-pin" icon-class="text-cyan-500" :href="route('ports.index')" :current="request()->routeIs('ports.*')" wire:navigate>
+                        {{ __('Ports') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="flag" icon-class="text-rose-500" :href="route('countries.index')" :current="request()->routeIs('countries.*')" wire:navigate>
+                        {{ __('Countries') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="map" icon-class="text-violet-500" :href="route('states.index')" :current="request()->routeIs('states.*')" wire:navigate>
+                        {{ __('States') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="map-pin" icon-class="text-sky-500" :href="route('cities.index')" :current="request()->routeIs('cities.*')" wire:navigate>
+                        {{ __('Cities') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>

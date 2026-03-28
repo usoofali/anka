@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
-use App\Models\Shipment;
 use App\Models\Vehicle;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -21,7 +20,6 @@ class VehicleFactory extends Factory
     public function definition(): array
     {
         return [
-            'shipment_id' => Shipment::factory(),
             'vin' => strtoupper(fake()->bothify('??################')),
             'lot_number' => (string) fake()->numerify('########'),
             'make' => fake()->randomElement(['Toyota', 'Honda', 'Ford']),
@@ -30,15 +28,13 @@ class VehicleFactory extends Factory
             'odometer' => fake()->numberBetween(1000, 200000),
             'color' => fake()->colorName(),
             'vehicle_type' => 'automobile',
-            'action_receipt' => null,
+            'auction_receipt' => null,
             'is_insurance' => fake()->boolean(),
         ];
     }
 
     public function withoutShipment(): static
     {
-        return $this->state(fn (): array => [
-            'shipment_id' => null,
-        ]);
+        return $this->state(fn (): array => []);
     }
 }
