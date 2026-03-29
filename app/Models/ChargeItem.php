@@ -7,7 +7,6 @@ namespace App\Models;
 use Database\Factories\ChargeItemFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 final class ChargeItem extends Model
 {
@@ -18,9 +17,4 @@ final class ChargeItem extends Model
         'item',
         'description',
     ];
-
-    public function invoiceItems(): HasMany
-    {
-        return $this->hasMany(InvoiceItem::class);
-    }
 }

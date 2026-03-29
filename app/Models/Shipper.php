@@ -70,4 +70,9 @@ final class Shipper extends Model
     {
         return $this->hasOne(Wallet::class);
     }
+
+    public function walletTopUps(): HasMany
+    {
+        return $this->hasMany(WalletTopUp::class);
+    }
 }

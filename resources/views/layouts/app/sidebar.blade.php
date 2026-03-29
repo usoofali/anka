@@ -3,7 +3,7 @@
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen bg-white dark:bg-zinc-800">
+    <body class="min-h-screen bg-sky-50/50 dark:bg-zinc-800">
         <flux:sidebar sticky collapsible="mobile" class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.header>
                 <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
@@ -35,7 +35,25 @@
                     </flux:sidebar.item>
                 </flux:sidebar.group>
 
+                <flux:sidebar.group :heading="__('Financials')" class="grid" expandable="true" expanded="false">
+                    <flux:sidebar.item icon="wallet" icon-class="text-blue-500" :href="route('financials.wallets.index')" :current="request()->routeIs('financials.wallets.*')" wire:navigate>
+                        {{ __('Master Wallets') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="banknotes" icon-class="text-emerald-500" :href="route('financials.top-ups.index')" :current="request()->routeIs('financials.top-ups.*')" wire:navigate>
+                        {{ __('Top-Ups Approvals') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="credit-card" icon-class="text-indigo-500" :href="route('shipper.wallet.index')" :current="request()->routeIs('shipper.wallet.*')" wire:navigate>
+                        {{ __('My Wallet') }}
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+
                 <flux:sidebar.group :heading="__('Settings')" class="grid" expandable expanded="false">
+                    <flux:sidebar.item icon="credit-card" icon-class="text-indigo-500" :href="route('payment_methods.index')" :current="request()->routeIs('payment_methods.*')" wire:navigate>
+                        {{ __('Payment Methods') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="ticket" icon-class="text-amber-500" :href="route('charge-items.index')" :current="request()->routeIs('charge-items.*')" wire:navigate>
+                        {{ __('Charge Items') }}
+                    </flux:sidebar.item>
                     <flux:sidebar.item icon="truck" icon-class="text-emerald-500" :href="route('carriers.index')" :current="request()->routeIs('carriers.*')" wire:navigate>
                         {{ __('Carriers') }}
                     </flux:sidebar.item>

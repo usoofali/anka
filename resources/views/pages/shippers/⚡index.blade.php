@@ -258,66 +258,71 @@ new #[Title('Shippers')] class extends Component {
         </div>
         <x-crud.page-header :heading="__('Shippers')" :subheading="__('Companies registered on the platform.')" class="!mb-0" />
     </div>
+    <x-crud.panel class="p-6">
+        <flux:table :paginate="$shippers">
+            <flux:table.columns>
+                <flux:table.column icon="user">{{ __('Shipper') }}</flux:table.column>
+                <flux:table.column icon="building-office">{{ __('Company') }}</flux:table.column>
+                <flux:table.column icon="phone">{{ __('Phone') }}</flux:table.column>
+                <flux:table.column align="right">{{ __('Actions') }}</flux:table.column>
+            </flux:table.columns>
 
-    <flux:table :paginate="$shippers">
-        <flux:table.columns>
-            <flux:table.column icon="user">{{ __('Shipper') }}</flux:table.column>
-            <flux:table.column icon="building-office">{{ __('Company') }}</flux:table.column>
-            <flux:table.column icon="phone">{{ __('Phone') }}</flux:table.column>
-            <flux:table.column align="right">{{ __('Actions') }}</flux:table.column>
-        </flux:table.columns>
-
-        <flux:table.rows>
-            @forelse ($shippers as $shipper)
-                <flux:table.row :key="$shipper->id">
-                    <flux:table.cell>
-                        <div class="flex items-center gap-3">
-                            <div class="flex size-9 items-center justify-center rounded-lg bg-primary-50 text-primary-600 dark:bg-primary-950/30 dark:text-primary-400">
-                                <flux:icon.user variant="mini" />
+            <flux:table.rows>
+                @forelse ($shippers as $shipper)
+                    <flux:table.row :key="$shipper->id">
+                        <flux:table.cell>
+                            <div class="flex items-center gap-3">
+                                <div class="flex size-9 items-center justify-center rounded-lg bg-primary-50 text-primary-600 dark:bg-primary-950/30 dark:text-primary-400">
+                                    <flux:icon.user variant="mini" />
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="font-semibold text-zinc-900 dark:text-zinc-100">{{ $shipper->user?->name }}</span>
+                                    @if (filled($shipper->user?->email))
+                                        <span class="text-xs text-zinc-500 dark:text-zinc-400">{{ $shipper->user?->email }}</span>
+                                    @endif
+                                </div>
                             </div>
-                            <div class="flex flex-col">
-                                <span class="font-semibold text-zinc-900 dark:text-zinc-100">{{ $shipper->user?->name }}</span>
-                                @if (filled($shipper->user?->email))
-                                    <span class="text-xs text-zinc-500 dark:text-zinc-400">{{ $shipper->user?->email }}</span>
-                                @endif
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            <div class="flex items-center gap-2">
+                                <flux:icon.building-office variant="mini" class="text-zinc-400" />
+                                <span class="font-medium text-zinc-700 dark:text-zinc-300">{{ $shipper->company_name ?: '—' }}</span>
                             </div>
-                        </div>
-                    </flux:table.cell>
-                    <flux:table.cell>
-                        <div class="flex items-center gap-2">
-                            <flux:icon.building-office variant="mini" class="text-zinc-400" />
-                            <span class="font-medium text-zinc-700 dark:text-zinc-300">{{ $shipper->company_name ?: '—' }}</span>
-                        </div>
-                    </flux:table.cell>
-                    <flux:table.cell>
-                        <div class="flex items-center gap-2">
-                            <flux:icon.phone variant="mini" class="text-zinc-400" />
-                            <span class="text-zinc-600 dark:text-zinc-400">{{ $shipper->phone ?: '—' }}</span>
-                        </div>
-                    </flux:table.cell>
-                    <flux:table.cell align="right">
-                        <div class="inline-flex items-center justify-end gap-1">
-                            @can('view', $shipper)
-                                <flux:button size="sm" variant="ghost" icon="eye" :href="route('shippers.show', $shipper)" wire:navigate :tooltip="__('View')" />
-                            @endcan
-                            @can('update', $shipper)
-                                <flux:button size="sm" variant="ghost" icon="pencil-square" wire:click="openEditModal({{ $shipper->id }})" wire:key="edit-open-{{ $shipper->id }}" :tooltip="__('Edit')" />
-                            @endcan
-                            @can('delete', $shipper)
-                                <flux:button size="sm" variant="ghost" icon="trash" color="red" wire:click="openDeleteModal({{ $shipper->id }})" wire:key="delete-open-{{ $shipper->id }}" :tooltip="__('Delete')" />
-                            @endcan
-                        </div>
-                    </flux:table.cell>
-                </flux:table.row>
-            @empty
-                <flux:table.row>
-                    <flux:table.cell colspan="4" class="py-12 text-center text-zinc-500">
-                        {{ __('No shippers found.') }}
-                    </flux:table.cell>
-                </flux:table.row>
-            @endforelse
-        </flux:table.rows>
-    </flux:table>
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            <div class="flex items-center gap-2">
+                                <flux:icon.phone variant="mini" class="text-zinc-400" />
+                                <span class="text-zinc-600 dark:text-zinc-400">{{ $shipper->phone ?: '—' }}</span>
+                            </div>
+                        </flux:table.cell>
+                        <flux:table.cell align="right">
+                            <flux:dropdown align="end" variant="ghost">
+                                <flux:button variant="ghost" icon="ellipsis-horizontal" size="sm" />
+                                <flux:menu>
+                                    @can('view', $shipper)
+                                        <flux:menu.item icon="eye" :href="route('shippers.show', $shipper)" wire:navigate>{{ __('View') }}</flux:menu.item>
+                                    @endcan
+                                    @can('update', $shipper)
+                                        <flux:menu.item icon="pencil-square" wire:click="openEditModal({{ $shipper->id }})" wire:key="edit-open-{{ $shipper->id }}">{{ __('Edit') }}</flux:menu.item>
+                                    @endcan
+                                    @can('delete', $shipper)
+                                        <flux:menu.separator />
+                                        <flux:menu.item icon="trash" variant="danger" wire:click="openDeleteModal({{ $shipper->id }})" wire:key="delete-open-{{ $shipper->id }}">{{ __('Delete') }}</flux:menu.item>
+                                    @endcan
+                                </flux:menu>
+                            </flux:dropdown>
+                        </flux:table.cell>
+                    </flux:table.row>
+                @empty
+                    <flux:table.row>
+                        <flux:table.cell colspan="4" class="py-12 text-center text-zinc-500">
+                            {{ __('No shippers found.') }}
+                        </flux:table.cell>
+                    </flux:table.row>
+                @endforelse
+            </flux:table.rows>
+        </flux:table>
+    </x-crud.panel>
 
     <flux:modal wire:model.self="showEditModal" class="max-w-4xl">
         <div class="max-h-[85vh] space-y-8 overflow-y-auto px-1 pb-4">

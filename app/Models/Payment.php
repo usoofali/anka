@@ -21,6 +21,7 @@ final class Payment extends Model
         'amount',
         'status',
         'transaction_ref',
+        'transaction_id',
         'paid_at',
     ];
 
@@ -41,5 +42,10 @@ final class Payment extends Model
     public function paymentMethod(): BelongsTo
     {
         return $this->belongsTo(PaymentMethod::class);
+    }
+
+    public function transaction(): BelongsTo
+    {
+        return $this->belongsTo(Transaction::class);
     }
 }

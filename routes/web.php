@@ -35,6 +35,8 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::get('/api/shippers/search', [ShipperOptionsController::class, 'index'])->name('api.shippers.search');
 
     // Master Data
+    Route::livewire('/payment-methods', 'pages::payment-methods.index')->name('payment_methods.index');
+    Route::livewire('/charge-items', 'pages::charge-items.index')->name('charge-items.index');
     Route::livewire('/carriers', 'pages::carriers.index')->name('carriers.index');
     Route::livewire('/ports', 'pages::ports.index')->name('ports.index');
     Route::livewire('/countries', 'pages::countries.index')->name('countries.index');
@@ -45,6 +47,24 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::livewire('/drivers', 'pages::drivers.index')->name('drivers.index');
     Route::livewire('/staff', 'pages::staff.index')->name('staff.index');
     Route::livewire('/workshops', 'pages::workshops.index')->name('workshops.index');
+
+    // Shipper Wallet
+    Route::livewire('/shipper/wallet', 'pages::shipper.wallet.index')
+        ->middleware('permission:wallets.view')
+        ->name('shipper.wallet.index');
+
+    // Financials
+    Route::livewire('/financials/top-ups', 'pages::financials.top-ups.index')
+        ->middleware('permission:wallet_top_ups.view')
+        ->name('financials.top-ups.index');
+
+    Route::livewire('/financials/wallets', 'pages::financials.wallets.index')
+        ->middleware('permission:wallets.view')
+        ->name('financials.wallets.index');
+
+    Route::livewire('/financials/wallets/{wallet}', 'pages::financials.wallets.show')
+        ->middleware('permission:wallets.view')
+        ->name('financials.wallets.show');
 });
 
 require __DIR__.'/settings.php';

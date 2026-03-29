@@ -66,6 +66,18 @@ final class RolePermissionSeeder extends Seeder
             'workshops.create',
             'workshops.update',
             'workshops.delete',
+            'wallet_top_ups.view',
+            'wallet_top_ups.create',
+            'wallet_top_ups.approve',
+            'wallet_top_ups.reject',
+            'charge_items.view',
+            'charge_items.create',
+            'charge_items.update',
+            'charge_items.delete',
+            'payment_methods.view',
+            'payment_methods.create',
+            'payment_methods.update',
+            'payment_methods.delete',
         ];
 
         foreach ($permissionNames as $name) {
@@ -131,6 +143,18 @@ final class RolePermissionSeeder extends Seeder
             'workshops.create',
             'workshops.update',
             'workshops.delete',
+            'wallet_top_ups.view',
+            'wallet_top_ups.create',
+            'wallet_top_ups.approve',
+            'wallet_top_ups.reject',
+            'charge_items.view',
+            'charge_items.create',
+            'charge_items.update',
+            'charge_items.delete',
+            'payment_methods.view',
+            'payment_methods.create',
+            'payment_methods.update',
+            'payment_methods.delete',
         ]);
 
         $staffOperator = Role::query()->firstOrCreate(
@@ -154,6 +178,9 @@ final class RolePermissionSeeder extends Seeder
             'drivers.view',
             'staff.view',
             'workshops.view',
+            'wallet_top_ups.view',
+            'charge_items.view',
+            'payment_methods.view',
         ]);
 
         $shipper = Role::query()->firstOrCreate(
@@ -168,6 +195,8 @@ final class RolePermissionSeeder extends Seeder
             'payments.manage',
             'documents.manage',
             'wallets.view',
+            'wallet_top_ups.view',
+            'wallet_top_ups.create',
         ]);
     }
 }
