@@ -18,7 +18,9 @@ new #[Title('Cities')] class extends Component {
 
     public bool $showCreateModal = false;
     public bool $showEditModal = false;
+    public bool $showDeleteModal = false;
     public ?int $cityPendingDeleteId = null;
+    public string $cityPendingDeleteLabel = '';
 
     #[Url(as: 'q')]
     public string $search = '';
@@ -150,27 +152,31 @@ new #[Title('Cities')] class extends Component {
     public function openDeleteModal(int $id): void
     {
         $this->authorize('cities.delete');
-        $this->cityPendingDeleteId = $id;
-        $this->dispatch('modal-show', name: 'delete-city');
+        $city = City::findOrFail($id);
+        $this->cityPendingDeleteId = $city->id;
+        $this->cityPendingDeleteLabel = $city->name;
+        $this->showDeleteModal = true;
     }
 
     public function deleteCity(): void
     {
         $this->authorize('cities.delete');
-        
+
         if ($this->cityPendingDeleteId) {
             $city = City::findOrFail($this->cityPendingDeleteId);
-            
+
             if ($city->ports()->exists()) {
-                $this->notification()->warning(__('Cannot delete city with associated ports.'));
+                $this->showDeleteModal = false;
+                $this->notification()->warning(__('Cannot delete ":name" because it has associated ports.', ['name' => $city->name]));
             } else {
                 $city->delete();
+                $this->showDeleteModal = false;
                 $this->notification()->success(__('City deleted successfully.'));
             }
         }
 
         $this->cityPendingDeleteId = null;
-        $this->dispatch('modal-hide', name: 'delete-city');
+        $this->cityPendingDeleteLabel = '';
     }
 }; ?>
 
@@ -249,21 +255,21 @@ new #[Title('Cities')] class extends Component {
             </div>
 
             <div class="space-y-4">
-                <flux:select wire:model.live="country_id" :label="__('Country')" icon="flag" required>
-                    <option value="">{{ __('Select Country') }}</option>
-                    @foreach ($this->countries as $country)
-                        <option value="{{ $country->id }}">{{ $country->name }}</option>
-                    @endforeach
-                </flux:select>
-
-                <flux:select wire:model.live="state_id" :label="__('State')" icon="map" required :disabled="!$country_id">
-                    <option value="">{{ __('Select State') }}</option>
-                    @foreach ($this->states as $state)
-                        <option value="{{ $state->id }}">{{ $state->name }}</option>
-                    @endforeach
-                </flux:select>
-
-                <flux:input wire:model="name" :label="__('City Name')" required placeholder="e.g. Los Angeles" :disabled="!$state_id" />
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <flux:select wire:model.live="country_id" :label="__('Country')" icon="flag" required>
+                        <option value="">{{ __('Select Country') }}</option>
+                        @foreach ($this->countries as $country)
+                            <option value="{{ $country->id }}">{{ $country->name }}</option>
+                        @endforeach
+                    </flux:select>
+                    <flux:select wire:model.live="state_id" :label="__('State')" icon="map" required :disabled="!$country_id">
+                        <option value="">{{ __('Select State') }}</option>
+                        @foreach ($this->states as $state)
+                            <option value="{{ $state->id }}">{{ $state->name }}</option>
+                        @endforeach
+                    </flux:select>
+                </div>
+                <flux:input wire:model="name" :label="__('City Name')" icon="map-pin" required placeholder="e.g. Los Angeles" :disabled="!$state_id" />
             </div>
 
             <div class="flex justify-end gap-2">
@@ -287,21 +293,21 @@ new #[Title('Cities')] class extends Component {
             </div>
 
             <div class="space-y-4">
-                <flux:select wire:model.live="country_id" :label="__('Country')" icon="flag" required>
-                    <option value="">{{ __('Select Country') }}</option>
-                    @foreach ($this->countries as $country)
-                        <option value="{{ $country->id }}">{{ $country->name }}</option>
-                    @endforeach
-                </flux:select>
-
-                <flux:select wire:model.live="state_id" :label="__('State')" icon="map" required :disabled="!$country_id">
-                    <option value="">{{ __('Select State') }}</option>
-                    @foreach ($this->states as $state)
-                        <option value="{{ $state->id }}">{{ $state->name }}</option>
-                    @endforeach
-                </flux:select>
-
-                <flux:input wire:model="name" :label="__('City Name')" required :disabled="!$state_id" />
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <flux:select wire:model.live="country_id" :label="__('Country')" icon="flag" required>
+                        <option value="">{{ __('Select Country') }}</option>
+                        @foreach ($this->countries as $country)
+                            <option value="{{ $country->id }}">{{ $country->name }}</option>
+                        @endforeach
+                    </flux:select>
+                    <flux:select wire:model.live="state_id" :label="__('State')" icon="map" required :disabled="!$country_id">
+                        <option value="">{{ __('Select State') }}</option>
+                        @foreach ($this->states as $state)
+                            <option value="{{ $state->id }}">{{ $state->name }}</option>
+                        @endforeach
+                    </flux:select>
+                </div>
+                <flux:input wire:model="name" :label="__('City Name')" icon="map-pin" required :disabled="!$state_id" />
             </div>
 
             <div class="flex justify-end gap-2">
@@ -313,19 +319,20 @@ new #[Title('Cities')] class extends Component {
         </form>
     </flux:modal>
 
-    <x-modal name="delete-city" :title="__('Delete City')">
-        <div class="p-6">
-            <p class="text-zinc-600 dark:text-zinc-400">
-                {{ __('Are you sure you want to delete this city? This action cannot be undone.') }}
-            </p>
-            <div class="mt-6 flex justify-end gap-3">
-                <flux:button variant="ghost" x-on:click="$dispatch('modal-hide', { name: 'delete-city' })">
-                    {{ __('Cancel') }}
-                </flux:button>
-                <flux:button variant="danger" wire:click="deleteCity">
-                    {{ __('Delete City') }}
-                </flux:button>
+    <flux:modal wire:model="showDeleteModal" class="max-w-md">
+        <form wire:submit="deleteCity" class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('Delete City') }}</flux:heading>
+                <flux:subheading>
+                    {{ __('Are you sure you want to delete ":name"? This action cannot be undone.', ['name' => $cityPendingDeleteLabel]) }}
+                </flux:subheading>
             </div>
-        </div>
-    </x-modal>
+            <div class="flex justify-end gap-2">
+                <flux:modal.close>
+                    <flux:button variant="ghost">{{ __('Cancel') }}</flux:button>
+                </flux:modal.close>
+                <flux:button type="submit" variant="danger">{{ __('Delete') }}</flux:button>
+            </div>
+        </form>
+    </flux:modal>
 </div>

@@ -17,7 +17,9 @@ new #[Title('States')] class extends Component {
 
     public bool $showCreateModal = false;
     public bool $showEditModal = false;
+    public bool $showDeleteModal = false;
     public ?int $statePendingDeleteId = null;
+    public string $statePendingDeleteLabel = '';
 
     #[Url(as: 'q')]
     public string $search = '';
@@ -120,27 +122,31 @@ new #[Title('States')] class extends Component {
     public function openDeleteModal(int $id): void
     {
         $this->authorize('states.delete');
-        $this->statePendingDeleteId = $id;
-        $this->dispatch('modal-show', name: 'delete-state');
+        $state = State::findOrFail($id);
+        $this->statePendingDeleteId = $state->id;
+        $this->statePendingDeleteLabel = $state->name;
+        $this->showDeleteModal = true;
     }
 
     public function deleteState(): void
     {
         $this->authorize('states.delete');
-        
+
         if ($this->statePendingDeleteId) {
             $state = State::findOrFail($this->statePendingDeleteId);
-            
+
             if ($state->cities()->exists() || $state->ports()->exists()) {
-                $this->notification()->warning(__('Cannot delete state with associated cities or ports.'));
+                $this->showDeleteModal = false;
+                $this->notification()->warning(__('Cannot delete ":name" because it has associated cities or ports.', ['name' => $state->name]));
             } else {
                 $state->delete();
+                $this->showDeleteModal = false;
                 $this->notification()->success(__('State deleted successfully.'));
             }
         }
 
         $this->statePendingDeleteId = null;
-        $this->dispatch('modal-hide', name: 'delete-state');
+        $this->statePendingDeleteLabel = '';
     }
 }; ?>
 
@@ -221,8 +227,10 @@ new #[Title('States')] class extends Component {
                         <option value="{{ $country->id }}">{{ $country->name }}</option>
                     @endforeach
                 </flux:select>
-                <flux:input wire:model="name" :label="__('State Name')" required placeholder="e.g. California" />
-                <flux:input wire:model="code" :label="__('State Code')" required placeholder="CA" class="uppercase font-mono" />
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <flux:input wire:model="name" :label="__('State Name')" icon="map" required placeholder="e.g. California" />
+                    <flux:input wire:model="code" :label="__('State Code')" icon="qr-code" required placeholder="CA" class="uppercase font-mono" />
+                </div>
             </div>
 
             <div class="flex justify-end gap-2">
@@ -252,8 +260,10 @@ new #[Title('States')] class extends Component {
                         <option value="{{ $country->id }}">{{ $country->name }}</option>
                     @endforeach
                 </flux:select>
-                <flux:input wire:model="name" :label="__('State Name')" required />
-                <flux:input wire:model="code" :label="__('State Code')" required class="uppercase font-mono" />
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <flux:input wire:model="name" :label="__('State Name')" icon="map" required />
+                    <flux:input wire:model="code" :label="__('State Code')" icon="qr-code" required class="uppercase font-mono" />
+                </div>
             </div>
 
             <div class="flex justify-end gap-2">
@@ -265,19 +275,20 @@ new #[Title('States')] class extends Component {
         </form>
     </flux:modal>
 
-    <x-modal name="delete-state" :title="__('Delete State')">
-        <div class="p-6">
-            <p class="text-zinc-600 dark:text-zinc-400">
-                {{ __('Are you sure you want to delete this state? This action cannot be undone.') }}
-            </p>
-            <div class="mt-6 flex justify-end gap-3">
-                <flux:button variant="ghost" x-on:click="$dispatch('modal-hide', { name: 'delete-state' })">
-                    {{ __('Cancel') }}
-                </flux:button>
-                <flux:button variant="danger" wire:click="deleteState">
-                    {{ __('Delete State') }}
-                </flux:button>
+    <flux:modal wire:model="showDeleteModal" class="max-w-md">
+        <form wire:submit="deleteState" class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('Delete State') }}</flux:heading>
+                <flux:subheading>
+                    {{ __('Are you sure you want to delete ":name"? This action cannot be undone.', ['name' => $statePendingDeleteLabel]) }}
+                </flux:subheading>
             </div>
-        </div>
-    </x-modal>
+            <div class="flex justify-end gap-2">
+                <flux:modal.close>
+                    <flux:button variant="ghost">{{ __('Cancel') }}</flux:button>
+                </flux:modal.close>
+                <flux:button type="submit" variant="danger">{{ __('Delete') }}</flux:button>
+            </div>
+        </form>
+    </flux:modal>
 </div>

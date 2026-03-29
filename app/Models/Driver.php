@@ -17,7 +17,8 @@ final class Driver extends Model
     protected $fillable = [
         'name',
         'phone',
-        'license_number',
+        'email',
+        'company',
     ];
 
     public function shipments(): HasMany

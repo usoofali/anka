@@ -40,6 +40,11 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::livewire('/countries', 'pages::countries.index')->name('countries.index');
     Route::livewire('/states', 'pages::states.index')->name('states.index');
     Route::livewire('/cities', 'pages::cities.index')->name('cities.index');
+
+    // Operations Master Data
+    Route::livewire('/drivers', 'pages::drivers.index')->name('drivers.index');
+    Route::livewire('/staff', 'pages::staff.index')->name('staff.index');
+    Route::livewire('/workshops', 'pages::workshops.index')->name('workshops.index');
 });
 
 require __DIR__.'/settings.php';

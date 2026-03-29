@@ -265,7 +265,7 @@ new #[Title('Carriers')] class extends Component {
             <div>
                 <flux:heading size="lg">{{ __('Delete Carrier') }}</flux:heading>
                 <flux:subheading>
-                    {{ __('Are you sure you want to delete :label? This action cannot be undone.', ['label' => $carrierPendingDeleteLabel]) }}
+                    {{ __('Are you sure you want to delete ":name"? This action cannot be undone.', ['name' => $carrierPendingDeleteLabel]) }}
                 </flux:subheading>
             </div>
 

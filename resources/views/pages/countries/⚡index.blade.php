@@ -16,7 +16,9 @@ new #[Title('Countries')] class extends Component {
 
     public bool $showCreateModal = false;
     public bool $showEditModal = false;
+    public bool $showDeleteModal = false;
     public ?int $countryPendingDeleteId = null;
+    public string $countryPendingDeleteLabel = '';
 
     #[Url(as: 'q')]
     public string $search = '';
@@ -108,27 +110,31 @@ new #[Title('Countries')] class extends Component {
     public function openDeleteModal(int $id): void
     {
         $this->authorize('countries.delete');
-        $this->countryPendingDeleteId = $id;
-        $this->dispatch('modal-show', name: 'delete-country');
+        $country = Country::findOrFail($id);
+        $this->countryPendingDeleteId = $country->id;
+        $this->countryPendingDeleteLabel = $country->name;
+        $this->showDeleteModal = true;
     }
 
     public function deleteCountry(): void
     {
         $this->authorize('countries.delete');
-        
+
         if ($this->countryPendingDeleteId) {
             $country = Country::findOrFail($this->countryPendingDeleteId);
-            
+
             if ($country->states()->exists()) {
-                $this->notification()->warning(__('Cannot delete country with associated states.'));
+                $this->showDeleteModal = false;
+                $this->notification()->warning(__('Cannot delete ":name" because it has associated states.', ['name' => $country->name]));
             } else {
                 $country->delete();
+                $this->showDeleteModal = false;
                 $this->notification()->success(__('Country deleted successfully.'));
             }
         }
 
         $this->countryPendingDeleteId = null;
-        $this->dispatch('modal-hide', name: 'delete-country');
+        $this->countryPendingDeleteLabel = '';
     }
 }; ?>
 
@@ -197,10 +203,10 @@ new #[Title('Countries')] class extends Component {
             </div>
 
             <div class="space-y-4">
-                <flux:input wire:model="name" :label="__('Country Name')" required placeholder="e.g. United States" />
-                <div class="grid grid-cols-2 gap-4">
-                    <flux:input wire:model="iso2" :label="__('ISO2 Code')" required placeholder="US" maxlength="2" class="uppercase font-mono" />
-                    <flux:input wire:model="iso3" :label="__('ISO3 Code')" placeholder="USA" maxlength="3" class="uppercase font-mono" />
+                <flux:input wire:model="name" :label="__('Country Name')" icon="flag" required placeholder="e.g. United States" />
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <flux:input wire:model="iso2" :label="__('ISO2 Code')" icon="qr-code" required placeholder="US" maxlength="2" class="uppercase font-mono" />
+                    <flux:input wire:model="iso3" :label="__('ISO3 Code')" icon="qr-code" placeholder="USA" maxlength="3" class="uppercase font-mono" />
                 </div>
             </div>
 
@@ -225,10 +231,10 @@ new #[Title('Countries')] class extends Component {
             </div>
 
             <div class="space-y-4">
-                <flux:input wire:model="name" :label="__('Country Name')" required />
-                <div class="grid grid-cols-2 gap-4">
-                    <flux:input wire:model="iso2" :label="__('ISO2 Code')" required maxlength="2" class="uppercase font-mono" />
-                    <flux:input wire:model="iso3" :label="__('ISO3 Code')" maxlength="3" class="uppercase font-mono" />
+                <flux:input wire:model="name" :label="__('Country Name')" icon="flag" required />
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <flux:input wire:model="iso2" :label="__('ISO2 Code')" icon="qr-code" required maxlength="2" class="uppercase font-mono" />
+                    <flux:input wire:model="iso3" :label="__('ISO3 Code')" icon="qr-code" maxlength="3" class="uppercase font-mono" />
                 </div>
             </div>
 
@@ -241,19 +247,20 @@ new #[Title('Countries')] class extends Component {
         </form>
     </flux:modal>
 
-    <x-modal name="delete-country" :title="__('Delete Country')">
-        <div class="p-6">
-            <p class="text-zinc-600 dark:text-zinc-400">
-                {{ __('Are you sure you want to delete this country? This action cannot be undone.') }}
-            </p>
-            <div class="mt-6 flex justify-end gap-3">
-                <flux:button variant="ghost" x-on:click="$dispatch('modal-hide', { name: 'delete-country' })">
-                    {{ __('Cancel') }}
-                </flux:button>
-                <flux:button variant="danger" wire:click="deleteCountry">
-                    {{ __('Delete Country') }}
-                </flux:button>
+    <flux:modal wire:model="showDeleteModal" class="max-w-md">
+        <form wire:submit="deleteCountry" class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('Delete Country') }}</flux:heading>
+                <flux:subheading>
+                    {{ __('Are you sure you want to delete ":name"? This action cannot be undone.', ['name' => $countryPendingDeleteLabel]) }}
+                </flux:subheading>
             </div>
-        </div>
-    </x-modal>
+            <div class="flex justify-end gap-2">
+                <flux:modal.close>
+                    <flux:button variant="ghost">{{ __('Cancel') }}</flux:button>
+                </flux:modal.close>
+                <flux:button type="submit" variant="danger">{{ __('Delete') }}</flux:button>
+            </div>
+        </form>
+    </flux:modal>
 </div>

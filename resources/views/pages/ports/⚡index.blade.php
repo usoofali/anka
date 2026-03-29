@@ -397,7 +397,7 @@ new #[Title('Ports')] class extends Component {
             <div>
                 <flux:heading size="lg">{{ __('Delete Port') }}</flux:heading>
                 <flux:subheading>
-                    {{ __('Are you sure you want to delete :label? This action cannot be undone.', ['label' => $portPendingDeleteLabel]) }}
+                    {{ __('Are you sure you want to delete ":name"? This action cannot be undone.', ['name' => $portPendingDeleteLabel]) }}
                 </flux:subheading>
             </div>
 

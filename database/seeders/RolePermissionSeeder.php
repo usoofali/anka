@@ -54,6 +54,18 @@ final class RolePermissionSeeder extends Seeder
             'cities.create',
             'cities.update',
             'cities.delete',
+            'drivers.view',
+            'drivers.create',
+            'drivers.update',
+            'drivers.delete',
+            'staff.view',
+            'staff.create',
+            'staff.update',
+            'staff.delete',
+            'workshops.view',
+            'workshops.create',
+            'workshops.update',
+            'workshops.delete',
         ];
 
         foreach ($permissionNames as $name) {
@@ -107,6 +119,18 @@ final class RolePermissionSeeder extends Seeder
             'cities.create',
             'cities.update',
             'cities.delete',
+            'drivers.view',
+            'drivers.create',
+            'drivers.update',
+            'drivers.delete',
+            'staff.view',
+            'staff.create',
+            'staff.update',
+            'staff.delete',
+            'workshops.view',
+            'workshops.create',
+            'workshops.update',
+            'workshops.delete',
         ]);
 
         $staffOperator = Role::query()->firstOrCreate(
@@ -127,6 +151,9 @@ final class RolePermissionSeeder extends Seeder
             'countries.view',
             'states.view',
             'cities.view',
+            'drivers.view',
+            'staff.view',
+            'workshops.view',
         ]);
 
         $shipper = Role::query()->firstOrCreate(

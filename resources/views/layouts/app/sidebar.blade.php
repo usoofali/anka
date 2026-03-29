@@ -24,6 +24,15 @@
                     <flux:sidebar.item icon="building-office-2" icon-class="text-blue-500" :href="route('shippers.index')" :current="request()->routeIs('shippers.*')" wire:navigate>
                         {{ __('Shippers') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="identification" icon-class="text-orange-500" :href="route('drivers.index')" :current="request()->routeIs('drivers.*')" wire:navigate>
+                        {{ __('Drivers') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="users" icon-class="text-teal-500" :href="route('staff.index')" :current="request()->routeIs('staff.*')" wire:navigate>
+                        {{ __('Staff') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="wrench-screwdriver" icon-class="text-amber-500" :href="route('workshops.index')" :current="request()->routeIs('workshops.*')" wire:navigate>
+                        {{ __('Workshops') }}
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group :heading="__('Settings')" class="grid" expandable expanded="false">

@@ -2713,7 +2713,8 @@ namespace App\Models {
      *
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
-     * @property string|null $license_number
+     * @property string|null $company
+     * @property string|null $email
      * @property string|null $phone
      * @property string $name
      * @property int $id
@@ -2722,7 +2723,8 @@ namespace App\Models {
      * @method static \Illuminate\Database\Eloquent\Builder<Driver>|Driver whereId($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Driver>|Driver whereName($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Driver>|Driver wherePhone($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<Driver>|Driver whereLicenseNumber($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Driver>|Driver whereEmail($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Driver>|Driver whereCompany($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Driver>|Driver whereCreatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Driver>|Driver whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Driver>|Driver newModelQuery()
