@@ -71,7 +71,8 @@ final class MapCopartApiVehicleItemToVehicleAttributes
             'secondary_damage' => self::stringOrNull($lot['damage']['second']['name'] ?? null),
             'highlights' => null,
             'location' => self::stringOrNull($lot['location']['raw'] ?? null),
-            'auction_name' => self::stringOrNull($lot['selling_branch']['name'] ?? null),
+            'auction_name' => self::stringOrNull($item['domain']['name'] ?? $lot['selling_branch']['name'] ?? null),
+            'vehicle_is' => null,
             'seller' => self::stringOrNull($lot['seller'] ?? null),
             'est_retail_value' => isset($lot['pre_accident_price'])
                 ? number_format((float) $lot['pre_accident_price'], 2, '.', '')

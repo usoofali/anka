@@ -15,6 +15,9 @@
                     <flux:sidebar.item icon="home" icon-class="text-indigo-500" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="bell" icon-class="text-amber-500" :href="route('prealerts.create')" :current="request()->routeIs('prealerts.create')" wire:navigate>
+                        {{ __('New Prealert') }}
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group :heading="__('Operations')" class="grid" expandable expanded="false">

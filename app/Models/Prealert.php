@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Enums\PrealertStatus;
 use Database\Factories\PrealertFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -17,25 +16,20 @@ final class Prealert extends Model
 
     protected $fillable = [
         'shipper_id',
-        'vin',
-        'gatepass_pin',
-        'vehicle_id',
         'consignee_id',
+        'vehicle_id',
         'carrier_id',
         'destination_port_id',
+        'vin',
+        'gatepass_pin',
         'auction_receipt',
-        'status',
-        'submitted_at',
-        'reviewed_by',
         'notes',
-        'rejection_reason',
     ];
 
     protected function casts(): array
     {
         return [
-            'status' => PrealertStatus::class,
-            'submitted_at' => 'datetime',
+            //
         ];
     }
 

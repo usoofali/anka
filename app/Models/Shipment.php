@@ -22,6 +22,7 @@ final class Shipment extends Model
 
     protected $fillable = [
         'reference_no',
+        'vin',
         'gatepass_pin',
         'shipper_id',
         'consignee_id',
@@ -31,6 +32,7 @@ final class Shipment extends Model
         'carrier_id',
         'origin_port_id',
         'destination_port_id',
+        'auction_receipt',
         'logistics_service',
         'shipping_mode',
         'status',

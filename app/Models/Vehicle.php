@@ -31,6 +31,7 @@ final class Vehicle extends Model
         'body_style',
         'color',
         'vehicle_type',
+        'vehicle_is',
         'transmission',
         'fuel',
         'engine_type',

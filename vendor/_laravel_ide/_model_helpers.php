@@ -5444,11 +5444,7 @@ namespace App\Models {
      *
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
-     * @property string|null $rejection_reason
      * @property string|null $notes
-     * @property mixed $reviewed_by
-     * @property \Illuminate\Support\Carbon|null $submitted_at
-     * @property \App\Enums\PrealertStatus $status
      * @property string|null $auction_receipt
      * @property mixed $destination_port_id
      * @property mixed $carrier_id
@@ -5473,11 +5469,7 @@ namespace App\Models {
      * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert whereCarrierId($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert whereDestinationPortId($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert whereAuctionReceipt($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert whereStatus($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert whereSubmittedAt($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert whereReviewedBy($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert whereNotes($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert whereRejectionReason($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert whereCreatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert newModelQuery()
@@ -5810,6 +5802,7 @@ namespace App\Models {
      * @property \App\Enums\ShippingMode $shipping_mode
      * @property \App\Enums\LogisticsService $logistics_service
      * @property mixed $vehicle_id
+     * @property string|null $auction_receipt
      * @property mixed $destination_port_id
      * @property mixed $origin_port_id
      * @property mixed $carrier_id
@@ -5818,6 +5811,7 @@ namespace App\Models {
      * @property mixed $consignee_id
      * @property mixed $shipper_id
      * @property string|null $gatepass_pin
+     * @property string|null $vin
      * @property string $reference_no
      * @property int $id
      * @property-read \App\Models\Shipper $shipper
@@ -5837,6 +5831,7 @@ namespace App\Models {
      * @property-read int|null $activity_logs_count
      * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereId($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereReferenceNo($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereVin($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereGatepassPin($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereShipperId($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereConsigneeId($value)
@@ -5845,6 +5840,7 @@ namespace App\Models {
      * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereCarrierId($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereOriginPortId($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereDestinationPortId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereAuctionReceipt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereVehicleId($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereLogisticsService($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereShippingMode($value)
@@ -9640,6 +9636,7 @@ namespace App\Models {
      * @property string|null $engine_type
      * @property string|null $fuel
      * @property string|null $transmission
+     * @property string|null $vehicle_is
      * @property string|null $vehicle_type
      * @property string|null $color
      * @property string|null $body_style
@@ -9661,6 +9658,7 @@ namespace App\Models {
      * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereBodyStyle($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereColor($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereVehicleType($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereVehicleIs($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereTransmission($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereFuel($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereEngineType($value)
