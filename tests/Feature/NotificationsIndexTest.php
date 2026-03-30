@@ -76,3 +76,21 @@ test('notification dropdown dispatches sound event when unread count increases',
         ->call('refreshNotifications')
         ->assertDispatched('notifications:new-unread');
 });
+
+test('notification dropdown opens when unread count increases', function () {
+    $recipient = User::factory()->create();
+    $registered = User::factory()->create();
+    $shipper = Shipper::factory()->create(['user_id' => $registered->id]);
+
+    $this->actingAs($recipient);
+
+    $component = Livewire::test('notification-dropdown')
+        ->assertSet('dropdownOpen', false);
+
+    $recipient->notify(new ShipperRegisteredInternalNotification($registered, $shipper));
+
+    $component
+        ->call('refreshNotifications')
+        ->assertSet('dropdownOpen', true)
+        ->assertHasNoErrors();
+});

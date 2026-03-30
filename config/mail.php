@@ -47,6 +47,10 @@ return [
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
+            'from' => [
+                'address' => env('MAIL_SMTP_FROM_ADDRESS', env('MAIL_FROM_ADDRESS', env('MAIL_USERNAME'))),
+                'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
+            ],
         ],
 
         'operations' => [
@@ -57,6 +61,10 @@ return [
             'username' => env('MAIL_OPERATIONS_USERNAME'),
             'password' => env('MAIL_OPERATIONS_PASSWORD'),
             'timeout' => null,
+            'from' => [
+                'address' => env('MAIL_OPERATIONS_FROM_ADDRESS', env('MAIL_OPERATIONS_USERNAME')),
+                'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
+            ],
         ],
 
         'booking' => [
@@ -67,6 +75,10 @@ return [
             'username' => env('MAIL_BOOKING_USERNAME'),
             'password' => env('MAIL_BOOKING_PASSWORD'),
             'timeout' => null,
+            'from' => [
+                'address' => env('MAIL_BOOKING_FROM_ADDRESS', env('MAIL_BOOKING_USERNAME')),
+                'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
+            ],
         ],
 
         'noreply' => [
@@ -77,6 +89,10 @@ return [
             'username' => env('MAIL_NOREPLY_USERNAME'),
             'password' => env('MAIL_NOREPLY_PASSWORD'),
             'timeout' => null,
+            'from' => [
+                'address' => env('MAIL_NOREPLY_FROM_ADDRESS', env('MAIL_NOREPLY_USERNAME')),
+                'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
+            ],
         ],
 
         'services' => [
@@ -87,6 +103,10 @@ return [
             'username' => env('MAIL_SERVICES_USERNAME'),
             'password' => env('MAIL_SERVICES_PASSWORD'),
             'timeout' => null,
+            'from' => [
+                'address' => env('MAIL_SERVICES_FROM_ADDRESS', env('MAIL_SERVICES_USERNAME')),
+                'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
+            ],
         ],
 
         'accounts' => [
@@ -97,6 +117,10 @@ return [
             'username' => env('MAIL_ACCOUNTS_USERNAME'),
             'password' => env('MAIL_ACCOUNTS_PASSWORD'),
             'timeout' => null,
+            'from' => [
+                'address' => env('MAIL_ACCOUNTS_FROM_ADDRESS', env('MAIL_ACCOUNTS_USERNAME')),
+                'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
+            ],
         ],
 
         'google' => [
@@ -107,6 +131,10 @@ return [
             'username' => env('MAIL_GOOGLE_USERNAME'),
             'password' => env('MAIL_GOOGLE_PASSWORD'),
             'timeout' => null,
+            'from' => [
+                'address' => env('MAIL_GOOGLE_FROM_ADDRESS', env('MAIL_GOOGLE_USERNAME')),
+                'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
+            ],
         ],
 
         // Newsletter-specific roundrobin accounts
@@ -118,6 +146,10 @@ return [
             'username' => env('MAIL_NEWS1_USERNAME'),
             'password' => env('MAIL_NEWS1_PASSWORD'),
             'timeout' => null,
+            'from' => [
+                'address' => env('MAIL_NEWS1_FROM_ADDRESS', env('MAIL_NEWS1_USERNAME')),
+                'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
+            ],
         ],
 
         'news2' => [
@@ -128,6 +160,10 @@ return [
             'username' => env('MAIL_NEWS2_USERNAME'),
             'password' => env('MAIL_NEWS2_PASSWORD'),
             'timeout' => null,
+            'from' => [
+                'address' => env('MAIL_NEWS2_FROM_ADDRESS', env('MAIL_NEWS2_USERNAME')),
+                'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
+            ],
         ],
 
         'news3' => [
@@ -138,6 +174,10 @@ return [
             'username' => env('MAIL_NEWS3_USERNAME'),
             'password' => env('MAIL_NEWS3_PASSWORD'),
             'timeout' => null,
+            'from' => [
+                'address' => env('MAIL_NEWS3_FROM_ADDRESS', env('MAIL_NEWS3_USERNAME')),
+                'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
+            ],
         ],
 
         'ses' => [

@@ -16,6 +16,7 @@ new #[Title('Email Logs')] class extends Component {
     use WithPagination, WireUiActions;
 
     public string $search = '';
+    public string $statusFilter = '';
     public ?int $selectedLogId = null;
     public bool $showContentModal = false;
 

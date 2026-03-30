@@ -9,6 +9,8 @@ use Livewire\Component;
 new class extends Component {
     public string $menuPosition = 'top';
 
+    public bool $dropdownOpen = false;
+
     public int $previousUnreadCount = 0;
 
     public function mount(string $menuPosition = 'top'): void
@@ -22,6 +24,7 @@ new class extends Component {
         $currentUnreadCount = $this->unreadCount();
 
         if ($currentUnreadCount > $this->previousUnreadCount) {
+            $this->dropdownOpen = true;
             $this->dispatch('notifications:new-unread', unreadCount: $currentUnreadCount);
         }
 
@@ -202,7 +205,7 @@ new class extends Component {
         },
     }"
 >
-    <flux:dropdown :position="$menuPosition" align="end">
+    <flux:dropdown wire:model.self="dropdownOpen" :position="$menuPosition" align="end">
         <flux:button
             variant="ghost"
             size="sm"
