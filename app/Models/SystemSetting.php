@@ -36,6 +36,7 @@ final class SystemSetting extends Model
         'tracking_digits',
         'tracking_number_type',
         'tracking_random_digits',
+        'preferred_mailer',
     ];
 
     /**
@@ -128,5 +129,26 @@ final class SystemSetting extends Model
         }
 
         return null;
+    }
+
+    /**
+     * Resolve the correct mailer for a given purpose.
+     *
+     * Stack A (Hostinger SMTP): Returns the purpose-specific account.
+     *   e.g. 'operations' → operations@ankshipping.com
+     *        'services'   → services@ankshipping.com
+     *        'newsletter' → roundrobin across news1/2/3
+     *
+     * Stack B (Google Workspace): All mail routes through the single google mailer.
+     */
+    public function getMailerFor(string $purpose): string
+    {
+        if ($this->preferred_mailer === 'google') {
+            return 'google';
+        }
+
+        // Hostinger stack (or default): use the purpose-specific mailer name directly.
+        // This resolves to one of: operations, booking, services, accounts, noreply, newsletter
+        return $purpose;
     }
 }

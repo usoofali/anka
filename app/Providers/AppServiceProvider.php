@@ -5,9 +5,9 @@ namespace App\Providers;
 use App\Enums\EmailLogStatus;
 use App\Models\EmailLog;
 use Carbon\CarbonImmutable;
+use Illuminate\Mail\Events\MessageSending;
+use Illuminate\Mail\Events\MessageSent;
 use Illuminate\Notifications\Events\NotificationFailed;
-use Illuminate\Notifications\Events\NotificationSent;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -57,42 +57,40 @@ class AppServiceProvider extends ServiceProvider
 
     protected function registerNotificationEmailLogging(): void
     {
-        Event::listen(NotificationSent::class, function (NotificationSent $event): void {
-            if ($event->channel !== 'mail') {
-                return;
-            }
+        // Listen to ALL outgoing mail (Notifications AND Mailables)
+        Event::listen(MessageSending::class, function (MessageSending $event): void {
+            $message = $event->message;
+            $recipients = $message->getTo();
+            $recipientEmail = count($recipients) > 0 ? $recipients[0]->getAddress() : 'unknown';
 
-            if (! method_exists($event->notification, 'toMail')) {
-                return;
-            }
-
-            $recipientEmail = $event->notifiable->email ?? null;
-            if (! is_string($recipientEmail) || $recipientEmail === '') {
-                return;
-            }
-
-            $mailMessage = call_user_func([$event->notification, 'toMail'], $event->notifiable);
-            if (! $mailMessage instanceof MailMessage) {
-                return;
-            }
-
-            EmailLog::query()->create([
-                'mailable_class' => $event->notification::class,
+            // Store the intent
+            $log = EmailLog::query()->create([
+                'mailable_class' => $event->data['__laravel_notification'] ?? 'Mailable',
                 'recipient_email' => $recipientEmail,
-                'subject' => $mailMessage->subject,
-                'body' => implode("\n", array_filter(array_merge(
-                    [$mailMessage->greeting],
-                    $mailMessage->introLines,
-                    $mailMessage->outroLines,
-                    [$mailMessage->salutation],
-                ))),
-                'status' => EmailLogStatus::Sent,
+                'subject' => $message->getSubject(),
+                'body' => $message->getHtmlBody() ?: $message->getTextBody(),
+                'status' => EmailLogStatus::Pending,
                 'meta' => [
-                    'channel' => 'mail',
+                    'mailer' => config('mail.default'),
                 ],
             ]);
+
+            // Store the ID in the message so we can find it in MessageSent
+            $message->getHeaders()->addTextHeader('X-Email-Log-ID', (string) $log->id);
         });
 
+        Event::listen(MessageSent::class, function (MessageSent $event): void {
+            $message = $event->message;
+            $logId = $message->getHeaders()->get('X-Email-Log-ID')?->getBody();
+
+            if ($logId) {
+                EmailLog::query()->whereKey($logId)->update([
+                    'status' => EmailLogStatus::Sent,
+                ]);
+            }
+        });
+
+        // Still listen to NotificationFailed for detailed error capture in notifications
         Event::listen(NotificationFailed::class, function (NotificationFailed $event): void {
             if ($event->channel !== 'mail') {
                 return;
@@ -107,17 +105,23 @@ class AppServiceProvider extends ServiceProvider
                 ? $event->data['message']
                 : (is_string($event->data['error'] ?? null) ? $event->data['error'] : null);
 
-            $emailLog = EmailLog::query()->create([
-                'mailable_class' => $event->notification::class,
-                'recipient_email' => $recipientEmail,
-                'subject' => null,
-                'body' => null,
-                'status' => EmailLogStatus::Failed,
-                'meta' => [
-                    'channel' => 'mail',
-                    'data' => $event->data,
-                ],
-            ]);
+            // Find the pending log if it exists (via recipient and class)
+            $emailLog = EmailLog::query()
+                ->where('recipient_email', $recipientEmail)
+                ->where('mailable_class', $event->notification::class)
+                ->where('status', EmailLogStatus::Pending)
+                ->latest()
+                ->first();
+
+            if ($emailLog) {
+                $emailLog->update(['status' => EmailLogStatus::Failed]);
+            } else {
+                $emailLog = EmailLog::query()->create([
+                    'mailable_class' => $event->notification::class,
+                    'recipient_email' => $recipientEmail,
+                    'status' => EmailLogStatus::Failed,
+                ]);
+            }
 
             $emailLog->attempts()->create([
                 'exception_message' => $errorMessage,

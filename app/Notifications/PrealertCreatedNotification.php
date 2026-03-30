@@ -43,7 +43,8 @@ final class PrealertCreatedNotification extends Notification implements ShouldQu
         $emailLogo = $setting->logoSrcForEmail();
 
         return (new MailMessage)
-            ->subject(__('New Prealert Created - :vin', ['vin' => $this->prealert->vin]))
+            ->mailer($setting->getMailerFor('operations'))
+            ->subject(__('New Prealert Created – VIN :vin', ['vin' => $this->prealert->vin]))
             ->markdown('emails.prealert-created', [
                 'notifiable' => $notifiable,
                 'prealert' => $this->prealert,

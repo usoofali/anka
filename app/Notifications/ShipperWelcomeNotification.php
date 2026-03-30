@@ -37,7 +37,9 @@ final class ShipperWelcomeNotification extends Notification implements ShouldQue
         $emailLogo = $setting->logoSrcForEmail();
 
         return (new MailMessage)
+            ->mailer($setting->getMailerFor('services'))
             ->subject(__('Welcome to :app', ['app' => $companyName]))
+
             ->markdown('emails.shipper-welcome', [
                 'notifiable' => $notifiable,
                 'shipper' => $this->shipper,

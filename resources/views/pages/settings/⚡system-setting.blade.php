@@ -34,6 +34,8 @@ new #[Title('System settings')] class extends Component {
     public int $tracking_digits = 5;
     public string $tracking_number_type = 'auto_increment';
     public int $tracking_random_digits = 10;
+    public string $preferred_mailer = 'failover';
+
 
     public function mount(): void
     {
@@ -55,7 +57,10 @@ new #[Title('System settings')] class extends Component {
         $this->tracking_digits = $setting->tracking_digits ?? 5;
         $this->tracking_number_type = $setting->tracking_number_type ?? 'auto_increment';
         $this->tracking_random_digits = $setting->tracking_random_digits ?? 10;
+        $this->preferred_mailer = $setting->preferred_mailer ?? 'hostinger';
+
     }
+
 
     public function updatedCountryId(): void
     {
@@ -88,7 +93,10 @@ new #[Title('System settings')] class extends Component {
             'tracking_digits' => ['required', 'integer', 'min:1', 'max:12'],
             'tracking_number_type' => ['required', 'in:auto_increment,random'],
             'tracking_random_digits' => ['required', 'integer', 'min:1', 'max:20'],
+            'preferred_mailer' => ['required', 'string', 'in:hostinger,google'],
+
         ]);
+
 
         $setting = SystemSetting::current();
         $previousLogoPath = $setting->logo_path;
@@ -262,7 +270,31 @@ new #[Title('System settings')] class extends Component {
                 </div>
             </div>
 
+            <div class="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
+                <flux:heading size="sm">{{ __('Mail Provider') }}</flux:heading>
+                <flux:subheading class="mt-1 text-sm text-zinc-500">{{ __('Choose which provider delivers all system emails. Hostinger uses dedicated purpose-specific accounts (operations@, services@, etc.). Google routes everything through your Google Workspace account.') }}</flux:subheading>
+                <div class="mt-4">
+                    <flux:radio.group
+                        wire:model="preferred_mailer"
+                        class="grid grid-cols-1 gap-4 sm:grid-cols-2"
+                    >
+                        <flux:radio
+                            value="hostinger"
+                            :label="__('Hostinger SMTP (Default)')"
+                            :description="__('Uses dedicated purpose-specific accounts: operations@, services@, news1/2/3@ etc.')"
+                        />
+                        <flux:radio
+                            value="google"
+                            :label="__('Google Workspace')"
+                            :description="__('All emails use your Google Workspace account via smtp.gmail.com.')"
+                        />
+                    </flux:radio.group>
+                </div>
+            </div>
+
+
             <div class="flex items-center gap-3">
+
                 <flux:button variant="primary" type="submit">{{ __('Save') }}</flux:button>
                 <x-action-message on="saved">{{ __('Saved.') }}</x-action-message>
             </div>

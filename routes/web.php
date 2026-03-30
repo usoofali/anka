@@ -20,6 +20,10 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
 
     Route::livewire('/notifications', 'pages::notifications.index')->name('notifications.index');
 
+    Route::livewire('/newsletters', 'pages::newsletters.index')->name('newsletters.index');
+    Route::livewire('/email-logs', 'pages::email-logs.index')->name('email-logs.index');
+    Route::livewire('/failed-jobs', 'pages::failed-jobs.index')->name('failed-jobs.index');
+
     Route::livewire('/shippers', 'pages::shippers.index')->name('shippers.index');
     Route::livewire('/shippers/{shipper}', 'pages::shippers.show')
         ->whereNumber('shipper')

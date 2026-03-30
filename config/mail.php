@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'default' => env('MAIL_MAILER', 'log'),
+    'default' => env('MAIL_MAILER', 'failover'),
 
     /*
     |--------------------------------------------------------------------------
@@ -39,26 +39,114 @@ return [
 
         'smtp' => [
             'transport' => 'smtp',
-            'scheme' => env('MAIL_SCHEME'),
+            'scheme' => env('MAIL_SCHEME', 'smtps'),
             'url' => env('MAIL_URL'),
-            'host' => env('MAIL_HOST', '127.0.0.1'),
-            'port' => env('MAIL_PORT', 2525),
+            'host' => env('MAIL_HOST', 'smtp.hostinger.com'),
+            'port' => env('MAIL_PORT', 465),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
 
+        'operations' => [
+            'transport' => 'smtp',
+            'scheme' => env('MAIL_SCHEME', 'smtps'),
+            'host' => env('MAIL_HOST', 'smtp.hostinger.com'),
+            'port' => env('MAIL_PORT', 465),
+            'username' => env('MAIL_OPERATIONS_USERNAME'),
+            'password' => env('MAIL_OPERATIONS_PASSWORD'),
+            'timeout' => null,
+        ],
+
+        'booking' => [
+            'transport' => 'smtp',
+            'scheme' => env('MAIL_SCHEME', 'smtps'),
+            'host' => env('MAIL_HOST', 'smtp.hostinger.com'),
+            'port' => env('MAIL_PORT', 465),
+            'username' => env('MAIL_BOOKING_USERNAME'),
+            'password' => env('MAIL_BOOKING_PASSWORD'),
+            'timeout' => null,
+        ],
+
+        'noreply' => [
+            'transport' => 'smtp',
+            'scheme' => env('MAIL_SCHEME', 'smtps'),
+            'host' => env('MAIL_HOST', 'smtp.hostinger.com'),
+            'port' => env('MAIL_PORT', 465),
+            'username' => env('MAIL_NOREPLY_USERNAME'),
+            'password' => env('MAIL_NOREPLY_PASSWORD'),
+            'timeout' => null,
+        ],
+
+        'services' => [
+            'transport' => 'smtp',
+            'scheme' => env('MAIL_SCHEME', 'smtps'),
+            'host' => env('MAIL_HOST', 'smtp.hostinger.com'),
+            'port' => env('MAIL_PORT', 465),
+            'username' => env('MAIL_SERVICES_USERNAME'),
+            'password' => env('MAIL_SERVICES_PASSWORD'),
+            'timeout' => null,
+        ],
+
+        'accounts' => [
+            'transport' => 'smtp',
+            'scheme' => env('MAIL_SCHEME', 'smtps'),
+            'host' => env('MAIL_HOST', 'smtp.hostinger.com'),
+            'port' => env('MAIL_PORT', 465),
+            'username' => env('MAIL_ACCOUNTS_USERNAME'),
+            'password' => env('MAIL_ACCOUNTS_PASSWORD'),
+            'timeout' => null,
+        ],
+
+        'google' => [
+            'transport' => 'smtp',
+            'scheme' => 'smtps',
+            'host' => 'smtp.gmail.com',
+            'port' => 465,
+            'username' => env('MAIL_GOOGLE_USERNAME'),
+            'password' => env('MAIL_GOOGLE_PASSWORD'),
+            'timeout' => null,
+        ],
+
+        // Newsletter-specific roundrobin accounts
+        'news1' => [
+            'transport' => 'smtp',
+            'scheme' => env('MAIL_SCHEME', 'smtps'),
+            'host' => env('MAIL_HOST', 'smtp.hostinger.com'),
+            'port' => env('MAIL_PORT', 465),
+            'username' => env('MAIL_NEWS1_USERNAME'),
+            'password' => env('MAIL_NEWS1_PASSWORD'),
+            'timeout' => null,
+        ],
+
+        'news2' => [
+            'transport' => 'smtp',
+            'scheme' => env('MAIL_SCHEME', 'smtps'),
+            'host' => env('MAIL_HOST', 'smtp.hostinger.com'),
+            'port' => env('MAIL_PORT', 465),
+            'username' => env('MAIL_NEWS2_USERNAME'),
+            'password' => env('MAIL_NEWS2_PASSWORD'),
+            'timeout' => null,
+        ],
+
+        'news3' => [
+            'transport' => 'smtp',
+            'scheme' => env('MAIL_SCHEME', 'smtps'),
+            'host' => env('MAIL_HOST', 'smtp.hostinger.com'),
+            'port' => env('MAIL_PORT', 465),
+            'username' => env('MAIL_NEWS3_USERNAME'),
+            'password' => env('MAIL_NEWS3_PASSWORD'),
+            'timeout' => null,
+        ],
+
         'ses' => [
+
             'transport' => 'ses',
         ],
 
         'postmark' => [
             'transport' => 'postmark',
-            // 'message_stream_id' => env('POSTMARK_MESSAGE_STREAM_ID'),
-            // 'client' => [
-            //     'timeout' => 5,
-            // ],
         ],
 
         'resend' => [
@@ -82,7 +170,11 @@ return [
         'failover' => [
             'transport' => 'failover',
             'mailers' => [
-                'smtp',
+                'operations',
+                'booking',
+                'services',
+                'accounts',
+                'noreply',
                 'log',
             ],
             'retry_after' => 60,
@@ -93,6 +185,17 @@ return [
             'mailers' => [
                 'ses',
                 'postmark',
+            ],
+            'retry_after' => 60,
+        ],
+
+        // Round-robin for newsletters: evenly distributes load across accounts
+        'newsletter' => [
+            'transport' => 'roundrobin',
+            'mailers' => [
+                'news1',
+                'news2',
+                'news3',
             ],
             'retry_after' => 60,
         ],

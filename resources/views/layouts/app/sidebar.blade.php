@@ -4,7 +4,7 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-sky-50/50 dark:bg-zinc-800">
-        <flux:sidebar sticky collapsible="mobile" class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+        <flux:sidebar sticky collapsible="mobile" class="border-e border-zinc-200 bg-sky-100 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.header>
                 <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
                 <flux:sidebar.collapse class="lg:hidden" />
@@ -27,7 +27,11 @@
                     <flux:sidebar.item icon="building-office-2" icon-class="text-blue-500" :href="route('shippers.index')" :current="request()->routeIs('shippers.*')" wire:navigate>
                         {{ __('Shippers') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="envelope" icon-class="text-violet-500" :href="route('newsletters.index')" :current="request()->routeIs('newsletters.*')" wire:navigate>
+                        {{ __('Newsletters') }}
+                    </flux:sidebar.item>
                     <flux:sidebar.item icon="identification" icon-class="text-orange-500" :href="route('drivers.index')" :current="request()->routeIs('drivers.*')" wire:navigate>
+
                         {{ __('Drivers') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="users" icon-class="text-teal-500" :href="route('staff.index')" :current="request()->routeIs('staff.*')" wire:navigate>
@@ -50,8 +54,18 @@
                     </flux:sidebar.item>
                 </flux:sidebar.group>
 
+                <flux:sidebar.group :heading="__('System Logs')" class="grid" expandable="true" expanded="false">
+                    <flux:sidebar.item icon="envelope-open" icon-class="text-sky-500" :href="route('email-logs.index')" :current="request()->routeIs('email-logs.*')" wire:navigate>
+                        {{ __('Email Logs') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="exclamation-triangle" icon-class="text-red-500" :href="route('failed-jobs.index')" :current="request()->routeIs('failed-jobs.*')" wire:navigate>
+                        {{ __('Failed Jobs') }}
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+
                 <flux:sidebar.group :heading="__('Settings')" class="grid" expandable expanded="false">
                     <flux:sidebar.item icon="credit-card" icon-class="text-indigo-500" :href="route('payment_methods.index')" :current="request()->routeIs('payment_methods.*')" wire:navigate>
+
                         {{ __('Payment Methods') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="ticket" icon-class="text-amber-500" :href="route('charge-items.index')" :current="request()->routeIs('charge-items.*')" wire:navigate>
