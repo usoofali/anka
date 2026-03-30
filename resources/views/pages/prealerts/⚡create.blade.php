@@ -7,9 +7,11 @@ use App\Models\Consignee;
 use App\Models\Port;
 use App\Models\Prealert;
 use App\Models\Shipper;
+use App\Models\User;
+use App\Notifications\PrealertCreatedNotification;
+use Spatie\Permission\Models\Role;
 use App\Models\Vehicle;
 use App\Services\VinLookupService;
-use App\Enums\PrealertStatus;
 use App\Enums\VinLookupOutcome;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -134,26 +136,55 @@ new #[Title('Submit Prealert')] class extends Component {
 
         $path = $this->auction_receipt ? $this->auction_receipt->store('prealerts/receipts', 'public') : null;
 
+        if ($this->vehicle?->id) {
+            $exists = Prealert::where('vehicle_id', $this->vehicle->id)->exists();
+            if ($exists) {
+                $this->notification()->warning(
+                    title: __('Duplicate Vehicle'),
+                    description: __('This vehicle is already in another prealert.')
+                );
+                return;
+            }
+        }
+
         $prealert = Prealert::create([
             'shipper_id' => $this->shipper_id,
             'consignee_id' => $this->consignee_id,
             'vin' => $this->vin,
             'vehicle_id' => $this->vehicle?->id,
-            'carrier_id' => $this->carrier_id,
-            'destination_port_id' => $this->destination_port_id,
+            'carrier_id' => (int) $this->carrier_id ?: null,
+            'destination_port_id' => (int) $this->destination_port_id ?: null,
             'gatepass_pin' => $this->gatepass_pin,
             'auction_receipt' => $path,
-            'status' => PrealertStatus::Submitted,
-            'submitted_at' => now(),
             'notes' => $this->notes,
         ]);
 
-        $this->dispatch('notify', [
-            'title' => __('Success'),
-            'description' => __('Prealert submitted successfully.'),
-            'icon' => 'check-circle',
-            'iconColor' => 'text-green-500',
-        ]);
+        // Identify all non-shipper administrative staff roles
+        $adminRoleNames = Role::query()
+            ->where('name', '!=', 'shipper')
+            ->pluck('name');
+
+        // Identify all recipients (Non-shipper roles, staff, and the specific shipper owner)
+        $recipientIds = User::query()
+            ->role($adminRoleNames)
+            ->pluck('id')
+            ->merge(User::query()->whereHas('staff')->pluck('id'))
+            ->when($prealert->shipper?->user_id, fn ($q) => $q->push($prealert->shipper->user_id))
+            ->unique()
+            ->values();
+
+
+        $recipients = User::query()->whereIn('id', $recipientIds)->get();
+
+        if ($recipients->isNotEmpty()) {
+            \Illuminate\Support\Facades\Notification::send($recipients, new PrealertCreatedNotification($prealert));
+        }
+
+
+        $this->notification()->success(
+            title: __('Success'),
+            description: __('Prealert submitted successfully.')
+        );
 
         $this->redirectRoute('prealerts.index', navigate: true);
     }
@@ -194,7 +225,7 @@ new #[Title('Submit Prealert')] class extends Component {
     #[Computed]
     public function ports()
     {
-        return Port::orderBy('name')->get();
+        return Port::where('type', 'destination')->orderBy('name')->get();
     }
 
     #[Computed]
@@ -421,21 +452,26 @@ new #[Title('Submit Prealert')] class extends Component {
                                 </div>
 
                                 <flux:separator class="md:col-span-2 my-2" />
+ 
+                                <x-select
+                                    wire:model.live="carrier_id"
+                                    :label="__('Carrier')"
+                                    :placeholder="__('Select carrier')"
+                                    :options="$this->carriers"
+                                    option-label="name"
+                                    option-value="id"
+                                    icon="truck"
+                                />
 
-                                <flux:select wire:model="carrier_id" :label="__('Carrier')" icon="truck"
-                                    placeholder="{{ __('Select carrier') }}">
-                                    @foreach($this->carriers as $carrier)
-                                        <flux:select.option :value="$carrier->id">{{ $carrier->name }}</flux:select.option>
-                                    @endforeach
-                                </flux:select>
-
-                                <flux:select wire:model="destination_port_id" :label="__('Destination Port')" icon="map-pin"
-                                    placeholder="{{ __('Select destination port') }}">
-                                    @foreach($this->ports as $port)
-                                        <flux:select.option :value="$port->id">{{ $port->name }} ({{ $port->code }})
-                                        </flux:select.option>
-                                    @endforeach
-                                </flux:select>
+                                <x-select
+                                    wire:model.live="destination_port_id"
+                                    :label="__('Destination Port')"
+                                    :placeholder="__('Select destination port')"
+                                    :options="$this->ports"
+                                    option-label="name"
+                                    option-value="id"
+                                    icon="map-pin"
+                                />
 
                                 <div class="md:col-span-2">
                                     <flux:field>

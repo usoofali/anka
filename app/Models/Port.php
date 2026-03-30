@@ -18,9 +18,8 @@ final class Port extends Model
     protected $fillable = [
         'country_id',
         'state_id',
-        'city_id',
         'name',
-        'code',
+        'type',
     ];
 
     public function country(): BelongsTo
@@ -31,11 +30,6 @@ final class Port extends Model
     public function state(): BelongsTo
     {
         return $this->belongsTo(State::class);
-    }
-
-    public function city(): BelongsTo
-    {
-        return $this->belongsTo(City::class);
     }
 
     public function originShipments(): HasMany

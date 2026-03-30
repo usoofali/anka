@@ -27,7 +27,6 @@ final class Shipment extends Model
         'shipper_id',
         'consignee_id',
         'driver_id',
-        'shipping_company_id',
         'vehicle_id',
         'carrier_id',
         'origin_port_id',
@@ -63,10 +62,7 @@ final class Shipment extends Model
         return $this->belongsTo(Driver::class);
     }
 
-    public function shippingCompany(): BelongsTo
-    {
-        return $this->belongsTo(ShippingCompany::class);
-    }
+
 
     public function carrier(): BelongsTo
     {

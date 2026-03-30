@@ -110,12 +110,6 @@ class CreateNewUser implements CreatesNewUsers
             return $user;
         });
 
-        session()->flash('toast', [
-            'type' => 'success',
-            'message' => __('Welcome! Your shipper account has been created.'),
-            'timeout' => 5000,
-        ]);
-
         return $user;
     }
 }

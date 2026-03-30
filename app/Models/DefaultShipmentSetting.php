@@ -22,7 +22,6 @@ final class DefaultShipmentSetting extends Model
     use HasFactory;
 
     protected $fillable = [
-        'shipping_company_id',
         'carrier_id',
         'origin_port_id',
         'destination_port_id',
@@ -55,10 +54,7 @@ final class DefaultShipmentSetting extends Model
         return self::query()->create([]);
     }
 
-    public function shippingCompany(): BelongsTo
-    {
-        return $this->belongsTo(ShippingCompany::class);
-    }
+
 
     public function carrier(): BelongsTo
     {

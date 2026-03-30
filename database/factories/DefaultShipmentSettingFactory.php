@@ -23,7 +23,6 @@ class DefaultShipmentSettingFactory extends Factory
     public function definition(): array
     {
         return [
-            'shipping_company_id' => null,
             'carrier_id' => null,
             'origin_port_id' => null,
             'destination_port_id' => null,

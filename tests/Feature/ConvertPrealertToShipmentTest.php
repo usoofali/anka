@@ -11,7 +11,7 @@ use App\Models\Port;
 use App\Models\Prealert;
 use App\Models\Shipment;
 use App\Models\Shipper;
-use App\Models\ShippingCompany;
+
 use App\Models\Vehicle;
 use App\Support\VinNormalizer;
 
@@ -22,7 +22,7 @@ it('converts a prealert into a shipment and deletes the prealert', function () {
     $vehicle = Vehicle::factory()->withoutShipment()->create([
         'vin' => VinNormalizer::normalize('2T1BURHE7FC251274'),
     ]);
-    $shippingCompany = ShippingCompany::factory()->create();
+
     $prealertCarrier = Carrier::factory()->create();
     $inputCarrier = Carrier::factory()->create();
     $origin = Port::factory()->create();
@@ -37,7 +37,7 @@ it('converts a prealert into a shipment and deletes the prealert', function () {
     $shipment = app(ConvertPrealertToShipment::class)->execute($prealert, [
         'consignee_id' => $manualConsignee->id,
         'driver_id' => null,
-        'shipping_company_id' => $shippingCompany->id,
+
         'carrier_id' => $inputCarrier->id,
         'origin_port_id' => $origin->id,
         'destination_port_id' => $inputDestination->id,
@@ -64,7 +64,7 @@ it('requires a default consignee during conversion', function () {
 
     expect(fn () => app(ConvertPrealertToShipment::class)->execute($prealert, [
         'driver_id' => null,
-        'shipping_company_id' => ShippingCompany::factory()->create()->id,
+
         'origin_port_id' => Port::factory()->create()->id,
         'logistics_service' => LogisticsService::Ocean->value,
         'shipping_mode' => ShippingMode::Roro->value,
@@ -81,7 +81,7 @@ it('rejects conversion when the vehicle is already assigned', function () {
     expect(fn () => app(ConvertPrealertToShipment::class)->execute($prealert, [
         'consignee_id' => Consignee::factory()->for($shipper)->create()->id,
         'driver_id' => null,
-        'shipping_company_id' => ShippingCompany::factory()->create()->id,
+
         'carrier_id' => Carrier::factory()->create()->id,
         'origin_port_id' => Port::factory()->create()->id,
         'destination_port_id' => Port::factory()->create()->id,

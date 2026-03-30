@@ -12,9 +12,11 @@ use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
+use WireUi\Traits\WireUiActions;
 
 new #[Title('Prealerts')] class extends Component {
     use WithPagination;
+    use WireUiActions;
 
     #[Url(as: 'shipper')]
     public string $shipperFilter = '';
@@ -76,12 +78,10 @@ new #[Title('Prealerts')] class extends Component {
         $prealert = Prealert::findOrFail($id);
         $prealert->delete();
 
-        $this->dispatch('notify', [
-            'title' => __('Deleted'),
-            'description' => __('Prealert has been deleted.'),
-            'icon' => 'trash',
-            'iconColor' => 'text-red-500',
-        ]);
+        $this->notification()->success(
+            title: __('Deleted'),
+            description: __('Prealert has been deleted.')
+        );
     }
 
     public function convertToShipment(int $id): void
@@ -110,20 +110,16 @@ new #[Title('Prealerts')] class extends Component {
                 $prealert->delete();
             });
 
-            $this->dispatch('notify', [
-                'title' => __('Converted'),
-                'description' => __('Prealert successfully converted to a shipment.'),
-                'icon' => 'check-circle',
-                'iconColor' => 'text-green-500',
-            ]);
+            $this->notification()->success(
+                title: __('Converted'),
+                description: __('Prealert has been converted to shipment.')
+            );
 
         } catch (\Exception $e) {
-            $this->dispatch('notify', [
-                'title' => __('Error'),
-                'description' => __('Failed to convert prealert: ') . $e->getMessage(),
-                'icon' => 'x-circle',
-                'iconColor' => 'text-red-500',
-            ]);
+            $this->notification()->error(
+                title: __('Error'),
+                description: __('Failed to convert prealert: ') . $e->getMessage()
+            );
         }
     }
 
@@ -173,12 +169,11 @@ new #[Title('Prealerts')] class extends Component {
         <x-crud.panel class="p-6">
             <flux:table :paginate="$this->prealerts">
                 <flux:table.columns>
-                    <flux:table.column>{{ __('VIN') }}</flux:table.column>
+                    <flux:table.column>{{ __('VIN / Lot #') }}</flux:table.column>
                     <flux:table.column>{{ __('Shipper') }}</flux:table.column>
                     <flux:table.column>{{ __('Vehicle') }}</flux:table.column>
-                    <flux:table.column>{{ __('Lot #') }}</flux:table.column>
-                    <flux:table.column>{{ __('Auction') }}</flux:table.column>
-                    <flux:table.column>{{ __('Location') }}</flux:table.column>
+                    <flux:table.column>{{ __('Auction / Location') }}</flux:table.column>
+                    <flux:table.column>{{ __('Destination') }}</flux:table.column>
                     <flux:table.column>{{ __('Created') }}</flux:table.column>
                     <flux:table.column>{{ __('Actions') }}</flux:table.column>
                 </flux:table.columns>
@@ -186,8 +181,15 @@ new #[Title('Prealerts')] class extends Component {
                 <flux:table.rows>
                     @foreach ($this->prealerts as $prealert)
                         <flux:table.row :key="$prealert->id">
-                            <flux:table.cell class="font-mono text-xs font-semibold text-zinc-900! dark:text-zinc-100!">
-                                {{ $prealert->vin }}
+                            <flux:table.cell>
+                                <div class="flex flex-col">
+                                    <span class="font-mono text-xs font-semibold text-zinc-900! dark:text-zinc-100!">
+                                        {{ $prealert->vin }}
+                                    </span>
+                                    <span class="text-[10px] text-zinc-500 font-mono">
+                                        {{ $prealert->vehicle?->lot_number ?: '—' }}
+                                    </span>
+                                </div>
                             </flux:table.cell>
                             <flux:table.cell>
                                 <div class="flex flex-col">
@@ -212,16 +214,30 @@ new #[Title('Prealerts')] class extends Component {
                                     <span class="text-zinc-400 italic">{{ __('N/A') }}</span>
                                 @endif
                             </flux:table.cell>
-                            <flux:table.cell class="text-zinc-500 text-xs">
-                                {{ $prealert->vehicle?->lot_number ?: '—' }}
-                            </flux:table.cell>
-                            <flux:table.cell class="text-zinc-500 text-xs">
-                                {{ $prealert->vehicle?->auction_name ?: '—' }}
-                            </flux:table.cell>
-                            <flux:table.cell class="text-zinc-500 text-xs">
-                                <div class="truncate max-w-[120px]" title="{{ $prealert->vehicle?->location }}">
-                                    {{ $prealert->vehicle?->location ?: '—' }}
+                            <flux:table.cell>
+                                <div class="flex flex-col">
+                                    <span class="text-xs font-medium text-zinc-900 dark:text-zinc-100">
+                                        {{ $prealert->vehicle?->auction_name ?: '—' }}
+                                    </span>
+                                    <span class="text-[10px] text-zinc-500 truncate max-w-[150px]"
+                                        title="{{ $prealert->vehicle?->location }}">
+                                        {{ $prealert->vehicle?->location ?: '—' }}
+                                    </span>
                                 </div>
+                            </flux:table.cell>
+                            <flux:table.cell>
+                                @if ($prealert->destinationPort)
+                                    <div class="flex flex-col">
+                                        <span class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">
+                                            {{ $prealert->destinationPort->name }}
+                                        </span>
+                                        <span class="text-[10px] text-zinc-500 truncate max-w-[100px]" title="{{ $prealert->destinationPort->state?->name }}">
+                                            {{ $prealert->destinationPort->state?->name ?: '—' }}
+                                        </span>
+                                    </div>
+                                @else
+                                    <span class="text-zinc-400 italic text-xs">—</span>
+                                @endif
                             </flux:table.cell>
                             <flux:table.cell class="text-zinc-500">
                                 {{ $prealert->created_at?->diffForHumans() ?: '—' }}

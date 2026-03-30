@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
-use App\Enums\PrealertStatus;
+
 use App\Models\Prealert;
 use App\Models\Shipper;
 use App\Models\Vehicle;
@@ -33,11 +33,8 @@ class PrealertFactory extends Factory
             'carrier_id' => null,
             'destination_port_id' => null,
             'auction_receipt' => null,
-            'status' => PrealertStatus::Draft,
-            'submitted_at' => null,
-            'reviewed_by' => null,
             'notes' => null,
-            'rejection_reason' => null,
+
         ];
     }
 

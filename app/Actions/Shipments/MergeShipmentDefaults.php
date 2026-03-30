@@ -30,7 +30,6 @@ final class MergeShipmentDefaults
      * ({@see merge()} second argument, or {@see DefaultShipmentSetting::current()} when omitted).
      */
     private const array DEFAULTABLE_KEYS = [
-        'shipping_company_id',
         'carrier_id',
         'origin_port_id',
         'destination_port_id',

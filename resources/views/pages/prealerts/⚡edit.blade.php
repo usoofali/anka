@@ -8,7 +8,6 @@ use App\Models\Port;
 use App\Models\Prealert;
 use App\Models\Vehicle;
 use App\Services\VinLookupService;
-use App\Enums\PrealertStatus;
 use App\Enums\VinLookupOutcome;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -19,6 +18,7 @@ use Livewire\WithFileUploads;
 
 new #[Title('Edit Prealert')] class extends Component {
     use WithFileUploads;
+    use WireUiActions;
 
     public Prealert $prealert;
 
@@ -137,7 +137,8 @@ new #[Title('Edit Prealert')] class extends Component {
             'vin' => $this->vin,
             'vehicle_id' => $this->vehicle?->id,
             'carrier_id' => $this->carrier_id,
-            'destination_port_id' => $this->destination_port_id,
+            'destination_port_id' => (int) $this->destination_port_id ?: null,
+            'carrier_id' => (int) $this->carrier_id ?: null,
             'gatepass_pin' => $this->gatepass_pin,
             'notes' => $this->notes,
         ];
@@ -150,20 +151,25 @@ new #[Title('Edit Prealert')] class extends Component {
             $data['auction_receipt'] = $this->auction_receipt->store('prealerts/receipts', 'public');
         }
 
-        // If it was Rejected, move it back to Submitted if a shipper edits it
-        if (! Auth::user()?->hasRole('super_admin') && ! Auth::user()?->staff()->exists() && $this->prealert->status === PrealertStatus::Rejected) {
-            $data['status'] = PrealertStatus::Submitted;
-            $data['submitted_at'] = now();
+        if ($this->vehicle?->id) {
+            $exists = Prealert::where('vehicle_id', $this->vehicle->id)
+                ->where('id', '!=', $this->prealert->id)
+                ->exists();
+            if ($exists) {
+                $this->notification()->warning(
+                    title: __('Duplicate Vehicle'),
+                    description: __('This vehicle is already in another prealert.')
+                );
+                return;
+            }
         }
 
         $this->prealert->update($data);
 
-        $this->dispatch('notify', [
-            'title' => __('Success'),
-            'description' => __('Prealert updated successfully.'),
-            'icon' => 'check-circle',
-            'iconColor' => 'text-green-500',
-        ]);
+        $this->notification()->success(
+            title: __('Success'),
+            description: __('Prealert updated successfully.')
+        );
 
         $this->redirect(route('prealerts.index'), navigate: true);
     }
@@ -177,7 +183,7 @@ new #[Title('Edit Prealert')] class extends Component {
     #[Computed]
     public function ports()
     {
-        return Port::orderBy('name')->get();
+        return Port::where('type', 'destination')->orderBy('name')->get();
     }
 
     #[Computed]
@@ -307,17 +313,23 @@ new #[Title('Edit Prealert')] class extends Component {
 
                         <flux:separator class="md:col-span-2 my-2" />
 
-                        <flux:select wire:model="carrier_id" :label="__('Carrier')" placeholder="{{ __('Select carrier') }}">
-                            @foreach($this->carriers as $carrier)
-                                <flux:select.option :value="$carrier->id">{{ $carrier->name }}</flux:select.option>
-                            @endforeach
-                        </flux:select>
+                        <x-select
+                            wire:model.live="carrier_id"
+                            :label="__('Carrier')"
+                            :placeholder="__('Select carrier')"
+                            :options="$this->carriers"
+                            option-label="name"
+                            option-value="id"
+                        />
 
-                        <flux:select wire:model="destination_port_id" :label="__('Destination Port')" placeholder="{{ __('Select destination port') }}">
-                            @foreach($this->ports as $port)
-                                <flux:select.option :value="$port->id">{{ $port->name }} ({{ $port->code }})</flux:select.option>
-                            @endforeach
-                        </flux:select>
+                        <x-select
+                            wire:model.live="destination_port_id"
+                            :label="__('Destination Port')"
+                            :placeholder="__('Select destination port')"
+                            :options="$this->ports"
+                            option-label="name"
+                            option-value="id"
+                        />
 
                         <div class="md:col-span-2">
                             <flux:field>

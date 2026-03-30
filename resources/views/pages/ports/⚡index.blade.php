@@ -34,7 +34,7 @@ new #[Title('Ports')] class extends Component {
     public string $portPendingDeleteLabel = '';
 
     public string $name = '';
-    public string $code = '';
+    public string $type = 'origin';
 
     public function updatedSearch(): void
     {
@@ -49,7 +49,7 @@ new #[Title('Ports')] class extends Component {
     public function openCreateModal(): void
     {
         $this->authorize('ports.create');
-        $this->reset('name', 'code', 'country_id', 'state_id', 'city_id', 'portEditingId');
+        $this->reset('name', 'type', 'country_id', 'state_id', 'portEditingId');
         $this->showCreateModal = true;
     }
 
@@ -60,17 +60,15 @@ new #[Title('Ports')] class extends Component {
         $validator = Validator::make(
             [
                 'name' => $this->name,
-                'code' => mb_strtoupper($this->code),
+                'type' => $this->type,
                 'country_id' => $this->country_id,
                 'state_id' => $this->state_id,
-                'city_id' => $this->city_id,
             ],
             [
                 'name' => ['required', 'string', 'max:255', 'unique:ports,name'],
-                'code' => ['required', 'string', 'max:50', 'unique:ports,code'],
+                'type' => ['required', 'string', 'in:origin,destination'],
                 'country_id' => ['required', 'integer', 'exists:countries,id'],
                 'state_id' => ['required', 'integer', 'exists:states,id'],
-                'city_id' => ['required', 'integer', 'exists:cities,id'],
             ]
         );
         $validator->after(function (\Illuminate\Validation\Validator $v): void {
@@ -90,10 +88,9 @@ new #[Title('Ports')] class extends Component {
         $port = Port::findOrFail($portId);
         $this->portEditingId = $port->id;
         $this->name = $port->name;
-        $this->code = $port->code;
+        $this->type = $port->type;
         $this->country_id = $port->country_id;
         $this->state_id = $port->state_id;
-        $this->city_id = $port->city_id;
         
         $this->showEditModal = true;
     }
@@ -110,17 +107,15 @@ new #[Title('Ports')] class extends Component {
         $validator = Validator::make(
             [
                 'name' => $this->name,
-                'code' => mb_strtoupper($this->code),
+                'type' => $this->type,
                 'country_id' => $this->country_id,
                 'state_id' => $this->state_id,
-                'city_id' => $this->city_id,
             ],
             [
                 'name' => ['required', 'string', 'max:255', 'unique:ports,name,' . $port->id],
-                'code' => ['required', 'string', 'max:50', 'unique:ports,code,' . $port->id],
+                'type' => ['required', 'string', 'in:origin,destination'],
                 'country_id' => ['required', 'integer', 'exists:countries,id'],
                 'state_id' => ['required', 'integer', 'exists:states,id'],
-                'city_id' => ['required', 'integer', 'exists:cities,id'],
             ]
         );
         $validator->after(function (\Illuminate\Validation\Validator $v): void {
@@ -140,7 +135,7 @@ new #[Title('Ports')] class extends Component {
         $port = Port::findOrFail($portId);
 
         $this->portPendingDeleteId = $port->id;
-        $this->portPendingDeleteLabel = $port->name . ' (' . $port->code . ')';
+        $this->portPendingDeleteLabel = $port->name;
         $this->showDeleteModal = true;
     }
 
@@ -174,8 +169,7 @@ new #[Title('Ports')] class extends Component {
         return Port::query()
             ->with(['country', 'state'])
             ->withCount(['originShipments', 'destinationShipments'])
-            ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%")
-                ->orWhere('code', 'like', "%{$this->search}%"))
+            ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%"))
             ->orderBy('name')
             ->paginate(15);
     }
@@ -197,7 +191,7 @@ new #[Title('Ports')] class extends Component {
         <x-crud.panel class="p-6">
             <flux:table :paginate="$this->ports">
                 <flux:table.columns>
-                    <flux:table.column icon="qr-code">{{ __('Code') }}</flux:table.column>
+                    <flux:table.column icon="tag">{{ __('Type') }}</flux:table.column>
                     <flux:table.column icon="map-pin">{{ __('Name') }}</flux:table.column>
                     <flux:table.column icon="globe-alt">{{ __('Location') }}</flux:table.column>
                     <flux:table.column icon="box">{{ __('Shipments') }}</flux:table.column>
@@ -208,7 +202,9 @@ new #[Title('Ports')] class extends Component {
                     @forelse ($this->ports as $port)
                         <flux:table.row :key="$port->id">
                             <flux:table.cell>
-                                <flux:badge color="zinc" class="font-mono uppercase tracking-widest">{{ $port->code }}</flux:badge>
+                                <flux:badge :color="$port->type === 'origin' ? 'blue' : 'emerald'" inset="top bottom" class="uppercase tracking-widest text-[10px] font-bold">
+                                    {{ __($port->type) }}
+                                </flux:badge>
                             </flux:table.cell>
                             <flux:table.cell class="font-medium">
                                 {{ $port->name }}
@@ -257,11 +253,14 @@ new #[Title('Ports')] class extends Component {
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="sm:col-span-2">
+                <div class="sm:col-span-1">
                     <flux:input wire:model="name" :label="__('Port Name')" icon="map-pin" required />
                 </div>
-                <div class="sm:col-span-2">
-                    <flux:input wire:model="code" :label="__('Port Code (e.g. USNY)')" class="uppercase font-mono" icon="qr-code" maxlength="50" required />
+                <div class="sm:col-span-1">
+                    <flux:select wire:model="type" :label="__('Type')" icon="tag" required>
+                        <flux:select.option value="origin">{{ __('Origin') }}</flux:select.option>
+                        <flux:select.option value="destination">{{ __('Destination') }}</flux:select.option>
+                    </flux:select>
                 </div>
                 
                 <div class="sm:col-span-2">
@@ -289,22 +288,6 @@ new #[Title('Ports')] class extends Component {
                         ]"
                         searchable
                         :disabled="!$this->country_id"
-                    />
-                </div>
-
-                <div class="sm:col-span-1">
-                    <x-select
-                        wire:model.live="city_id"
-                        :label="__('City')"
-                        :placeholder="__('Select city')"
-                        option-value="id"
-                        option-label="name"
-                        :async-data="[
-                            'api' => route('register.geo.cities'),
-                            'params' => ['state_id' => $this->state_id],
-                        ]"
-                        searchable
-                        :disabled="!$this->state_id"
                     />
                 </div>
             </div>
@@ -330,11 +313,14 @@ new #[Title('Ports')] class extends Component {
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="sm:col-span-2">
+                <div class="sm:col-span-1">
                     <flux:input wire:model="name" :label="__('Port Name')" icon="map-pin" required />
                 </div>
-                <div class="sm:col-span-2">
-                    <flux:input wire:model="code" :label="__('Port Code')" icon="qr-code" class="uppercase font-mono" maxlength="50" required />
+                <div class="sm:col-span-1">
+                    <flux:select wire:model="type" :label="__('Type')" icon="tag" required>
+                        <flux:select.option value="origin">{{ __('Origin') }}</flux:select.option>
+                        <flux:select.option value="destination">{{ __('Destination') }}</flux:select.option>
+                    </flux:select>
                 </div>
                 
                 <div class="sm:col-span-2">
@@ -362,22 +348,6 @@ new #[Title('Ports')] class extends Component {
                         ]"
                         searchable
                         :disabled="!$this->country_id"
-                    />
-                </div>
-
-                <div class="sm:col-span-1">
-                    <x-select
-                        wire:model.live="city_id"
-                        :label="__('City')"
-                        :placeholder="__('Select city')"
-                        option-value="id"
-                        option-label="name"
-                        :async-data="[
-                            'api' => route('register.geo.cities'),
-                            'params' => ['state_id' => $this->state_id],
-                        ]"
-                        searchable
-                        :disabled="!$this->state_id"
                     />
                 </div>
             </div>

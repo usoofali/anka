@@ -12,7 +12,7 @@ use App\Models\Consignee;
 use App\Models\Port;
 use App\Models\Shipment;
 use App\Models\Shipper;
-use App\Models\ShippingCompany;
+
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -35,7 +35,7 @@ class ShipmentFactory extends Factory
             'shipper_id' => $shipper,
             'consignee_id' => Consignee::factory()->for($shipper),
             'driver_id' => null,
-            'shipping_company_id' => ShippingCompany::factory(),
+
             'carrier_id' => Carrier::factory(),
             'origin_port_id' => Port::factory(),
             'destination_port_id' => Port::factory(),

@@ -52,17 +52,16 @@ new #[Title('Notifications')] class extends Component {
             :description="__('When there is activity, you will see it here.')"
         />
     @else
-        <x-crud.panel>
-            <table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-700">
-                <thead class="bg-zinc-50 dark:bg-zinc-800/60">
-                    <tr>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500">{{ __('Status') }}</th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500">{{ __('Notification') }}</th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500">{{ __('Date') }}</th>
-                        <th scope="col" class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-zinc-500">{{ __('Action') }}</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+        <x-crud.panel class="p-6">
+            <flux:table :paginate="$notifications">
+                <flux:table.columns>
+                    <flux:table.column>{{ __('Status') }}</flux:table.column>
+                    <flux:table.column>{{ __('Notification') }}</flux:table.column>
+                    <flux:table.column>{{ __('Date') }}</flux:table.column>
+                    <flux:table.column align="right">{{ __('Action') }}</flux:table.column>
+                </flux:table.columns>
+
+                <flux:table.rows>
                     @foreach ($notifications as $notification)
                         @php
                             /** @var DatabaseNotification $notification */
@@ -71,26 +70,16 @@ new #[Title('Notifications')] class extends Component {
                             $body = data_get($data, 'body', '');
                             $url = data_get($data, 'url');
                         @endphp
-                        <tr
-                            wire:key="notification-{{ $notification->id }}"
-                            @class([
-                                'bg-indigo-50/50 dark:bg-indigo-950/20' => $notification->unread(),
-                                'bg-white dark:bg-zinc-900' => ! $notification->unread(),
-                            ])
-                        >
-                            <td class="whitespace-nowrap px-4 py-4 align-top">
+                        <flux:table.row :key="$notification->id">
+                            <flux:table.cell>
                                 @if ($notification->unread())
-                                    <span class="inline-flex items-center gap-2 rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-700 dark:bg-indigo-900/60 dark:text-indigo-200">
-                                        <span class="h-2 w-2 rounded-full bg-indigo-500"></span>
-                                        {{ __('Unread') }}
-                                    </span>
+                                    <flux:badge size="sm" color="indigo" inset="left">{{ __('Unread') }}</flux:badge>
                                 @else
-                                    <span class="inline-flex rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-                                        {{ __('Read') }}
-                                    </span>
+                                    <flux:badge size="sm" color="zinc" inset="left">{{ __('Read') }}</flux:badge>
                                 @endif
-                            </td>
-                            <td class="min-w-[20rem] px-4 py-4 align-top">
+                            </flux:table.cell>
+
+                            <flux:table.cell class="min-w-[20rem]">
                                 <div class="space-y-1">
                                     @if ($url)
                                         <flux:link :href="$url" wire:navigate class="font-semibold text-zinc-900 dark:text-zinc-100">
@@ -104,14 +93,16 @@ new #[Title('Notifications')] class extends Component {
                                         <p class="line-clamp-2 text-sm text-zinc-600 dark:text-zinc-300">{{ $body }}</p>
                                     @endif
                                 </div>
-                            </td>
-                            <td class="whitespace-nowrap px-4 py-4 align-top text-xs text-zinc-500">
+                            </flux:table.cell>
+
+                            <flux:table.cell class="text-xs text-zinc-500">
                                 {{ $notification->created_at->diffForHumans() }}
-                            </td>
-                            <td class="whitespace-nowrap px-4 py-4 text-right align-top">
+                            </flux:table.cell>
+
+                            <flux:table.cell align="right">
                                 @if ($notification->unread())
                                     <flux:button
-                                        size="sm"
+                                        size="xs"
                                         variant="primary"
                                         wire:click="markAsRead('{{ $notification->id }}')"
                                         wire:loading.attr="disabled"
@@ -119,17 +110,14 @@ new #[Title('Notifications')] class extends Component {
                                         {{ __('Mark as read') }}
                                     </flux:button>
                                 @else
-                                    <span class="text-xs text-zinc-500">{{ __('Done') }}</span>
+                                    <flux:badge size="sm" color="zinc" variant="outline">{{ __('Done') }}</flux:badge>
                                 @endif
-                            </td>
-                        </tr>
+                            </flux:table.cell>
+                        </flux:table.row>
                     @endforeach
-                </tbody>
-            </table>
+                </flux:table.rows>
+            </flux:table>
         </x-crud.panel>
-
-        <x-crud.pagination-shell>
-            {{ $notifications->links() }}
-        </x-crud.pagination-shell>
     @endif
 </x-crud.page-shell>
+
