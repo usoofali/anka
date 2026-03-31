@@ -34,6 +34,15 @@ final class MapCopartApiVehicleItemToVehicleAttributes
             $carKeys === false, $carKeys === 0, $carKeys === '0' => '0',
             default => null,
         };
+        $loc = $lot['location'] ?? [];
+
+        $locationName = null;
+
+        if (isset($loc['location']['name'])) {
+            $locationName = $loc['location']['name'];
+        } else {
+            $locationName = ucwords($loc['city']['name']).', '.strtoupper($loc['state']['name']) ?? null;
+        }
 
         $photos = $lot['images']['normal'] ?? $lot['images']['small'] ?? [];
 
@@ -70,7 +79,7 @@ final class MapCopartApiVehicleItemToVehicleAttributes
             'primary_damage' => self::stringOrNull($lot['damage']['main']['name'] ?? null),
             'secondary_damage' => self::stringOrNull($lot['damage']['second']['name'] ?? null),
             'highlights' => null,
-            'location' => self::stringOrNull($lot['location']['raw'] ?? null),
+            'location' => self::stringOrNull($locationName),
             'auction_name' => self::stringOrNull($lot['domain']['name'] ?? $lot['selling_branch']['name'] ?? null),
             'vehicle_is' => null,
             'seller' => self::stringOrNull($lot['seller'] ?? null),

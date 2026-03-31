@@ -434,7 +434,11 @@ new #[Title('Submit Prealert')] class extends Component {
                                                 required />
                                         @else
                                             <flux:input :label="__('Shipper')"
-                                                :value="Auth::user()?->shipper?->company_name ?: Auth::user()?->name"
+                                                :value="sprintf(
+                                                    '%s(%s)',
+                                                    Auth::user()?->name ?? '',
+                                                    Auth::user()?->shipper?->company_name ?? '-'
+                                                )"
                                                 disabled />
                                             <input type="hidden" wire:model="shipper_id">
                                         @endif

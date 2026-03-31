@@ -5,25 +5,35 @@ declare(strict_types=1);
 use App\Concerns\HandlesShipperGeoSelects;
 use App\Http\Requests\UpdateShipperRequest;
 use App\Models\City;
+use App\Models\Consignee;
 use App\Models\Country;
 use App\Models\Shipper;
 use App\Models\State;
+use App\Models\User;
+use App\Models\Wallet;
+use App\Support\CsvImportReader;
 use App\Support\ShipperGeoValidator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 use WireUi\Traits\WireUiActions;
 
 new #[Title('Shippers')] class extends Component {
     use HandlesShipperGeoSelects;
     use WireUiActions;
+    use WithFileUploads;
     use WithPagination;
+
+    public bool $showImportModal = false;
+
+    public mixed $importFile = null;
 
     public bool $showDeleteModal = false;
 
@@ -168,6 +178,239 @@ new #[Title('Shippers')] class extends Component {
         $this->resetPage();
     }
 
+    public function openImportModal(): void
+    {
+        $this->authorizeShipperImport();
+
+        $this->reset('importFile');
+        $this->showImportModal = true;
+    }
+
+    public function importCsv(): void
+    {
+        $this->authorizeShipperImport();
+
+        $this->validate([
+            'importFile' => ['required', 'file', 'mimes:csv,txt', 'max:5120'],
+        ]);
+
+        $parsed = CsvImportReader::read($this->importFile->getRealPath());
+
+        $created = 0;
+        $updated = 0;
+        $errors = 0;
+
+        foreach ($parsed['rows'] as $row) {
+            $ownerEmail = strtolower(trim((string) ($row['owner_email'] ?? '')));
+            $ownerName = trim((string) ($row['owner_name'] ?? ''));
+            $ownerPassword = (string) ($row['owner_password'] ?? '');
+            $companyName = trim((string) ($row['company_name'] ?? ''));
+            $phone = trim((string) ($row['phone'] ?? ''));
+            $address = trim((string) ($row['address'] ?? ''));
+            $countryIso2 = strtoupper(trim((string) ($row['country_iso2'] ?? '')));
+            $stateCode = strtoupper(trim((string) ($row['state_code'] ?? '')));
+            $cityName = trim((string) ($row['city_name'] ?? ''));
+
+            if ($ownerEmail === '' || ! filter_var($ownerEmail, FILTER_VALIDATE_EMAIL)) {
+                $errors++;
+
+                continue;
+            }
+
+            if ($companyName === '' || $phone === '' || $address === '' || $countryIso2 === '' || $stateCode === '' || $cityName === '') {
+                $errors++;
+
+                continue;
+            }
+
+            $country = Country::query()->where('iso2', $countryIso2)->first();
+            if (! $country) {
+                $errors++;
+
+                continue;
+            }
+
+            $state = State::query()
+                ->where('country_id', $country->id)
+                ->where('code', $stateCode)
+                ->first();
+            if (! $state) {
+                $errors++;
+
+                continue;
+            }
+
+            $city = City::query()
+                ->where('state_id', $state->id)
+                ->whereRaw('LOWER(name) = ?', [mb_strtolower($cityName)])
+                ->first();
+            if (! $city) {
+                $errors++;
+
+                continue;
+            }
+
+            $user = User::query()
+                ->whereRaw('LOWER(email) = ?', [mb_strtolower($ownerEmail)])
+                ->first();
+
+            if ($user === null) {
+                if ($ownerName === '' || $ownerPassword === '') {
+                    $errors++;
+
+                    continue;
+                }
+
+                $passwordValidator = Validator::make(
+                    ['owner_password' => $ownerPassword],
+                    ['owner_password' => ['required', 'string', 'min:8']],
+                );
+                if ($passwordValidator->fails()) {
+                    $errors++;
+
+                    continue;
+                }
+
+                try {
+                    DB::transaction(function () use ($ownerName, $ownerEmail, $ownerPassword, $companyName, $phone, $address, $country, $state, $city): void {
+                        $newUser = User::query()->create([
+                            'name' => $ownerName,
+                            'email' => $ownerEmail,
+                            'password' => Hash::make($ownerPassword),
+                        ]);
+
+                        $newUser->assignRole('shipper');
+
+                        $shipper = Shipper::query()->create([
+                            'user_id' => $newUser->id,
+                            'company_name' => $companyName,
+                            'phone' => $phone,
+                            'address' => $address,
+                            'country_id' => $country->id,
+                            'state_id' => $state->id,
+                            'city_id' => $city->id,
+                        ]);
+
+                        $this->bootstrapNewShipperProfile($shipper, $newUser);
+                    });
+                    $created++;
+                } catch (\Throwable) {
+                    $errors++;
+                }
+
+                continue;
+            }
+
+            if ($ownerName !== '') {
+                $user->update(['name' => $ownerName]);
+            }
+
+            if ($ownerPassword !== '') {
+                $passwordValidator = Validator::make(
+                    ['owner_password' => $ownerPassword],
+                    ['owner_password' => ['required', 'string', 'min:8']],
+                );
+                if ($passwordValidator->fails()) {
+                    $errors++;
+
+                    continue;
+                }
+
+                $user->update(['password' => Hash::make($ownerPassword)]);
+            }
+
+            $user->assignRole('shipper');
+
+            $existingShipper = Shipper::query()->where('user_id', $user->id)->first();
+
+            try {
+                $outcome = DB::transaction(function () use ($user, $existingShipper, $companyName, $phone, $address, $country, $state, $city): string {
+                    if ($existingShipper === null) {
+                        $shipper = Shipper::query()->create([
+                            'user_id' => $user->id,
+                            'company_name' => $companyName,
+                            'phone' => $phone,
+                            'address' => $address,
+                            'country_id' => $country->id,
+                            'state_id' => $state->id,
+                            'city_id' => $city->id,
+                        ]);
+
+                        $this->bootstrapNewShipperProfile($shipper, $user);
+
+                        return 'created';
+                    }
+
+                    $existingShipper->update([
+                        'company_name' => $companyName,
+                        'phone' => $phone,
+                        'address' => $address,
+                        'country_id' => $country->id,
+                        'state_id' => $state->id,
+                        'city_id' => $city->id,
+                    ]);
+
+                    return 'updated';
+                });
+
+                if ($outcome === 'created') {
+                    $created++;
+                } else {
+                    $updated++;
+                }
+            } catch (\Throwable) {
+                $errors++;
+            }
+        }
+
+        $this->showImportModal = false;
+        $this->reset('importFile');
+        $this->resetPage();
+
+        $this->notification()->success(
+            __('Import completed. Created: :created, Updated: :updated, Errors: :errors', [
+                'created' => $created,
+                'updated' => $updated,
+                'errors' => $errors,
+            ])
+        );
+    }
+
+    private function authorizeShipperImport(): void
+    {
+        $user = auth()->user();
+
+        if ($user?->hasRole('super_admin')) {
+            return;
+        }
+
+        if ($user?->can('shippers.update') && $user->staff()->exists()) {
+            return;
+        }
+
+        abort(403);
+    }
+
+    private function bootstrapNewShipperProfile(Shipper $shipper, User $user): void
+    {
+        Wallet::query()->create([
+            'shipper_id' => $shipper->id,
+        ]);
+
+        Consignee::query()
+            ->where('shipper_id', $shipper->id)
+            ->update([
+                'is_default' => false,
+            ]);
+
+        Consignee::query()->create([
+            'shipper_id' => $shipper->id,
+            'name' => $user->name ?? $shipper->company_name ?? '',
+            'address' => $shipper->address ?? '',
+            'is_default' => true,
+        ]);
+    }
+
     /**
      * @return \Illuminate\Database\Eloquent\Collection<int, Country>
      */
@@ -252,11 +495,16 @@ new #[Title('Shippers')] class extends Component {
 }; ?>
 
 <x-crud.page-shell>
-    <div class="flex items-center gap-3 mb-6">
-        <div class="rounded-lg bg-zinc-100 p-2 dark:bg-zinc-800">
-            <flux:icon.building-office-2 class="size-6 text-zinc-600 dark:text-zinc-400" />
+    <div class="mb-6 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="rounded-lg bg-zinc-100 p-2 dark:bg-zinc-800">
+                <flux:icon.building-office-2 class="size-6 text-zinc-600 dark:text-zinc-400" />
+            </div>
+            <x-crud.page-header :heading="__('Shippers')" :subheading="__('Companies registered on the platform.')" class="!mb-0" />
         </div>
-        <x-crud.page-header :heading="__('Shippers')" :subheading="__('Companies registered on the platform.')" class="!mb-0" />
+        @if (auth()->user()?->hasRole('super_admin') || (auth()->user()?->can('shippers.update') && auth()->user()?->staff()->exists()))
+            <flux:button variant="outline" icon="arrow-down-tray" wire:click="openImportModal">{{ __('Import CSV') }}</flux:button>
+        @endif
     </div>
     <x-crud.panel class="p-6">
         <flux:table :paginate="$shippers">
@@ -455,6 +703,26 @@ new #[Title('Shippers')] class extends Component {
                 </div>
             </form>
         </div>
+    </flux:modal>
+
+    <flux:modal wire:model="showImportModal" class="max-w-lg">
+        <form wire:submit="importCsv" class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('Import Shippers CSV') }}</flux:heading>
+                <flux:subheading>{{ __('Expected headers: owner_name, owner_email, owner_password, company_name, phone, address, country_iso2, state_code, city_name') }}</flux:subheading>
+            </div>
+            <div class="space-y-3">
+                <input type="file" wire:model="importFile" accept=".csv,text/csv" class="block w-full text-sm" />
+                <flux:error name="importFile" />
+                <flux:link :href="route('import-templates.geo', 'shippers')" wire:navigate="false">
+                    {{ __('Download Sample CSV') }}
+                </flux:link>
+            </div>
+            <div class="flex justify-end gap-2">
+                <flux:modal.close><flux:button variant="ghost" type="button">{{ __('Cancel') }}</flux:button></flux:modal.close>
+                <flux:button type="submit" variant="primary">{{ __('Import') }}</flux:button>
+            </div>
+        </form>
     </flux:modal>
 
     <flux:modal wire:model.self="showDeleteModal" class="max-w-md">

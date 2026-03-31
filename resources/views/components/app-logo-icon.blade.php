@@ -1,8 +1,8 @@
 @php
-    $cached_logo = \Illuminate\Support\Facades\Cache::rememberForever('system_logo', function () {
+    $cached_logo = \Illuminate\Support\Facades\Cache::remember('system_logo_src', now()->addMinutes(5), function () {
         // Safe check in case the table hasn't been migrated yet (e.g., during setup wizard)
         try {
-            return \App\Models\SystemSetting::where('id', 1)->value('logo');
+            return \App\Models\SystemSetting::current()?->logoSrcForWeb();
         } catch (\Exception $e) {
             return null;
         }

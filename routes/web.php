@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\RegisterGeoOptionsController;
 use App\Http\Controllers\DriverOptionsController;
+use App\Http\Controllers\ImportTemplateController;
 use App\Http\Controllers\ShipperOptionsController;
 use App\Models\User;
 use Illuminate\Support\Facades\File;
@@ -56,12 +57,16 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     // Shipments
     Route::livewire('/shipments', 'pages::shipments.index')->name('shipments.index');
     Route::livewire('/shipments/create', 'pages::shipments.create')->name('shipments.create');
+    Route::livewire('/shipments/{shipment}/edit', 'pages::shipments.edit')
+        ->whereNumber('shipment')
+        ->name('shipments.edit');
     Route::livewire('/shipments/{shipment}', 'pages::shipments.show')
         ->whereNumber('shipment')
         ->name('shipments.show');
 
     Route::get('/api/shippers/search', [ShipperOptionsController::class, 'index'])->name('api.shippers.search');
     Route::get('/api/drivers/search', [DriverOptionsController::class, 'index'])->name('api.drivers.search');
+    Route::get('/import-templates/geo/{entity}', [ImportTemplateController::class, 'geo'])->name('import-templates.geo');
 
     // Master Data
     Route::livewire('/default-shipment-settings', 'pages::default-shipment-settings.index')

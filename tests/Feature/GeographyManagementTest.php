@@ -8,6 +8,7 @@ use App\Models\State;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -115,4 +116,84 @@ test('city creation dependent dropdown logic works', function () {
     $component->set('country_id', $country2->id);
     expect($component->get('states'))->toHaveCount(1);
     expect($component->get('states')[0]->id)->toBe($state2->id);
+});
+
+test('countries import csv creates and updates existing rows', function () {
+    Livewire::actingAs($this->admin)
+        ->test('pages::countries.index')
+        ->set('name', 'Temp')
+        ->set('iso2', 'TP')
+        ->set('iso3', 'TMP')
+        ->call('saveNewCountry');
+
+    $csv = "name,iso2,iso3\nUpdated Temp,TP,UTP\nNigeria,NG,NGA\n";
+    $file = UploadedFile::fake()->createWithContent('countries.csv', $csv);
+
+    Livewire::actingAs($this->admin)
+        ->test('pages::countries.index')
+        ->set('importFile', $file)
+        ->call('importCsv')
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('countries', ['iso2' => 'TP', 'name' => 'Updated Temp']);
+    $this->assertDatabaseHas('countries', ['iso2' => 'NG', 'name' => 'Nigeria']);
+});
+
+test('states import csv resolves country by iso2 and upserts by code', function () {
+    $country = Country::factory()->create(['iso2' => 'US']);
+    State::factory()->create(['country_id' => $country->id, 'code' => 'CA', 'name' => 'Old Name']);
+
+    $csv = "country_iso2,name,code\nUS,California,CA\nUS,Texas,TX\n";
+    $file = UploadedFile::fake()->createWithContent('states.csv', $csv);
+
+    Livewire::actingAs($this->admin)
+        ->test('pages::states.index')
+        ->set('importFile', $file)
+        ->call('importCsv')
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('states', ['country_id' => $country->id, 'code' => 'CA', 'name' => 'California']);
+    $this->assertDatabaseHas('states', ['country_id' => $country->id, 'code' => 'TX', 'name' => 'Texas']);
+});
+
+test('cities and ports import csv works with country and state code resolution', function () {
+    $country = Country::factory()->create(['iso2' => 'US']);
+    $state = State::factory()->create(['country_id' => $country->id, 'code' => 'CA']);
+
+    $citiesCsv = "country_iso2,state_code,name\nUS,CA,Los Angeles\nUS,CA,San Diego\n";
+    $citiesFile = UploadedFile::fake()->createWithContent('cities.csv', $citiesCsv);
+
+    Livewire::actingAs($this->admin)
+        ->test('pages::cities.index')
+        ->set('importFile', $citiesFile)
+        ->call('importCsv')
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('cities', ['state_id' => $state->id, 'name' => 'Los Angeles']);
+
+    $portsCsv = "name,type,country_iso2,state_code\nLong Beach,origin,US,CA\n";
+    $portsFile = UploadedFile::fake()->createWithContent('ports.csv', $portsCsv);
+
+    Livewire::actingAs($this->admin)
+        ->test('pages::ports.index')
+        ->set('importFile', $portsFile)
+        ->call('importCsv')
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('ports', [
+        'name' => 'Long Beach',
+        'type' => 'origin',
+        'country_id' => $country->id,
+        'state_id' => $state->id,
+    ]);
+});
+
+test('sample csv templates are downloadable', function () {
+    $this->actingAs($this->admin)
+        ->get(route('import-templates.geo', 'countries'))
+        ->assertOk();
+
+    $this->actingAs($this->admin)
+        ->get(route('import-templates.geo', 'states'))
+        ->assertOk();
 });

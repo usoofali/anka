@@ -131,3 +131,29 @@ test('staff can reject a prealert with reason', function () {
     expect($prealert->fresh()->status)->toBe(PrealertStatus::Rejected)
         ->and($prealert->fresh()->rejection_reason)->toBe('Invalid documentation');
 });
+
+test('super admin can delete prealert after confirmation modal', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('super_admin');
+    $prealert = Prealert::factory()->create();
+
+    Livewire::actingAs($admin)
+        ->test('pages::prealerts.index')
+        ->call('openDeleteModal', $prealert->id)
+        ->assertSet('showDeleteModal', true)
+        ->assertSet('prealertPendingDeleteId', $prealert->id)
+        ->call('confirmDeletePrealert')
+        ->assertHasNoErrors();
+
+    expect(Prealert::query()->whereKey($prealert->id)->exists())->toBeFalse();
+});
+
+test('shipper cannot open delete modal for own prealert', function () {
+    $shipper = Shipper::factory()->create();
+    $prealert = Prealert::factory()->create(['shipper_id' => $shipper->id]);
+
+    Livewire::actingAs($shipper->user)
+        ->test('pages::prealerts.index')
+        ->call('openDeleteModal', $prealert->id)
+        ->assertForbidden();
+});

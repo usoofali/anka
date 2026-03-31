@@ -67,16 +67,54 @@ new #[Title('Prealerts')] class extends Component {
 
     public ?Prealert $selectedPrealert = null;
 
+    public bool $showDeleteModal = false;
+
+    public ?int $prealertPendingDeleteId = null;
+
+    public string $prealertPendingDeleteLabel = '';
+
+    public function updatedShowDeleteModal(bool $value): void
+    {
+        if (! $value) {
+            $this->prealertPendingDeleteId = null;
+            $this->prealertPendingDeleteLabel = '';
+        }
+    }
+
     public function openReviewModal(int $id): void
     {
         $this->selectedPrealert = Prealert::with(['shipper.user', 'vehicle', 'carrier', 'destinationPort.state', 'destinationPort.country'])->findOrFail($id);
         $this->dispatch('modal-show', name: 'review-prealert');
     }
 
-    public function deletePrealert(int $id): void
+    public function openDeleteModal(int $id): void
     {
-        $prealert = Prealert::findOrFail($id);
+        $prealert = Prealert::query()->findOrFail($id);
+        $this->authorize('delete', $prealert);
+
+        $this->prealertPendingDeleteId = $prealert->id;
+        $this->prealertPendingDeleteLabel = filled($prealert->vin)
+            ? (string) $prealert->vin
+            : __('Prealert #:id', ['id' => $prealert->id]);
+        $this->showDeleteModal = true;
+    }
+
+    public function confirmDeletePrealert(): void
+    {
+        if ($this->prealertPendingDeleteId === null) {
+            return;
+        }
+
+        $prealert = Prealert::query()->findOrFail($this->prealertPendingDeleteId);
+        $this->authorize('delete', $prealert);
+
         $prealert->delete();
+
+        $this->showDeleteModal = false;
+        $this->prealertPendingDeleteId = null;
+        $this->prealertPendingDeleteLabel = '';
+
+        $this->resetPage();
 
         $this->notification()->success(
             title: __('Deleted'),
@@ -215,11 +253,13 @@ new #[Title('Prealerts')] class extends Component {
                                             </flux:menu.item>
                                         @endif
 
-                                        <flux:menu.separator />
+                                        @can('delete', $prealert)
+                                            <flux:menu.separator />
 
-                                        <flux:menu.item icon="trash" variant="danger" wire:click="deletePrealert({{ $prealert->id }})" wire:key="delete-{{ $prealert->id }}">
-                                            {{ __('Delete') }}
-                                        </flux:menu.item>
+                                            <flux:menu.item icon="trash" variant="danger" wire:click="openDeleteModal({{ $prealert->id }})" wire:key="delete-{{ $prealert->id }}">
+                                                {{ __('Delete') }}
+                                            </flux:menu.item>
+                                        @endcan
                                     </flux:menu>
                                 </flux:dropdown>
                             </flux:table.cell>
@@ -365,5 +405,28 @@ new #[Title('Prealerts')] class extends Component {
                 </div>
             </div>
         @endif
+    </flux:modal>
+
+    <flux:modal wire:model.self="showDeleteModal" class="max-w-md">
+        <div class="space-y-4">
+            <flux:heading size="lg">{{ __('Delete prealert?') }}</flux:heading>
+            <flux:subheading>
+                {{ __('This will permanently remove this prealert and cannot be undone.') }}
+            </flux:subheading>
+            @if ($prealertPendingDeleteLabel !== '')
+                <flux:text class="font-mono font-medium text-zinc-900 dark:text-zinc-100">
+                    {{ $prealertPendingDeleteLabel }}
+                </flux:text>
+            @endif
+        </div>
+
+        <div class="mt-6 flex justify-end gap-2">
+            <flux:modal.close>
+                <flux:button variant="ghost" type="button">{{ __('Cancel') }}</flux:button>
+            </flux:modal.close>
+            <flux:button variant="danger" type="button" wire:click="confirmDeletePrealert" wire:loading.attr="disabled">
+                {{ __('Delete') }}
+            </flux:button>
+        </div>
     </flux:modal>
 </x-crud.page-shell>

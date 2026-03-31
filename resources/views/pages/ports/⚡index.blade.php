@@ -7,6 +7,7 @@ use App\Models\City;
 use App\Models\Country;
 use App\Models\Port;
 use App\Models\State;
+use App\Support\CsvImportReader;
 use App\Support\ShipperGeoValidator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Validator;
@@ -14,10 +15,12 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 use WireUi\Traits\WireUiActions;
 
 new #[Title('Ports')] class extends Component {
+    use WithFileUploads;
     use HandlesShipperGeoSelects;
     use WireUiActions;
     use WithPagination;
@@ -28,6 +31,7 @@ new #[Title('Ports')] class extends Component {
     public bool $showCreateModal = false;
     public bool $showEditModal = false;
     public bool $showDeleteModal = false;
+    public bool $showImportModal = false;
 
     public ?int $portEditingId = null;
     public ?int $portPendingDeleteId = null;
@@ -35,6 +39,7 @@ new #[Title('Ports')] class extends Component {
 
     public string $name = '';
     public string $type = 'origin';
+    public mixed $importFile = null;
 
     public function updatedSearch(): void
     {
@@ -51,6 +56,90 @@ new #[Title('Ports')] class extends Component {
         $this->authorize('ports.create');
         $this->reset('name', 'type', 'country_id', 'state_id', 'portEditingId');
         $this->showCreateModal = true;
+    }
+
+    public function openImportModal(): void
+    {
+        $this->authorize('ports.create');
+        $this->authorize('ports.update');
+        $this->reset('importFile');
+        $this->showImportModal = true;
+    }
+
+    public function importCsv(): void
+    {
+        $this->authorize('ports.create');
+        $this->authorize('ports.update');
+
+        $this->validate([
+            'importFile' => ['required', 'file', 'mimes:csv,txt', 'max:5120'],
+        ]);
+
+        $parsed = CsvImportReader::read($this->importFile->getRealPath());
+
+        $created = 0;
+        $updated = 0;
+        $errors = 0;
+
+        foreach ($parsed['rows'] as $row) {
+            $name = trim((string) ($row['name'] ?? ''));
+            $type = strtolower(trim((string) ($row['type'] ?? '')));
+            $countryIso2 = strtoupper(trim((string) ($row['country_iso2'] ?? '')));
+            $stateCode = strtoupper(trim((string) ($row['state_code'] ?? '')));
+
+            if ($name === '' || ! in_array($type, ['origin', 'destination'], true) || $countryIso2 === '' || $stateCode === '') {
+                $errors++;
+                continue;
+            }
+
+            $country = Country::query()->where('iso2', $countryIso2)->first();
+            if (! $country) {
+                $errors++;
+                continue;
+            }
+
+            $state = State::query()
+                ->where('country_id', $country->id)
+                ->where('code', $stateCode)
+                ->first();
+            if (! $state) {
+                $errors++;
+                continue;
+            }
+
+            $existing = Port::query()
+                ->where('name', $name)
+                ->where('type', $type)
+                ->where('country_id', $country->id)
+                ->where('state_id', $state->id)
+                ->first();
+
+            Port::query()->updateOrCreate(
+                [
+                    'name' => $name,
+                    'type' => $type,
+                    'country_id' => $country->id,
+                    'state_id' => $state->id,
+                ],
+                []
+            );
+
+            if ($existing) {
+                $updated++;
+            } else {
+                $created++;
+            }
+        }
+
+        $this->showImportModal = false;
+        $this->reset('importFile');
+        $this->notification()->success(
+            __('Import completed. Created: :created, Updated: :updated, Errors: :errors', [
+                'created' => $created,
+                'updated' => $updated,
+                'errors' => $errors,
+            ])
+        );
     }
 
     public function saveNewPort(): void
@@ -179,9 +268,12 @@ new #[Title('Ports')] class extends Component {
     <x-crud.page-shell>
         <div class="flex items-center justify-between mb-8">
             <x-crud.page-header :heading="__('Ports')" :subheading="__('Manage origin and destination ports.')" icon="map-pin" class="!mb-0" />
-            @can('ports.create')
-                <flux:button variant="primary" icon="plus" wire:click="openCreateModal">{{ __('Create Port') }}</flux:button>
-            @endcan
+            <div class="flex items-center gap-2">
+                @can('ports.create')
+                    <flux:button variant="outline" icon="arrow-down-tray" wire:click="openImportModal">{{ __('Import CSV') }}</flux:button>
+                    <flux:button variant="primary" icon="plus" wire:click="openCreateModal">{{ __('Create Port') }}</flux:button>
+                @endcan
+            </div>
         </div>
 
         <div class="mb-4">
@@ -376,6 +468,26 @@ new #[Title('Ports')] class extends Component {
                     <flux:button variant="ghost">{{ __('Cancel') }}</flux:button>
                 </flux:modal.close>
                 <flux:button type="submit" variant="danger">{{ __('Delete') }}</flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
+    <flux:modal wire:model="showImportModal" class="max-w-lg">
+        <form wire:submit="importCsv" class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('Import Ports CSV') }}</flux:heading>
+                <flux:subheading>{{ __('Expected headers: name, type, country_iso2, state_code') }}</flux:subheading>
+            </div>
+            <div class="space-y-3">
+                <input type="file" wire:model="importFile" accept=".csv,text/csv" class="block w-full text-sm" />
+                <flux:error name="importFile" />
+                <flux:link :href="route('import-templates.geo', 'ports')" wire:navigate="false">
+                    {{ __('Download Sample CSV') }}
+                </flux:link>
+            </div>
+            <div class="flex justify-end gap-2">
+                <flux:modal.close><flux:button variant="ghost">{{ __('Cancel') }}</flux:button></flux:modal.close>
+                <flux:button type="submit" variant="primary">{{ __('Import') }}</flux:button>
             </div>
         </form>
     </flux:modal>

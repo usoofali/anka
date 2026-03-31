@@ -57,9 +57,24 @@ new #[Title('Default Shipment Settings')] class extends Component {
 
     public function with(): array
     {
+        $ports = Port::where('type', 'origin')
+            ->with(['state', 'country'])
+            ->orderBy('name')
+            ->get()
+            ->map(function (Port $port): Port {
+                $port->name = sprintf(
+                    '%s (%s - %s)',
+                    $port->name,
+                    $port->state?->code ?? '—',
+                    $port->country?->iso2 ?? '—'
+                );
+
+                return $port;
+            });
+            
         return [
             'carriers' => Carrier::orderBy('name')->get(),
-            'ports' => Port::orderBy('name')->get(),
+            'ports' => $ports,
         ];
     }
 }; ?>

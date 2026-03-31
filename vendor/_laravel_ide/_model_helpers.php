@@ -5,8 +5,22 @@ namespace App\Models {
     /**
      * App\Models\ActivityLog
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property array|null $properties
+     * @property string $action
+     * @property mixed $shipment_id
+     * @property mixed $user_id
+     * @property int $id
      * @property-read \App\Models\User $user
      * @property-read \App\Models\Shipment $shipment
+     * @method static \Illuminate\Database\Eloquent\Builder<ActivityLog>|ActivityLog whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ActivityLog>|ActivityLog whereUserId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ActivityLog>|ActivityLog whereShipmentId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ActivityLog>|ActivityLog whereAction($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ActivityLog>|ActivityLog whereProperties($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ActivityLog>|ActivityLog whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ActivityLog>|ActivityLog whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<ActivityLog>|ActivityLog newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<ActivityLog>|ActivityLog newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<ActivityLog>|ActivityLog query()
@@ -329,8 +343,18 @@ namespace App\Models {
     /**
      * App\Models\Carrier
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property string|null $description
+     * @property string $name
+     * @property int $id
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Shipment> $shipments
      * @property-read int|null $shipments_count
+     * @method static \Illuminate\Database\Eloquent\Builder<Carrier>|Carrier whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Carrier>|Carrier whereName($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Carrier>|Carrier whereDescription($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Carrier>|Carrier whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Carrier>|Carrier whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Carrier>|Carrier newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Carrier>|Carrier newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Carrier>|Carrier query()
@@ -653,6 +677,16 @@ namespace App\Models {
     /**
      * App\Models\ChargeItem
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property string|null $description
+     * @property string $item
+     * @property int $id
+     * @method static \Illuminate\Database\Eloquent\Builder<ChargeItem>|ChargeItem whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ChargeItem>|ChargeItem whereItem($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ChargeItem>|ChargeItem whereDescription($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ChargeItem>|ChargeItem whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ChargeItem>|ChargeItem whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<ChargeItem>|ChargeItem newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<ChargeItem>|ChargeItem newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<ChargeItem>|ChargeItem query()
@@ -975,11 +1009,21 @@ namespace App\Models {
     /**
      * App\Models\City
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property string $name
+     * @property mixed $state_id
+     * @property int $id
      * @property-read \App\Models\State $state
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Port> $ports
      * @property-read int|null $ports_count
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Shipper> $shippers
      * @property-read int|null $shippers_count
+     * @method static \Illuminate\Database\Eloquent\Builder<City>|City whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<City>|City whereStateId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<City>|City whereName($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<City>|City whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<City>|City whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<City>|City newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<City>|City newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<City>|City query()
@@ -1302,9 +1346,23 @@ namespace App\Models {
     /**
      * App\Models\Consignee
      *
+     * @property boolean $is_default
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property string|null $address
+     * @property string $name
+     * @property mixed $shipper_id
+     * @property int $id
      * @property-read \App\Models\Shipper $shipper
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Shipment> $shipments
      * @property-read int|null $shipments_count
+     * @method static \Illuminate\Database\Eloquent\Builder<Consignee>|Consignee whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Consignee>|Consignee whereShipperId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Consignee>|Consignee whereName($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Consignee>|Consignee whereAddress($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Consignee>|Consignee whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Consignee>|Consignee whereUpdatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Consignee>|Consignee whereIsDefault($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Consignee>|Consignee newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Consignee>|Consignee newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Consignee>|Consignee query()
@@ -1627,12 +1685,24 @@ namespace App\Models {
     /**
      * App\Models\Country
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property string|null $iso3
+     * @property string $iso2
+     * @property string $name
+     * @property int $id
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\State> $states
      * @property-read int|null $states_count
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Port> $ports
      * @property-read int|null $ports_count
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Shipper> $shippers
      * @property-read int|null $shippers_count
+     * @method static \Illuminate\Database\Eloquent\Builder<Country>|Country whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Country>|Country whereName($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Country>|Country whereIso2($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Country>|Country whereIso3($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Country>|Country whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Country>|Country whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Country>|Country newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Country>|Country newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Country>|Country query()
@@ -1955,8 +2025,28 @@ namespace App\Models {
     /**
      * App\Models\DefaultShipmentSetting
      *
+     * @property \App\Enums\PaymentStatus|null $payment_status
+     * @property \App\Enums\InvoiceStatus|null $invoice_status
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property \App\Enums\ShipmentStatus|null $shipment_status
+     * @property \App\Enums\ShippingMode|null $shipping_mode
+     * @property \App\Enums\LogisticsService|null $logistics_service
+     * @property mixed $origin_port_id
+     * @property mixed $carrier_id
+     * @property int $id
      * @property-read \App\Models\Carrier $carrier
      * @property-read \App\Models\Port $originPort
+     * @method static \Illuminate\Database\Eloquent\Builder<DefaultShipmentSetting>|DefaultShipmentSetting whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<DefaultShipmentSetting>|DefaultShipmentSetting whereCarrierId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<DefaultShipmentSetting>|DefaultShipmentSetting whereOriginPortId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<DefaultShipmentSetting>|DefaultShipmentSetting whereLogisticsService($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<DefaultShipmentSetting>|DefaultShipmentSetting whereShippingMode($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<DefaultShipmentSetting>|DefaultShipmentSetting whereShipmentStatus($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<DefaultShipmentSetting>|DefaultShipmentSetting whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<DefaultShipmentSetting>|DefaultShipmentSetting whereUpdatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<DefaultShipmentSetting>|DefaultShipmentSetting whereInvoiceStatus($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<DefaultShipmentSetting>|DefaultShipmentSetting wherePaymentStatus($value)
      * @method static \Illuminate\Database\Eloquent\Builder<DefaultShipmentSetting>|DefaultShipmentSetting newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<DefaultShipmentSetting>|DefaultShipmentSetting newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<DefaultShipmentSetting>|DefaultShipmentSetting query()
@@ -2279,8 +2369,20 @@ namespace App\Models {
     /**
      * App\Models\DocumentType
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property string|null $description
+     * @property string $slug
+     * @property string $name
+     * @property int $id
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ShipmentDocument> $shipmentDocuments
      * @property-read int|null $shipment_documents_count
+     * @method static \Illuminate\Database\Eloquent\Builder<DocumentType>|DocumentType whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<DocumentType>|DocumentType whereName($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<DocumentType>|DocumentType whereSlug($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<DocumentType>|DocumentType whereDescription($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<DocumentType>|DocumentType whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<DocumentType>|DocumentType whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<DocumentType>|DocumentType newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<DocumentType>|DocumentType newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<DocumentType>|DocumentType query()
@@ -2603,8 +2705,20 @@ namespace App\Models {
     /**
      * App\Models\Driver
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property string|null $company
+     * @property string|null $email
+     * @property string|null $phone
+     * @property int $id
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Shipment> $shipments
      * @property-read int|null $shipments_count
+     * @method static \Illuminate\Database\Eloquent\Builder<Driver>|Driver whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Driver>|Driver wherePhone($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Driver>|Driver whereEmail($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Driver>|Driver whereCompany($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Driver>|Driver whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Driver>|Driver whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Driver>|Driver newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Driver>|Driver newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Driver>|Driver query()
@@ -2927,7 +3041,21 @@ namespace App\Models {
     /**
      * App\Models\EmailAttempt
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property \Illuminate\Support\Carbon $attempted_at
+     * @property string|null $smtp_response
+     * @property string|null $exception_message
+     * @property mixed $email_log_id
+     * @property int $id
      * @property-read \App\Models\EmailLog $emailLog
+     * @method static \Illuminate\Database\Eloquent\Builder<EmailAttempt>|EmailAttempt whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<EmailAttempt>|EmailAttempt whereEmailLogId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<EmailAttempt>|EmailAttempt whereExceptionMessage($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<EmailAttempt>|EmailAttempt whereSmtpResponse($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<EmailAttempt>|EmailAttempt whereAttemptedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<EmailAttempt>|EmailAttempt whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<EmailAttempt>|EmailAttempt whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<EmailAttempt>|EmailAttempt newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<EmailAttempt>|EmailAttempt newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<EmailAttempt>|EmailAttempt query()
@@ -3250,8 +3378,26 @@ namespace App\Models {
     /**
      * App\Models\EmailLog
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property array|null $meta
+     * @property \App\Enums\EmailLogStatus $status
+     * @property string|null $body
+     * @property string|null $subject
+     * @property string $recipient_email
+     * @property string|null $mailable_class
+     * @property int $id
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\EmailAttempt> $attempts
      * @property-read int|null $attempts_count
+     * @method static \Illuminate\Database\Eloquent\Builder<EmailLog>|EmailLog whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<EmailLog>|EmailLog whereMailableClass($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<EmailLog>|EmailLog whereRecipientEmail($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<EmailLog>|EmailLog whereSubject($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<EmailLog>|EmailLog whereBody($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<EmailLog>|EmailLog whereStatus($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<EmailLog>|EmailLog whereMeta($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<EmailLog>|EmailLog whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<EmailLog>|EmailLog whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<EmailLog>|EmailLog newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<EmailLog>|EmailLog newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<EmailLog>|EmailLog query()
@@ -3574,10 +3720,34 @@ namespace App\Models {
     /**
      * App\Models\Invoice
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property \Illuminate\Support\Carbon|null $due_at
+     * @property \Illuminate\Support\Carbon|null $issued_at
+     * @property float $total_amount
+     * @property float $tax_amount
+     * @property float $subtotal
+     * @property string $currency
+     * @property \App\Enums\InvoiceStatus $status
+     * @property mixed $shipment_id
+     * @property string $invoice_number
+     * @property int $id
      * @property-read \App\Models\Shipment $shipment
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\InvoiceItem> $items
      * @property-read int|null $items_count
      * @property-read \App\Models\Payment $payment
+     * @method static \Illuminate\Database\Eloquent\Builder<Invoice>|Invoice whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Invoice>|Invoice whereInvoiceNumber($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Invoice>|Invoice whereShipmentId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Invoice>|Invoice whereStatus($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Invoice>|Invoice whereCurrency($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Invoice>|Invoice whereSubtotal($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Invoice>|Invoice whereTaxAmount($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Invoice>|Invoice whereTotalAmount($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Invoice>|Invoice whereIssuedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Invoice>|Invoice whereDueAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Invoice>|Invoice whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Invoice>|Invoice whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Invoice>|Invoice newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Invoice>|Invoice newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Invoice>|Invoice query()
@@ -3900,8 +4070,26 @@ namespace App\Models {
     /**
      * App\Models\InvoiceItem
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property float $amount
+     * @property float $unit_price
+     * @property integer $quantity
+     * @property string|null $description
+     * @property mixed $charge_item_id
+     * @property mixed $invoice_id
+     * @property int $id
      * @property-read \App\Models\Invoice $invoice
      * @property-read \App\Models\ChargeItem $chargeItem
+     * @method static \Illuminate\Database\Eloquent\Builder<InvoiceItem>|InvoiceItem whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<InvoiceItem>|InvoiceItem whereInvoiceId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<InvoiceItem>|InvoiceItem whereChargeItemId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<InvoiceItem>|InvoiceItem whereDescription($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<InvoiceItem>|InvoiceItem whereQuantity($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<InvoiceItem>|InvoiceItem whereUnitPrice($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<InvoiceItem>|InvoiceItem whereAmount($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<InvoiceItem>|InvoiceItem whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<InvoiceItem>|InvoiceItem whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<InvoiceItem>|InvoiceItem newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<InvoiceItem>|InvoiceItem newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<InvoiceItem>|InvoiceItem query()
@@ -4224,6 +4412,24 @@ namespace App\Models {
     /**
      * App\Models\Newsletter
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property integer $recipients_count
+     * @property \Illuminate\Support\Carbon|null $sent_at
+     * @property string $mailer
+     * @property string|null $url
+     * @property string $body
+     * @property string $subject
+     * @property int $id
+     * @method static \Illuminate\Database\Eloquent\Builder<Newsletter>|Newsletter whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Newsletter>|Newsletter whereSubject($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Newsletter>|Newsletter whereBody($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Newsletter>|Newsletter whereUrl($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Newsletter>|Newsletter whereMailer($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Newsletter>|Newsletter whereSentAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Newsletter>|Newsletter whereRecipientsCount($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Newsletter>|Newsletter whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Newsletter>|Newsletter whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Newsletter>|Newsletter newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Newsletter>|Newsletter newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Newsletter>|Newsletter query()
@@ -4546,9 +4752,29 @@ namespace App\Models {
     /**
      * App\Models\Payment
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property \Illuminate\Support\Carbon|null $paid_at
+     * @property string|null $transaction_ref
+     * @property \App\Enums\PaymentStatus $status
+     * @property float $amount
+     * @property mixed $transaction_id
+     * @property mixed $payment_method_id
+     * @property mixed $invoice_id
+     * @property int $id
      * @property-read \App\Models\Invoice $invoice
      * @property-read \App\Models\PaymentMethod $paymentMethod
      * @property-read \App\Models\Transaction $transaction
+     * @method static \Illuminate\Database\Eloquent\Builder<Payment>|Payment whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Payment>|Payment whereInvoiceId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Payment>|Payment wherePaymentMethodId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Payment>|Payment whereTransactionId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Payment>|Payment whereAmount($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Payment>|Payment whereStatus($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Payment>|Payment whereTransactionRef($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Payment>|Payment wherePaidAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Payment>|Payment whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Payment>|Payment whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Payment>|Payment newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Payment>|Payment newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Payment>|Payment query()
@@ -4871,8 +5097,18 @@ namespace App\Models {
     /**
      * App\Models\PaymentMethod
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property string $slug
+     * @property string $name
+     * @property int $id
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Payment> $payments
      * @property-read int|null $payments_count
+     * @method static \Illuminate\Database\Eloquent\Builder<PaymentMethod>|PaymentMethod whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PaymentMethod>|PaymentMethod whereName($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PaymentMethod>|PaymentMethod whereSlug($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PaymentMethod>|PaymentMethod whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PaymentMethod>|PaymentMethod whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<PaymentMethod>|PaymentMethod newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<PaymentMethod>|PaymentMethod newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<PaymentMethod>|PaymentMethod query()
@@ -5195,12 +5431,26 @@ namespace App\Models {
     /**
      * App\Models\Port
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property string $type
+     * @property string $name
+     * @property mixed $state_id
+     * @property mixed $country_id
+     * @property int $id
      * @property-read \App\Models\Country $country
      * @property-read \App\Models\State $state
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Shipment> $originShipments
      * @property-read int|null $origin_shipments_count
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Shipment> $destinationShipments
      * @property-read int|null $destination_shipments_count
+     * @method static \Illuminate\Database\Eloquent\Builder<Port>|Port whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Port>|Port whereCountryId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Port>|Port whereStateId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Port>|Port whereName($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Port>|Port whereType($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Port>|Port whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Port>|Port whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Port>|Port newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Port>|Port newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Port>|Port query()
@@ -5523,12 +5773,38 @@ namespace App\Models {
     /**
      * App\Models\Prealert
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property \App\Enums\PrealertStatus $status
+     * @property string|null $notes
+     * @property string|null $auction_receipt
+     * @property mixed $destination_port_id
+     * @property mixed $carrier_id
+     * @property mixed $vehicle_id
+     * @property string|null $gatepass_pin
+     * @property string $vin
+     * @property mixed $consignee_id
+     * @property mixed $shipper_id
+     * @property int $id
      * @property-read \App\Models\Shipper $shipper
      * @property-read \App\Models\Consignee $consignee
      * @property-read \App\Models\Vehicle $vehicle
      * @property-read \App\Models\Carrier $carrier
      * @property-read \App\Models\Port $destinationPort
      * @property-read \App\Models\User $reviewer
+     * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert whereShipperId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert whereConsigneeId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert whereVin($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert whereGatepassPin($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert whereVehicleId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert whereCarrierId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert whereDestinationPortId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert whereAuctionReceipt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert whereNotes($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert whereStatus($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Prealert>|Prealert query()
@@ -5851,6 +6127,26 @@ namespace App\Models {
     /**
      * App\Models\Shipment
      *
+     * @property \App\Enums\PaymentStatus|null $payment_status
+     * @property \App\Enums\InvoiceStatus|null $invoice_status
+     * @property \Illuminate\Support\Carbon|null $deleted_at
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property \App\Enums\ShipmentStatus $shipment_status
+     * @property \App\Enums\ShippingMode $shipping_mode
+     * @property \App\Enums\LogisticsService $logistics_service
+     * @property string|null $auction_receipt
+     * @property mixed $vehicle_id
+     * @property mixed $destination_port_id
+     * @property mixed $origin_port_id
+     * @property mixed $carrier_id
+     * @property mixed $driver_id
+     * @property mixed $consignee_id
+     * @property mixed $shipper_id
+     * @property string|null $gatepass_pin
+     * @property string|null $vin
+     * @property string $reference_no
+     * @property int $id
      * @property-read \App\Models\Shipper $shipper
      * @property-read \App\Models\Consignee $consignee
      * @property-read \App\Models\Driver $driver
@@ -5865,6 +6161,26 @@ namespace App\Models {
      * @property-read \App\Models\Invoice $invoice
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ActivityLog> $activityLogs
      * @property-read int|null $activity_logs_count
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereReferenceNo($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereVin($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereGatepassPin($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereShipperId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereConsigneeId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereDriverId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereCarrierId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereOriginPortId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereDestinationPortId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereVehicleId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereAuctionReceipt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereLogisticsService($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereShippingMode($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereShipmentStatus($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereUpdatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereDeletedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereInvoiceStatus($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment wherePaymentStatus($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment query()
@@ -6187,10 +6503,22 @@ namespace App\Models {
     /**
      * App\Models\ShipmentDocument
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property string|null $notes
+     * @property mixed $document_type_id
+     * @property mixed $shipment_id
+     * @property int $id
      * @property-read \App\Models\Shipment $shipment
      * @property-read \App\Models\DocumentType $documentType
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ShipmentDocumentFile> $files
      * @property-read int|null $files_count
+     * @method static \Illuminate\Database\Eloquent\Builder<ShipmentDocument>|ShipmentDocument whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ShipmentDocument>|ShipmentDocument whereShipmentId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ShipmentDocument>|ShipmentDocument whereDocumentTypeId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ShipmentDocument>|ShipmentDocument whereNotes($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ShipmentDocument>|ShipmentDocument whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ShipmentDocument>|ShipmentDocument whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<ShipmentDocument>|ShipmentDocument newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<ShipmentDocument>|ShipmentDocument newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<ShipmentDocument>|ShipmentDocument query()
@@ -6513,8 +6841,22 @@ namespace App\Models {
     /**
      * App\Models\ShipmentDocumentFile
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property mixed $uploaded_by
+     * @property string|null $original_name
+     * @property string $path
+     * @property mixed $shipment_document_id
+     * @property int $id
      * @property-read \App\Models\ShipmentDocument $shipmentDocument
      * @property-read \App\Models\User $uploader
+     * @method static \Illuminate\Database\Eloquent\Builder<ShipmentDocumentFile>|ShipmentDocumentFile whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ShipmentDocumentFile>|ShipmentDocumentFile whereShipmentDocumentId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ShipmentDocumentFile>|ShipmentDocumentFile wherePath($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ShipmentDocumentFile>|ShipmentDocumentFile whereOriginalName($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ShipmentDocumentFile>|ShipmentDocumentFile whereUploadedBy($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ShipmentDocumentFile>|ShipmentDocumentFile whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ShipmentDocumentFile>|ShipmentDocumentFile whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<ShipmentDocumentFile>|ShipmentDocumentFile newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<ShipmentDocumentFile>|ShipmentDocumentFile newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<ShipmentDocumentFile>|ShipmentDocumentFile query()
@@ -6837,8 +7179,26 @@ namespace App\Models {
     /**
      * App\Models\ShipmentTracking
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property \Illuminate\Support\Carbon $recorded_at
+     * @property array|null $metadata
+     * @property string|null $note
+     * @property mixed $workshop_id
+     * @property \App\Enums\ShipmentStatus $status
+     * @property mixed $shipment_id
+     * @property int $id
      * @property-read \App\Models\Shipment $shipment
      * @property-read \App\Models\Workshop $workshop
+     * @method static \Illuminate\Database\Eloquent\Builder<ShipmentTracking>|ShipmentTracking whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ShipmentTracking>|ShipmentTracking whereShipmentId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ShipmentTracking>|ShipmentTracking whereStatus($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ShipmentTracking>|ShipmentTracking whereWorkshopId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ShipmentTracking>|ShipmentTracking whereNote($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ShipmentTracking>|ShipmentTracking whereMetadata($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ShipmentTracking>|ShipmentTracking whereRecordedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ShipmentTracking>|ShipmentTracking whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ShipmentTracking>|ShipmentTracking whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<ShipmentTracking>|ShipmentTracking newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<ShipmentTracking>|ShipmentTracking newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<ShipmentTracking>|ShipmentTracking query()
@@ -7161,6 +7521,16 @@ namespace App\Models {
     /**
      * App\Models\Shipper
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property mixed $city_id
+     * @property mixed $state_id
+     * @property mixed $country_id
+     * @property string|null $address
+     * @property string|null $phone
+     * @property string|null $company_name
+     * @property mixed $user_id
+     * @property int $id
      * @property-read \App\Models\User $user
      * @property-read \App\Models\Country $country
      * @property-read \App\Models\State $state
@@ -7175,6 +7545,16 @@ namespace App\Models {
      * @property-read \App\Models\Wallet $wallet
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\WalletTopUp> $walletTopUps
      * @property-read int|null $wallet_top_ups_count
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipper>|Shipper whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipper>|Shipper whereUserId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipper>|Shipper whereCompanyName($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipper>|Shipper wherePhone($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipper>|Shipper whereAddress($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipper>|Shipper whereCountryId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipper>|Shipper whereStateId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipper>|Shipper whereCityId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipper>|Shipper whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shipper>|Shipper whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Shipper>|Shipper newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Shipper>|Shipper newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Shipper>|Shipper query()
@@ -7497,7 +7877,19 @@ namespace App\Models {
     /**
      * App\Models\Staff
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property string|null $phone
+     * @property string|null $job_title
+     * @property mixed $user_id
+     * @property int $id
      * @property-read \App\Models\User $user
+     * @method static \Illuminate\Database\Eloquent\Builder<Staff>|Staff whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Staff>|Staff whereUserId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Staff>|Staff whereJobTitle($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Staff>|Staff wherePhone($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Staff>|Staff whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Staff>|Staff whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Staff>|Staff newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Staff>|Staff newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Staff>|Staff query()
@@ -7820,6 +8212,12 @@ namespace App\Models {
     /**
      * App\Models\State
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property string|null $code
+     * @property string $name
+     * @property mixed $country_id
+     * @property int $id
      * @property-read \App\Models\Country $country
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\City> $cities
      * @property-read int|null $cities_count
@@ -7827,6 +8225,12 @@ namespace App\Models {
      * @property-read int|null $ports_count
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Shipper> $shippers
      * @property-read int|null $shippers_count
+     * @method static \Illuminate\Database\Eloquent\Builder<State>|State whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<State>|State whereCountryId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<State>|State whereName($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<State>|State whereCode($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<State>|State whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<State>|State whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<State>|State newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<State>|State newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<State>|State query()
@@ -8149,9 +8553,47 @@ namespace App\Models {
     /**
      * App\Models\SystemSetting
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property string $preferred_mailer
+     * @property integer $tracking_random_digits
+     * @property string $tracking_number_type
+     * @property integer $tracking_digits
+     * @property string $tracking_delivery_prefix
+     * @property mixed $whatsapp_api_key
+     * @property mixed $auction_api_key
+     * @property mixed $city_id
+     * @property mixed $state_id
+     * @property mixed $country_id
+     * @property string|null $zipcode
+     * @property string|null $phone
+     * @property string|null $address
+     * @property string|null $logo_path
+     * @property string|null $logo
+     * @property string|null $company_name
+     * @property int $id
      * @property-read \App\Models\Country $country
      * @property-read \App\Models\State $state
      * @property-read \App\Models\City $city
+     * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting whereCompanyName($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting whereLogo($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting whereLogoPath($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting whereAddress($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting wherePhone($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting whereZipcode($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting whereCountryId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting whereStateId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting whereCityId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting whereAuctionApiKey($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting whereWhatsappApiKey($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting whereTrackingDeliveryPrefix($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting whereTrackingDigits($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting whereTrackingNumberType($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting whereTrackingRandomDigits($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting wherePreferredMailer($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting query()
@@ -8474,8 +8916,26 @@ namespace App\Models {
     /**
      * App\Models\Transaction
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property string|null $reference
+     * @property string|null $description
+     * @property float|null $balance_after
+     * @property float $amount
+     * @property \App\Enums\TransactionType $type
+     * @property mixed $wallet_id
+     * @property int $id
      * @property-read \App\Models\Wallet $wallet
      * @property-read \App\Models\Payment $payment
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction whereWalletId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction whereType($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction whereAmount($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction whereBalanceAfter($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction whereDescription($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction whereReference($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction query()
@@ -9154,7 +9614,73 @@ namespace App\Models {
     /**
      * App\Models\Vehicle
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property \Illuminate\Support\Carbon|null $api_fetched_at
+     * @property array|null $api_snapshot
+     * @property mixed $currency_code_id
+     * @property boolean $is_insurance
+     * @property float|null $est_retail_value
+     * @property string|null $seller
+     * @property string|null $auction_name
+     * @property string|null $location
+     * @property string|null $highlights
+     * @property string|null $secondary_damage
+     * @property string|null $primary_damage
+     * @property string|null $auction_receipt
+     * @property string|null $doc_type
+     * @property string|null $car_keys
+     * @property mixed $odometer
+     * @property mixed $cylinders
+     * @property string|null $drive
+     * @property string|null $engine_type
+     * @property string|null $fuel
+     * @property string|null $transmission
+     * @property string|null $vehicle_is
+     * @property string|null $vehicle_type
+     * @property string|null $color
+     * @property string|null $body_style
+     * @property string|null $series
+     * @property string|null $year
+     * @property string|null $model
+     * @property string|null $make
+     * @property string|null $lot_number
+     * @property string|null $vin
+     * @property int $id
      * @property-read \App\Models\Shipment $shipment
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereVin($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereLotNumber($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereMake($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereModel($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereYear($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereSeries($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereBodyStyle($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereColor($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereVehicleType($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereVehicleIs($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereTransmission($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereFuel($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereEngineType($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereDrive($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereCylinders($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereOdometer($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereCarKeys($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereDocType($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereAuctionReceipt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle wherePrimaryDamage($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereSecondaryDamage($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereHighlights($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereLocation($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereAuctionName($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereSeller($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereEstRetailValue($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereIsInsurance($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereCurrencyCodeId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereApiSnapshot($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereApiFetchedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Vehicle>|Vehicle query()
@@ -9477,11 +10003,23 @@ namespace App\Models {
     /**
      * App\Models\Wallet
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property float $balance
+     * @property string $currency
+     * @property mixed $shipper_id
+     * @property int $id
      * @property-read \App\Models\Shipper $shipper
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Transaction> $transactions
      * @property-read int|null $transactions_count
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\WalletTopUp> $walletTopUps
      * @property-read int|null $wallet_top_ups_count
+     * @method static \Illuminate\Database\Eloquent\Builder<Wallet>|Wallet whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Wallet>|Wallet whereShipperId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Wallet>|Wallet whereCurrency($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Wallet>|Wallet whereBalance($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Wallet>|Wallet whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Wallet>|Wallet whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Wallet>|Wallet newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Wallet>|Wallet newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Wallet>|Wallet query()
@@ -10151,8 +10689,20 @@ namespace App\Models {
     /**
      * App\Models\Workshop
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property string|null $phone
+     * @property string|null $address
+     * @property string $name
+     * @property int $id
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ShipmentTracking> $shipmentTrackings
      * @property-read int|null $shipment_trackings_count
+     * @method static \Illuminate\Database\Eloquent\Builder<Workshop>|Workshop whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Workshop>|Workshop whereName($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Workshop>|Workshop whereAddress($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Workshop>|Workshop wherePhone($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Workshop>|Workshop whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Workshop>|Workshop whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Workshop>|Workshop newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Workshop>|Workshop newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Workshop>|Workshop query()

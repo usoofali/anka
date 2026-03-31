@@ -255,12 +255,73 @@ new #[Title('Create Shipment')] class extends Component {
     }
 
     #[Computed]
-    public function shipmentPorts()
+    public function shipmentDestinationPorts()
     {
         return Port::query()
+            ->where('type', 'destination')
             ->with(['state', 'country'])
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->map(function (Port $port): Port {
+                $port->name = sprintf(
+                    '%s (%s - %s)',
+                    $port->name,
+                    $port->state?->code ?? '—',
+                    $port->country?->iso2 ?? '—'
+                );
+
+                return $port;
+            });
+    }
+
+    #[Computed]
+    public function shipmentOriginPorts()
+    {
+        return Port::query()
+            ->where('type', 'origin')
+            ->with(['state', 'country'])
+            ->orderBy('name')
+            ->get()
+            ->map(function (Port $port): Port {
+                $port->name = sprintf(
+                    '%s (%s - %s)',
+                    $port->name,
+                    $port->state?->code ?? '—',
+                    $port->country?->iso2 ?? '—'
+                );
+
+                return $port;
+            });
+    }
+
+    /**
+     * Resolved origin port for the current selection (raw name; use state/country for display).
+     */
+    #[Computed]
+    public function originPort(): ?Port
+    {
+        if ($this->origin_port_id === null) {
+            return null;
+        }
+
+        return Port::query()
+            ->with(['state', 'country'])
+            ->find($this->origin_port_id);
+    }
+
+    /**
+     * Resolved destination port for the current selection.
+     */
+    #[Computed]
+    public function destinationPort(): ?Port
+    {
+        if ($this->destination_port_id === null) {
+            return null;
+        }
+
+        return Port::query()
+            ->with(['state', 'country'])
+            ->find($this->destination_port_id);
     }
 }; ?>
 
@@ -458,18 +519,18 @@ new #[Title('Create Shipment')] class extends Component {
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <flux:select wire:model="origin_port_id" label="{{ __('Origin Port') }}" icon="map-pin">
                                 <flux:select.option value="">{{ __('Select Port') }}</flux:select.option>
-                                @foreach($this->shipmentPorts as $port)
+                                @foreach ($this->shipmentOriginPorts as $port)
                                     <flux:select.option value="{{ $port->id }}">
-                                        {{ $port->name }} ({{ $port->state?->code ?? '—' }} - {{ $port->country?->iso2 ?? '—' }})
+                                        {{ $port->name }}
                                     </flux:select.option>
                                 @endforeach
                             </flux:select>
 
                             <flux:select wire:model="destination_port_id" label="{{ __('Destination Port') }}" icon="flag">
                                 <flux:select.option value="">{{ __('Select Port') }}</flux:select.option>
-                                @foreach($this->shipmentPorts as $port)
+                                @foreach ($this->shipmentDestinationPorts as $port)
                                     <flux:select.option value="{{ $port->id }}">
-                                        {{ $port->name }} ({{ $port->state?->code ?? '—' }} - {{ $port->country?->iso2 ?? '—' }})
+                                        {{ $port->name }}
                                     </flux:select.option>
                                 @endforeach
                             </flux:select>

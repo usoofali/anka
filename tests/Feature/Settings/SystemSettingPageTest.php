@@ -94,7 +94,7 @@ test('super admin can update system settings values', function () {
         ->and($setting->fresh()->tracking_random_digits)->toBe(9);
 });
 
-test('super admin upload persists logo_path and base64 logo', function () {
+test('super admin upload persists logo_path without base64 payload', function () {
     Storage::fake('public');
 
     $user = User::factory()->create();
@@ -113,7 +113,7 @@ test('super admin upload persists logo_path and base64 logo', function () {
     expect($setting)->not->toBeNull()
         ->and($setting->logo_path)->not->toBeNull()
         ->and($setting->logo_path)->toStartWith('system/logo/')
-        ->and($setting->logo)->toStartWith('data:image/');
+        ->and($setting->logo)->toBeNull();
 
     Storage::disk('public')->assertExists($setting->logo_path);
 });

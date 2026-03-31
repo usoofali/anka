@@ -19,7 +19,6 @@ new #[Title('System settings')] class extends Component {
     use WireUiActions, WithFileUploads;
 
     public string $company_name = '';
-    public ?string $logo = null;
     public ?string $logo_path = null;
     public TemporaryUploadedFile|null $logo_file = null;
     public string $address = '';
@@ -34,7 +33,7 @@ new #[Title('System settings')] class extends Component {
     public int $tracking_digits = 5;
     public string $tracking_number_type = 'auto_increment';
     public int $tracking_random_digits = 10;
-    public string $preferred_mailer = 'failover';
+    public string $preferred_mailer = 'hostinger';
 
 
     public function mount(): void
@@ -43,7 +42,6 @@ new #[Title('System settings')] class extends Component {
 
         $setting = SystemSetting::current();
         $this->company_name = $setting->company_name ?? '';
-        $this->logo = $setting->logo;
         $this->logo_path = $setting->logo_path;
         $this->address = $setting->address ?? '';
         $this->phone = $setting->phone ?? '';
@@ -58,6 +56,9 @@ new #[Title('System settings')] class extends Component {
         $this->tracking_number_type = $setting->tracking_number_type ?? 'auto_increment';
         $this->tracking_random_digits = $setting->tracking_random_digits ?? 10;
         $this->preferred_mailer = $setting->preferred_mailer ?? 'hostinger';
+        if ($this->preferred_mailer === 'failover') {
+            $this->preferred_mailer = 'hostinger';
+        }
 
     }
 
@@ -79,7 +80,6 @@ new #[Title('System settings')] class extends Component {
 
         $validated = $this->validate([
             'company_name' => ['nullable', 'string', 'max:255'],
-            'logo' => ['nullable', 'string'],
             'logo_file' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:4096'],
             'address' => ['nullable', 'string'],
             'phone' => ['nullable', 'string', 'max:255'],
@@ -103,12 +103,9 @@ new #[Title('System settings')] class extends Component {
 
         if ($this->logo_file instanceof TemporaryUploadedFile) {
             $storedPath = $this->logo_file->store('system/logo', 'public');
-            $mimeType = $this->logo_file->getMimeType() ?: 'image/png';
-            $contents = file_get_contents($this->logo_file->getRealPath());
-            $base64 = $contents !== false ? 'data:'.$mimeType.';base64,'.base64_encode($contents) : null;
 
             $validated['logo_path'] = $storedPath;
-            $validated['logo'] = $base64;
+            $validated['logo'] = null;
 
             if (
                 is_string($previousLogoPath)
@@ -125,7 +122,6 @@ new #[Title('System settings')] class extends Component {
         }
 
         $setting->update($validated);
-        $this->logo = $setting->fresh()?->logo;
         $this->logo_path = $setting->fresh()?->logo_path;
 
         $this->dialog()->show([
@@ -180,10 +176,6 @@ new #[Title('System settings')] class extends Component {
 
         if (is_string($this->logo_path) && trim($this->logo_path) !== '') {
             return Storage::url(trim($this->logo_path));
-        }
-
-        if (is_string($this->logo) && trim($this->logo) !== '') {
-            return $this->logo;
         }
 
         return null;

@@ -5,20 +5,24 @@ declare(strict_types=1);
 use App\Models\City;
 use App\Models\Country;
 use App\Models\State;
+use App\Support\CsvImportReader;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 use WireUi\Traits\WireUiActions;
 
 new #[Title('Cities')] class extends Component {
+    use WithFileUploads;
     use WithPagination;
     use WireUiActions;
 
     public bool $showCreateModal = false;
     public bool $showEditModal = false;
     public bool $showDeleteModal = false;
+    public bool $showImportModal = false;
     public ?int $cityPendingDeleteId = null;
     public string $cityPendingDeleteLabel = '';
 
@@ -36,6 +40,7 @@ new #[Title('Cities')] class extends Component {
     public ?int $country_id = null;
     public ?int $state_id = null;
     public string $name = '';
+    public mixed $importFile = null;
 
     public function mount(): void
     {
@@ -104,6 +109,82 @@ new #[Title('Cities')] class extends Component {
         $this->authorize('cities.create');
         $this->reset(['name', 'country_id', 'state_id', 'editingCityId']);
         $this->showCreateModal = true;
+    }
+
+    public function openImportModal(): void
+    {
+        $this->authorize('cities.create');
+        $this->authorize('cities.update');
+        $this->reset('importFile');
+        $this->showImportModal = true;
+    }
+
+    public function importCsv(): void
+    {
+        $this->authorize('cities.create');
+        $this->authorize('cities.update');
+
+        $this->validate([
+            'importFile' => ['required', 'file', 'mimes:csv,txt', 'max:5120'],
+        ]);
+
+        $parsed = CsvImportReader::read($this->importFile->getRealPath());
+
+        $created = 0;
+        $updated = 0;
+        $errors = 0;
+
+        foreach ($parsed['rows'] as $row) {
+            $countryIso2 = strtoupper(trim((string) ($row['country_iso2'] ?? '')));
+            $stateCode = strtoupper(trim((string) ($row['state_code'] ?? '')));
+            $name = trim((string) ($row['name'] ?? ''));
+
+            if ($countryIso2 === '' || $stateCode === '' || $name === '') {
+                $errors++;
+                continue;
+            }
+
+            $country = Country::query()->where('iso2', $countryIso2)->first();
+            if (! $country) {
+                $errors++;
+                continue;
+            }
+
+            $state = State::query()
+                ->where('country_id', $country->id)
+                ->where('code', $stateCode)
+                ->first();
+            if (! $state) {
+                $errors++;
+                continue;
+            }
+
+            $existing = City::query()
+                ->where('state_id', $state->id)
+                ->where('name', $name)
+                ->first();
+
+            City::query()->updateOrCreate(
+                ['state_id' => $state->id, 'name' => $name],
+                []
+            );
+
+            if ($existing) {
+                $updated++;
+            } else {
+                $created++;
+            }
+        }
+
+        $this->showImportModal = false;
+        $this->reset('importFile');
+        $this->notification()->success(
+            __('Import completed. Created: :created, Updated: :updated, Errors: :errors', [
+                'created' => $created,
+                'updated' => $updated,
+                'errors' => $errors,
+            ])
+        );
     }
 
     public function saveNewCity(): void
@@ -184,9 +265,12 @@ new #[Title('Cities')] class extends Component {
     <x-crud.page-shell>
         <div class="flex items-center justify-between mb-8">
             <x-crud.page-header :heading="__('Cities')" :subheading="__('Manage cities and locations.')" icon="map-pin" class="!mb-0" />
-            @can('cities.create')
-                <flux:button variant="primary" icon="plus" wire:click="openCreateModal">{{ __('Create City') }}</flux:button>
-            @endcan
+            <div class="flex items-center gap-2">
+                @can('cities.create')
+                    <flux:button variant="outline" icon="arrow-down-tray" wire:click="openImportModal">{{ __('Import CSV') }}</flux:button>
+                    <flux:button variant="primary" icon="plus" wire:click="openCreateModal">{{ __('Create City') }}</flux:button>
+                @endcan
+            </div>
         </div>
 
         <div class="mb-4 space-y-3">
@@ -332,6 +416,26 @@ new #[Title('Cities')] class extends Component {
                     <flux:button variant="ghost">{{ __('Cancel') }}</flux:button>
                 </flux:modal.close>
                 <flux:button type="submit" variant="danger">{{ __('Delete') }}</flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
+    <flux:modal wire:model="showImportModal" class="max-w-lg">
+        <form wire:submit="importCsv" class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('Import Cities CSV') }}</flux:heading>
+                <flux:subheading>{{ __('Expected headers: country_iso2, state_code, name') }}</flux:subheading>
+            </div>
+            <div class="space-y-3">
+                <input type="file" wire:model="importFile" accept=".csv,text/csv" class="block w-full text-sm" />
+                <flux:error name="importFile" />
+                <flux:link :href="route('import-templates.geo', 'cities')" wire:navigate="false">
+                    {{ __('Download Sample CSV') }}
+                </flux:link>
+            </div>
+            <div class="flex justify-end gap-2">
+                <flux:modal.close><flux:button variant="ghost">{{ __('Cancel') }}</flux:button></flux:modal.close>
+                <flux:button type="submit" variant="primary">{{ __('Import') }}</flux:button>
             </div>
         </form>
     </flux:modal>
