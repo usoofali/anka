@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\InvoiceStatus;
 use App\Enums\LogisticsService;
+use App\Enums\PaymentStatus;
 use App\Enums\ShipmentStatus;
 use App\Enums\ShippingMode;
 use Database\Factories\ShipmentFactory;
@@ -34,8 +36,9 @@ final class Shipment extends Model
         'auction_receipt',
         'logistics_service',
         'shipping_mode',
-        'status',
-        'notes',
+        'shipment_status',
+        'invoice_status',
+        'payment_status',
     ];
 
     protected function casts(): array
@@ -43,7 +46,9 @@ final class Shipment extends Model
         return [
             'logistics_service' => LogisticsService::class,
             'shipping_mode' => ShippingMode::class,
-            'status' => ShipmentStatus::class,
+            'shipment_status' => ShipmentStatus::class,
+            'invoice_status' => InvoiceStatus::class,
+            'payment_status' => PaymentStatus::class,
         ];
     }
 
@@ -61,8 +66,6 @@ final class Shipment extends Model
     {
         return $this->belongsTo(Driver::class);
     }
-
-
 
     public function carrier(): BelongsTo
     {

@@ -36,9 +36,19 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         ->whereNumber('prealert')
         ->name('prealerts.edit');
 
+    // Shipments
+    Route::livewire('/shipments', 'pages::shipments.index')->name('shipments.index');
+    Route::livewire('/shipments/create', 'pages::shipments.create')->name('shipments.create');
+    Route::livewire('/shipments/{shipment}', 'pages::shipments.show')
+        ->whereNumber('shipment')
+        ->name('shipments.show');
+
     Route::get('/api/shippers/search', [ShipperOptionsController::class, 'index'])->name('api.shippers.search');
 
     // Master Data
+    Route::livewire('/default-shipment-settings', 'pages::default-shipment-settings.index')
+        ->middleware('permission:default_shipment_settings.view')
+        ->name('default-shipment-settings.index');
     Route::livewire('/payment-methods', 'pages::payment-methods.index')->name('payment_methods.index');
     Route::livewire('/charge-items', 'pages::charge-items.index')->name('charge-items.index');
     Route::livewire('/carriers', 'pages::carriers.index')->name('carriers.index');

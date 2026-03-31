@@ -9,6 +9,7 @@ use App\Models\Consignee;
 use App\Models\Shipper;
 use App\Models\State;
 use App\Models\User;
+use App\Models\Wallet;
 use App\Notifications\ShipperRegisteredInternalNotification;
 use App\Notifications\ShipperWelcomeNotification;
 use Illuminate\Support\Facades\DB;
@@ -74,6 +75,10 @@ class CreateNewUser implements CreatesNewUsers
                 'city_id' => $input['city_id'],
             ]);
 
+            Wallet::create([
+                'shipper_id' => $shipper->id,
+            ]);
+
             Consignee::query()
                 ->where('shipper_id', $shipper->id)
                 ->update([
@@ -82,7 +87,7 @@ class CreateNewUser implements CreatesNewUsers
 
             Consignee::create([
                 'shipper_id' => $shipper->id,
-                'name' => $companyName ?? $user->name,
+                'name' => $user->name ?? $companyName,
                 'address' => $shipper->address,
                 'is_default' => true,
             ]);

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Enums\InvoiceStatus;
 use App\Enums\LogisticsService;
+use App\Enums\PaymentStatus;
 use App\Enums\ShipmentStatus;
 use App\Enums\ShippingMode;
 use App\Models\Carrier;
@@ -12,7 +14,6 @@ use App\Models\Consignee;
 use App\Models\Port;
 use App\Models\Shipment;
 use App\Models\Shipper;
-
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -41,8 +42,9 @@ class ShipmentFactory extends Factory
             'destination_port_id' => Port::factory(),
             'logistics_service' => LogisticsService::Ocean->value,
             'shipping_mode' => ShippingMode::Container->value,
-            'status' => ShipmentStatus::Draft->value,
-            'notes' => fake()->optional()->paragraph(),
+            'shipment_status' => ShipmentStatus::Pending->value,
+            'invoice_status' => InvoiceStatus::Draft->value,
+            'payment_status' => PaymentStatus::Pending->value,
         ];
     }
 }

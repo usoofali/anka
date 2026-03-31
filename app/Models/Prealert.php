@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\PrealertStatus;
 use Database\Factories\PrealertFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -24,12 +25,13 @@ final class Prealert extends Model
         'gatepass_pin',
         'auction_receipt',
         'notes',
+        'status',
     ];
 
     protected function casts(): array
     {
         return [
-            //
+            'status' => PrealertStatus::class,
         ];
     }
 

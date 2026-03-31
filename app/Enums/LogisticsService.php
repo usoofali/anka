@@ -9,5 +9,5 @@ enum LogisticsService: string
     case Air = 'air';
     case Ocean = 'ocean';
     case Road = 'road';
-    case RailFreight = 'rail_freight';
+    case RailFreight = 'rail';
 }

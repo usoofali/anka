@@ -86,41 +86,7 @@ new #[Title('Prealerts')] class extends Component {
 
     public function convertToShipment(int $id): void
     {
-        $prealert = Prealert::findOrFail($id);
-
-        try {
-            DB::transaction(function () use ($prealert) {
-                // Create shipment
-                $shipment = \App\Models\Shipment::create([
-                    'reference_no' => 'SHP-' . strtoupper(bin2hex(random_bytes(3))),
-                    'vin' => $prealert->vin,
-                    'gatepass_pin' => $prealert->gatepass_pin,
-                    'shipper_id' => $prealert->shipper_id,
-                    'consignee_id' => $prealert->consignee_id,
-                    'vehicle_id' => $prealert->vehicle_id,
-                    'carrier_id' => $prealert->carrier_id,
-                    'destination_port_id' => $prealert->destination_port_id,
-                    'auction_receipt' => $prealert->auction_receipt,
-                    'status' => \App\Enums\ShipmentStatus::Pending, // Default status
-                    'notes' => $prealert->notes,
-                ]);
-
-                // Store auction receipt if needed (assuming Shipment needs it too or it's attached via relationship)
-                // For now, we'll just delete the prealert as it is 'converted'
-                $prealert->delete();
-            });
-
-            $this->notification()->success(
-                title: __('Converted'),
-                description: __('Prealert has been converted to shipment.')
-            );
-
-        } catch (\Exception $e) {
-            $this->notification()->error(
-                title: __('Error'),
-                description: __('Failed to convert prealert: ') . $e->getMessage()
-            );
-        }
+        $this->redirect(route('shipments.create', ['prealert' => $id]), navigate: true);
     }
 
     public function updatedShipperFilter(): void

@@ -76,27 +76,20 @@ new class extends Component {
             }
 
             if (window.__ankaNotifSoundSingleton) {
-                console.log('[notifications] Alpine sound: extra dropdown mounted (shared store, no extra window listener)');
 
                 return;
             }
 
             window.__ankaNotifSoundSingleton = true;
-
-            console.log('[notifications] Alpine sound: init (singleton window listener + shared audio state)');
-
             const store = () => window.__ankaNotifAudio;
 
             window.__ankaNotifPrime = () => {
                 const s = store();
 
                 if (s.audioPrimed) {
-                    console.log('[notifications] primeAudio: skipped (already primed)');
 
                     return;
                 }
-
-                console.log('[notifications] primeAudio: starting', { url: s.soundUrl });
 
                 if (! s.sound) {
                     s.sound = new Audio(s.soundUrl);
@@ -112,7 +105,6 @@ new class extends Component {
                     .then(() => {
                         s.sound.pause();
                         s.sound.currentTime = 0;
-                        console.log('[notifications] primeAudio: muted play/pause OK (unlocked)');
                     })
                     .catch((err) => {
                         console.warn('[notifications] primeAudio: muted play failed', err);
@@ -121,7 +113,6 @@ new class extends Component {
                         s.sound.muted = false;
 
                         if (s.pendingSound) {
-                            console.log('[notifications] primeAudio: playing pending sound');
                             s.pendingSound = false;
                             window.__ankaNotifPlay();
                         }
@@ -133,14 +124,12 @@ new class extends Component {
 
                 if (! s.audioPrimed) {
                     s.pendingSound = true;
-                    console.log('[notifications] play: deferred until audio primed (click bell or anywhere once)');
 
                     return;
                 }
 
                 const now = Date.now();
                 if (now - s.lastPlayedAt < 2000) {
-                    console.log('[notifications] play: throttled (within 2s)');
 
                     return;
                 }
@@ -155,11 +144,8 @@ new class extends Component {
                 s.sound.muted = false;
                 s.sound.currentTime = 0;
 
-                console.log('[notifications] play: attempting', { url: s.soundUrl });
-
                 s.sound.play()
                     .then(() => {
-                        console.log('[notifications] play: started OK');
                     })
                     .catch((err) => {
                         console.warn('[notifications] play: failed', err);
@@ -177,7 +163,6 @@ new class extends Component {
 
                 const d = window.__ankaNotifDedupe;
                 if (d.count === count && now - d.t < 3000) {
-                    console.log('[notifications] notifications:new-unread (skipped duplicate)', detail);
 
                     return;
                 }
@@ -185,12 +170,10 @@ new class extends Component {
                 d.count = count;
                 d.t = now;
 
-                console.log('[notifications] notifications:new-unread (window)', detail);
                 window.__ankaNotifPlay();
             });
 
             const primeOnce = () => {
-                console.log('[notifications] user gesture: priming audio (window, once)');
                 window.__ankaNotifPrime();
             };
 

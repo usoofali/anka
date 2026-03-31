@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\InvoiceStatus;
 use App\Enums\LogisticsService;
+use App\Enums\PaymentStatus;
 use App\Enums\ShipmentStatus;
 use App\Enums\ShippingMode;
 use Database\Factories\DefaultShipmentSettingFactory;
@@ -24,11 +26,11 @@ final class DefaultShipmentSetting extends Model
     protected $fillable = [
         'carrier_id',
         'origin_port_id',
-        'destination_port_id',
         'logistics_service',
         'shipping_mode',
-        'status',
-        'notes',
+        'shipment_status',
+        'invoice_status',
+        'payment_status',
     ];
 
     protected function casts(): array
@@ -36,7 +38,9 @@ final class DefaultShipmentSetting extends Model
         return [
             'logistics_service' => LogisticsService::class,
             'shipping_mode' => ShippingMode::class,
-            'status' => ShipmentStatus::class,
+            'shipment_status' => ShipmentStatus::class,
+            'invoice_status' => InvoiceStatus::class,
+            'payment_status' => PaymentStatus::class,
         ];
     }
 
@@ -54,8 +58,6 @@ final class DefaultShipmentSetting extends Model
         return self::query()->create([]);
     }
 
-
-
     public function carrier(): BelongsTo
     {
         return $this->belongsTo(Carrier::class);
@@ -64,10 +66,5 @@ final class DefaultShipmentSetting extends Model
     public function originPort(): BelongsTo
     {
         return $this->belongsTo(Port::class, 'origin_port_id');
-    }
-
-    public function destinationPort(): BelongsTo
-    {
-        return $this->belongsTo(Port::class, 'destination_port_id');
     }
 }

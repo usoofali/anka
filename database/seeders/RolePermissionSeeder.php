@@ -80,6 +80,8 @@ final class RolePermissionSeeder extends Seeder
             'payment_methods.delete',
             'system_logs.view',
             'system_logs.manage',
+            'default_shipment_settings.view',
+            'default_shipment_settings.update',
         ];
 
         foreach ($permissionNames as $name) {
@@ -159,6 +161,8 @@ final class RolePermissionSeeder extends Seeder
             'payment_methods.delete',
             'system_logs.view',
             'system_logs.manage',
+            'default_shipment_settings.view',
+            'default_shipment_settings.update',
         ]);
 
         $staffOperator = Role::query()->firstOrCreate(
@@ -169,6 +173,7 @@ final class RolePermissionSeeder extends Seeder
             'shipments.view',
             'shipments.update',
             'prealerts.view',
+            'prealerts.create',
             'prealerts.update',
             'shippers.view',
             'shippers.update',

@@ -32,11 +32,11 @@ final class MergeShipmentDefaults
     private const array DEFAULTABLE_KEYS = [
         'carrier_id',
         'origin_port_id',
-        'destination_port_id',
         'logistics_service',
         'shipping_mode',
-        'status',
-        'notes',
+        'shipment_status',
+        'invoice_status',
+        'payment_status',
     ];
 
     /**
@@ -68,8 +68,8 @@ final class MergeShipmentDefaults
             }
         }
 
-        if (! array_key_exists('status', $result)) {
-            $result['status'] = ShipmentStatus::Draft->value;
+        if (! array_key_exists('shipment_status', $result)) {
+            $result['shipment_status'] = ShipmentStatus::Pending->value;
         }
 
         return $result;
@@ -84,10 +84,6 @@ final class MergeShipmentDefaults
         $value = $input[$key];
 
         if ($value === null) {
-            return false;
-        }
-
-        if ($key === 'notes' && $value === '') {
             return false;
         }
 

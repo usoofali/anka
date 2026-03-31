@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Enums;
 
-enum PaymentStatus: string
+enum PrealertStatus: string
 {
     case Pending = 'pending';
-    case AwaitingBL = 'awaiting_bl';
-    case Paid = 'paid';
+    case Converted = 'converted';
 }

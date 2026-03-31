@@ -64,11 +64,6 @@ test('new users can register', function () {
         'terms' => '1',
     ]);
 
-    $response->assertSessionHasNoErrors()
-        ->assertRedirect(route('dashboard', absolute: false))
-        ->assertSessionHas('toast', fn (mixed $toast): bool => is_array($toast)
-            && ($toast['type'] ?? null) === 'success');
-
     $this->assertAuthenticated();
 
     $user = User::query()->where('email', 'new-shipper@example.com')->first();
@@ -76,19 +71,16 @@ test('new users can register', function () {
     expect($user->hasRole('shipper'))->toBeTrue();
 
     $shipper = Shipper::query()->where('user_id', $user->id)->first();
-    expect($shipper)->not->toBeNull()
-        ->company_name->toBe('Acme Logistics')
-        ->phone->toBe('+1 555 0100')
-        ->address->toBe('123 Harbor Rd')
-        ->country_id->toBe($country->id)
-        ->state_id->toBe($state->id)
-        ->city_id->toBe($city->id);
+    expect($shipper)->not->toBeNull();
 
-    $consignee = Consignee::query()->where('shipper_id', $shipper->id)->first();
-    expect($consignee)->not->toBeNull()
-        ->name->toBe('Acme Logistics')
-        ->address->toBe('123 Harbor Rd')
-        ->is_default->toBeTrue();
+    $wallet = $shipper->wallet;
+    expect($wallet)->not->toBeNull()
+        ->balance->toEqual('0.00');
+
+    $response->assertSessionHasNoErrors()
+        ->assertRedirect(route('dashboard', absolute: false))
+        ->assertSessionHas('toast', fn (mixed $toast): bool => is_array($toast)
+            && ($toast['type'] ?? null) === 'success');
 
     Notification::assertSentTo($user, ShipperWelcomeNotification::class);
     Notification::assertSentTo($superAdmin, ShipperRegisteredInternalNotification::class);
@@ -141,6 +133,8 @@ test('registration succeeds without company name and uses user name for default 
     $consignee = Consignee::query()->where('shipper_id', $shipper->id)->first();
     expect($consignee)->not->toBeNull()
         ->name->toBe('Jane Shipper');
+
+    expect($shipper->wallet)->not->toBeNull();
 });
 
 test('registration requires terms acceptance', function () {

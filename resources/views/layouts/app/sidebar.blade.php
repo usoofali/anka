@@ -24,6 +24,9 @@
                     <flux:sidebar.item icon="bell" icon-class="text-amber-500" :href="route('prealerts.index')" :current="request()->routeIs('prealerts.*')" wire:navigate>
                         {{ __('Prealerts') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="truck" icon-class="text-indigo-500" :href="route('shipments.index')" :current="request()->routeIs('shipments.*')" wire:navigate>
+                        {{ __('Shipments') }}
+                    </flux:sidebar.item>
                     <flux:sidebar.item icon="building-office-2" icon-class="text-blue-500" :href="route('shippers.index')" :current="request()->routeIs('shippers.*')" wire:navigate>
                         {{ __('Shippers') }}
                     </flux:sidebar.item>
@@ -64,6 +67,9 @@
                 </flux:sidebar.group>
 
                 <flux:sidebar.group :heading="__('Settings')" class="grid" expandable expanded="false">
+                    <flux:sidebar.item icon="cog" icon-class="text-zinc-500" :href="route('default-shipment-settings.index')" :current="request()->routeIs('default-shipment-settings.*')" wire:navigate>
+                        {{ __('Default Shipment Options') }}
+                    </flux:sidebar.item>
                     <flux:sidebar.item icon="credit-card" icon-class="text-indigo-500" :href="route('payment_methods.index')" :current="request()->routeIs('payment_methods.*')" wire:navigate>
 
                         {{ __('Payment Methods') }}

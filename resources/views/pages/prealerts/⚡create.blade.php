@@ -181,11 +181,18 @@ new #[Title('Submit Prealert')] class extends Component {
         }
 
 
-        $this->notification()->success(
-            title: __('Success'),
-            description: __('Prealert submitted successfully.')
-        );
+        $this->dialog()->show([
+            'icon' => 'success',
+            'title' => __('Success!'),
+            'description' => __('Prealert submitted successfully.'),
+            'onClose' => [
+                'method' => 'redirectToPrealerts',
+            ],
+        ]);
+    }
 
+    public function redirectToPrealerts(): void
+    {
         $this->redirectRoute('prealerts.index', navigate: true);
     }
 
