@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\ShipmentDocumentType;
 use Database\Factories\ShipmentDocumentFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -17,18 +18,20 @@ final class ShipmentDocument extends Model
 
     protected $fillable = [
         'shipment_id',
-        'document_type_id',
+        'document_type',
         'notes',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'document_type' => ShipmentDocumentType::class,
+        ];
+    }
 
     public function shipment(): BelongsTo
     {
         return $this->belongsTo(Shipment::class);
-    }
-
-    public function documentType(): BelongsTo
-    {
-        return $this->belongsTo(DocumentType::class);
     }
 
     public function files(): HasMany

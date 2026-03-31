@@ -225,6 +225,7 @@ new #[Title('Edit Shipment')] class extends Component {
                         :async-data="route('api.shippers.search')"
                         searchable
                         required
+                        disabled
                     />
 
                     <flux:select wire:model="consignee_id" :label="__('Consignee')" :placeholder="__('Select consignee')">

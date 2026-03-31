@@ -7,6 +7,7 @@ use App\Models\Shipment;
 use App\Models\DefaultShipmentSetting;
 use App\Models\SystemSetting;
 use App\Models\Shipper;
+use App\Models\User;
 use App\Models\Consignee;
 use App\Models\Carrier;
 use App\Models\Port;
@@ -22,11 +23,13 @@ use App\Enums\ShippingMode;
 use App\Notifications\ShipmentCreatedNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Spatie\Permission\Models\Role;
 use WireUi\Traits\WireUiActions;
 
 new #[Title('Create Shipment')] class extends Component {
@@ -188,8 +191,26 @@ new #[Title('Create Shipment')] class extends Component {
                     Prealert::where('id', $this->prealert)->delete();
                 }
 
-                // 6. Send Notifications
-                $shipment->shipper->user->notify(new ShipmentCreatedNotification($shipment));
+                // 6. Send Notifications (non-shipper roles, staff, and shipper owner)
+                $shipment->load('shipper');
+
+                $adminRoleNames = Role::query()
+                    ->where('name', '!=', 'shipper')
+                    ->pluck('name');
+
+                $recipientIds = User::query()
+                    ->role($adminRoleNames)
+                    ->pluck('id')
+                    ->merge(User::query()->whereHas('staff')->pluck('id'))
+                    ->when($shipment->shipper?->user_id, fn ($q) => $q->push($shipment->shipper->user_id))
+                    ->unique()
+                    ->values();
+
+                $recipients = User::query()->whereIn('id', $recipientIds)->get();
+
+                if ($recipients->isNotEmpty()) {
+                    Notification::send($recipients, new ShipmentCreatedNotification($shipment));
+                }
                 
                 $this->dialog()->show([
                     'icon' => 'success',

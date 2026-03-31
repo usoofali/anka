@@ -2,11 +2,19 @@
 
 declare(strict_types=1);
 
-use App\Models\Shipment;
+use App\Enums\InvoiceStatus;
+use App\Enums\ShipmentStatus;
+use App\Models\ActivityLog;
 use App\Models\Driver;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
-use App\Enums\InvoiceStatus;
+use App\Models\Shipment;
+use App\Models\ShipmentTracking;
+use App\Models\User;
+use App\Notifications\ShipmentDispatchedNotification;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use WireUi\Traits\WireUiActions;
@@ -46,7 +54,6 @@ new #[Title('Shipment Details')] class extends Component {
             'carrier',
             'driver',
             'invoice.items',
-            'documents.documentType',
             'documents.files',
             'activityLogs.user',
             'trackings.workshop',
@@ -190,11 +197,79 @@ new #[Title('Shipment Details')] class extends Component {
             'driver_id' => ['required', 'integer', 'exists:drivers,id'],
         ]);
 
-        $this->shipment->update([
-            'driver_id' => (int) $validated['driver_id'],
+        $driverId = (int) $validated['driver_id'];
+        $driver = Driver::query()->findOrFail($driverId);
+
+        $this->shipment->loadMissing('shipper');
+
+        DB::transaction(function () use ($driverId, $driver): void {
+            $this->shipment->update([
+                'driver_id' => $driverId,
+                'shipment_status' => ShipmentStatus::Dispatched,
+            ]);
+
+            ShipmentTracking::query()->create([
+                'shipment_id' => $this->shipment->id,
+                'status' => ShipmentStatus::Dispatched,
+                'note' => __('Driver assigned; shipment dispatched.'),
+                'metadata' => [
+                    'source' => 'shipment_show_assign_driver',
+                    'driver_id' => $driverId,
+                    'created_by' => Auth::id(),
+                ],
+                'recorded_at' => now(),
+            ]);
+
+            $driverLabel = filled($driver->company)
+                ? (string) $driver->company
+                : (filled($driver->phone) ? (string) $driver->phone : (string) $driver->id);
+
+            ActivityLog::query()->create([
+                'shipment_id' => $this->shipment->id,
+                'user_id' => Auth::id(),
+                'action' => 'driver_assigned',
+                'properties' => [
+                    'driver_id' => $driverId,
+                    'driver_label' => $driverLabel,
+                    'reference_no' => $this->shipment->reference_no,
+                    'source' => 'shipment_show',
+                ],
+            ]);
+
+            $recipientIds = User::query()
+                ->whereHas('staff')
+                ->pluck('id');
+
+            if ($this->shipment->shipper?->user_id) {
+                $recipientIds->push($this->shipment->shipper->user_id);
+            }
+
+            $recipients = User::query()
+                ->whereIn('id', $recipientIds->unique()->values())
+                ->get();
+
+            if ($recipients->isNotEmpty()) {
+                Notification::send($recipients, new ShipmentDispatchedNotification($this->shipment));
+            }
+        });
+
+        $this->shipment->refresh()->load([
+            'shipper.user',
+            'consignee',
+            'vehicle',
+            'originPort.state',
+            'originPort.country',
+            'destinationPort.state',
+            'destinationPort.country',
+            'carrier',
+            'driver',
+            'invoice.items',
+            'documents.files',
+            'activityLogs.user',
+            'trackings.workshop',
+            'trackings' => static fn ($query) => $query->orderByDesc('recorded_at'),
         ]);
 
-        $this->shipment->load('driver');
         $this->showAssignDriverModal = false;
 
         $this->notification()->success(__('Driver assigned successfully.'));
@@ -869,7 +944,7 @@ new #[Title('Shipment Details')] class extends Component {
                                             <flux:icon.document class="size-5 text-zinc-400" />
                                             <div>
                                                 <flux:text size="sm" class="font-medium">
-                                                    {{ $document->documentType?->name ?? __('Document') }}
+                                                    {{ $document->document_type?->label() ?? __('Document') }}
                                                 </flux:text>
                                                 <flux:text size="xs" class="text-zinc-500">
                                                     {{ $document->files->count() }} {{ \Illuminate\Support\Str::plural('file', $document->files->count()) }}

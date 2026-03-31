@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Models\SystemSetting;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Attachment;
@@ -39,11 +40,17 @@ class Newsletter extends Mailable
      */
     public function content(): Content
     {
+        $setting = SystemSetting::current()->loadMissing(['city', 'state']);
+        $emailLogo = $setting->logoSrcForEmail();
+        $companyName = $setting->company_name ?: config('app.name');
+
         return new Content(
             markdown: 'emails.newsletter',
             with: [
                 'title' => $this->title,
                 'body' => $this->body,
+                'companyName' => $companyName,
+                'emailLogo' => $emailLogo,
                 'url' => $this->url,
             ],
         );

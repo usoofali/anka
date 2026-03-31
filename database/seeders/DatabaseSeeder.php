@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\ChargeItem;
-use App\Models\DocumentType;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -19,11 +18,6 @@ class DatabaseSeeder extends Seeder
         ChargeItem::query()->firstOrCreate(
             ['item' => 'Storage'],
             ['description' => 'Per-day vehicle storage'],
-        );
-
-        DocumentType::query()->firstOrCreate(
-            ['slug' => 'bill-of-lading'],
-            ['name' => 'Bill of lading', 'description' => 'Shipping BOL'],
         );
 
         $admin = User::factory()->create([
