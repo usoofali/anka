@@ -232,7 +232,20 @@ new #[Title('Submit Prealert')] class extends Component {
     #[Computed]
     public function ports()
     {
-        return Port::where('type', 'destination')->orderBy('name')->get();
+        return Port::where('type', 'destination')
+            ->with(['state', 'country'])
+            ->orderBy('name')
+            ->get()
+            ->map(function (Port $port): Port {
+                $port->name = sprintf(
+                    '%s (%s - %s)',
+                    $port->name,
+                    $port->state?->code ?? '—',
+                    $port->country?->iso2 ?? '—'
+                );
+
+                return $port;
+            });
     }
 
     #[Computed]

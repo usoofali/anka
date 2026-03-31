@@ -32,7 +32,7 @@ new #[Title('Prealerts')] class extends Component {
     {
         $user = Auth::user();
         $query = Prealert::query()
-            ->with(['shipper.user', 'vehicle', 'carrier', 'destinationPort'])
+            ->with(['shipper.user', 'vehicle', 'carrier', 'destinationPort.state', 'destinationPort.country'])
             ->latest();
 
         if ($user?->staff()->exists() || $user?->hasRole('super_admin')) {
@@ -69,7 +69,7 @@ new #[Title('Prealerts')] class extends Component {
 
     public function openReviewModal(int $id): void
     {
-        $this->selectedPrealert = Prealert::with(['shipper.user', 'vehicle', 'carrier', 'destinationPort'])->findOrFail($id);
+        $this->selectedPrealert = Prealert::with(['shipper.user', 'vehicle', 'carrier', 'destinationPort.state', 'destinationPort.country'])->findOrFail($id);
         $this->dispatch('modal-show', name: 'review-prealert');
     }
 
@@ -189,14 +189,11 @@ new #[Title('Prealerts')] class extends Component {
                             </flux:table.cell>
                             <flux:table.cell>
                                 @if ($prealert->destinationPort)
-                                    <div class="flex flex-col">
-                                        <span class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">
-                                            {{ $prealert->destinationPort->name }}
-                                        </span>
-                                        <span class="text-[10px] text-zinc-500 truncate max-w-[100px]" title="{{ $prealert->destinationPort->state?->name }}">
-                                            {{ $prealert->destinationPort->state?->name ?: '—' }}
-                                        </span>
-                                    </div>
+                                    <span class="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+                                        {{ $prealert->destinationPort->name }}
+                                        ({{ $prealert->destinationPort->state?->code ?? '—' }} -
+                                        {{ $prealert->destinationPort->country?->iso2 ?? '—' }})
+                                    </span>
                                 @else
                                     <span class="text-zinc-400 italic text-xs">—</span>
                                 @endif
@@ -297,8 +294,13 @@ new #[Title('Prealerts')] class extends Component {
                         </div>
                         <div class="text-sm">
                             <span class="font-semibold">{{ __('Destination') }}:</span>
-                            {{ $selectedPrealert->destinationPort?->name ?: '—' }}
-                            ({{ $selectedPrealert->destinationPort?->code ?: '—' }})
+                            @if($selectedPrealert->destinationPort)
+                                {{ $selectedPrealert->destinationPort->name }}
+                                ({{ $selectedPrealert->destinationPort->state?->code ?? '—' }} -
+                                {{ $selectedPrealert->destinationPort->country?->iso2 ?? '—' }})
+                            @else
+                                —
+                            @endif
                         </div>
                         @if ($selectedPrealert->gatepass_pin)
                             <div class="text-sm">

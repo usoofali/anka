@@ -24,7 +24,6 @@ new #[Title('Drivers')] class extends Component {
     public ?int $driverPendingDeleteId = null;
     public string $driverPendingDeleteLabel = '';
 
-    public string $name = '';
     public string $phone = '';
     public string $email = '';
     public string $company = '';
@@ -44,17 +43,18 @@ new #[Title('Drivers')] class extends Component {
     {
         return Driver::query()
             ->withCount('shipments')
-            ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%")
-                ->orWhere('phone', 'like', "%{$this->search}%")
-                ->orWhere('company', 'like', "%{$this->search}%"))
-            ->orderBy('name')
+            ->when($this->search, fn ($q) => $q->where('phone', 'like', "%{$this->search}%")
+                ->orWhere('company', 'like', "%{$this->search}%")
+                ->orWhere('email', 'like', "%{$this->search}%"))
+            ->orderBy('company')
+            ->orderBy('id')
             ->paginate(20);
     }
 
     public function openCreateModal(): void
     {
         $this->authorize('drivers.create');
-        $this->reset(['name', 'phone', 'email', 'company', 'editingDriverId']);
+        $this->reset(['phone', 'email', 'company', 'editingDriverId']);
         $this->showCreateModal = true;
     }
 
@@ -63,7 +63,6 @@ new #[Title('Drivers')] class extends Component {
         $this->authorize('drivers.create');
 
         $validated = $this->validate([
-            'name' => 'required|string|max:255',
             'phone' => 'required|string|max:50',
             'email' => 'nullable|email|max:255',
             'company' => 'nullable|string|max:255',
@@ -81,7 +80,6 @@ new #[Title('Drivers')] class extends Component {
         $driver = Driver::findOrFail($id);
 
         $this->editingDriverId = $driver->id;
-        $this->name = $driver->name;
         $this->phone = $driver->phone ?? '';
         $this->email = $driver->email ?? '';
         $this->company = $driver->company ?? '';
@@ -94,7 +92,6 @@ new #[Title('Drivers')] class extends Component {
         $this->authorize('drivers.update');
 
         $validated = $this->validate([
-            'name' => 'required|string|max:255',
             'phone' => 'required|string|max:50',
             'email' => 'nullable|email|max:255',
             'company' => 'nullable|string|max:255',
@@ -111,7 +108,7 @@ new #[Title('Drivers')] class extends Component {
         $this->authorize('drivers.delete');
         $driver = Driver::findOrFail($id);
         $this->driverPendingDeleteId = $driver->id;
-        $this->driverPendingDeleteLabel = $driver->name;
+        $this->driverPendingDeleteLabel = $driver->company ?: ($driver->phone ?: ('Driver #' . $driver->id));
         $this->showDeleteModal = true;
     }
 
@@ -121,10 +118,11 @@ new #[Title('Drivers')] class extends Component {
 
         if ($this->driverPendingDeleteId) {
             $driver = Driver::findOrFail($this->driverPendingDeleteId);
+            $driverLabel = $driver->company ?: ($driver->phone ?: ('Driver #' . $driver->id));
 
             if ($driver->shipments()->exists()) {
                 $this->showDeleteModal = false;
-                $this->notification()->warning(__('Cannot delete ":name" because they have associated shipments.', ['name' => $driver->name]));
+                $this->notification()->warning(__('Cannot delete ":name" because they have associated shipments.', ['name' => $driverLabel]));
             } else {
                 $driver->delete();
                 $this->showDeleteModal = false;
@@ -147,16 +145,15 @@ new #[Title('Drivers')] class extends Component {
         </div>
 
         <div class="mb-4">
-            <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" :placeholder="__('Search by name, phone or company...')" clearable />
+            <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" :placeholder="__('Search by company, phone or email...')" clearable />
         </div>
 
         <x-crud.panel class="p-6">
             <flux:table :paginate="$this->drivers">
                 <flux:table.columns>
-                    <flux:table.column icon="identification">{{ __('Name') }}</flux:table.column>
+                    <flux:table.column icon="building-office">{{ __('Company') }}</flux:table.column>
                     <flux:table.column icon="phone">{{ __('Phone') }}</flux:table.column>
                     <flux:table.column icon="envelope">{{ __('Email') }}</flux:table.column>
-                    <flux:table.column icon="building-office">{{ __('Company') }}</flux:table.column>
                     <flux:table.column icon="squares-2x2">{{ __('Shipments') }}</flux:table.column>
                     <flux:table.column align="right">{{ __('Actions') }}</flux:table.column>
                 </flux:table.columns>
@@ -164,10 +161,9 @@ new #[Title('Drivers')] class extends Component {
                 <flux:table.rows>
                     @forelse ($this->drivers as $driver)
                         <flux:table.row :key="$driver->id">
-                            <flux:table.cell class="font-medium">{{ $driver->name }}</flux:table.cell>
+                            <flux:table.cell>{{ $driver->company ?: '—' }}</flux:table.cell>
                             <flux:table.cell>{{ $driver->phone ?: '—' }}</flux:table.cell>
                             <flux:table.cell class="text-sm text-zinc-500">{{ $driver->email ?: '—' }}</flux:table.cell>
-                            <flux:table.cell>{{ $driver->company ?: '—' }}</flux:table.cell>
                             <flux:table.cell>
                                 <flux:badge color="zinc" size="sm">{{ $driver->shipments_count }}</flux:badge>
                             </flux:table.cell>
@@ -188,7 +184,7 @@ new #[Title('Drivers')] class extends Component {
                         </flux:table.row>
                     @empty
                         <flux:table.row>
-                            <flux:table.cell colspan="6" class="py-8 text-center text-zinc-500">
+                            <flux:table.cell colspan="5" class="py-8 text-center text-zinc-500">
                                 {{ __('No drivers found.') }}
                             </flux:table.cell>
                         </flux:table.row>
@@ -210,7 +206,6 @@ new #[Title('Drivers')] class extends Component {
             </div>
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <flux:input wire:model="name" :label="__('Full Name')" icon="user" required placeholder="e.g. John Doe" />
                 <flux:input wire:model="phone" :label="__('Phone')" icon="phone" required placeholder="+1 555 000 0000" />
                 <flux:input wire:model="email" :label="__('Email')" icon="envelope" type="email" placeholder="john@example.com" />
                 <flux:input wire:model="company" :label="__('Company')" icon="building-office" placeholder="e.g. Fast Delivery Co." />
@@ -237,7 +232,6 @@ new #[Title('Drivers')] class extends Component {
             </div>
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <flux:input wire:model="name" :label="__('Full Name')" icon="user" required />
                 <flux:input wire:model="phone" :label="__('Phone')" icon="phone" required />
                 <flux:input wire:model="email" :label="__('Email')" icon="envelope" type="email" />
                 <flux:input wire:model="company" :label="__('Company')" icon="building-office" />

@@ -253,6 +253,15 @@ new #[Title('Create Shipment')] class extends Component {
             ->orderBy('name')
             ->get();
     }
+
+    #[Computed]
+    public function shipmentPorts()
+    {
+        return Port::query()
+            ->with(['state', 'country'])
+            ->orderBy('name')
+            ->get();
+    }
 }; ?>
 
 <x-crud.page-shell>
@@ -449,15 +458,19 @@ new #[Title('Create Shipment')] class extends Component {
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <flux:select wire:model="origin_port_id" label="{{ __('Origin Port') }}" icon="map-pin">
                                 <flux:select.option value="">{{ __('Select Port') }}</flux:select.option>
-                                @foreach(Port::all() as $port)
-                                    <flux:select.option value="{{ $port->id }}">{{ $port->name }} ({{ $port->code }})</flux:select.option>
+                                @foreach($this->shipmentPorts as $port)
+                                    <flux:select.option value="{{ $port->id }}">
+                                        {{ $port->name }} ({{ $port->state?->code ?? '—' }} - {{ $port->country?->iso2 ?? '—' }})
+                                    </flux:select.option>
                                 @endforeach
                             </flux:select>
 
                             <flux:select wire:model="destination_port_id" label="{{ __('Destination Port') }}" icon="flag">
                                 <flux:select.option value="">{{ __('Select Port') }}</flux:select.option>
-                                @foreach(Port::all() as $port)
-                                    <flux:select.option value="{{ $port->id }}">{{ $port->name }} ({{ $port->code }})</flux:select.option>
+                                @foreach($this->shipmentPorts as $port)
+                                    <flux:select.option value="{{ $port->id }}">
+                                        {{ $port->name }} ({{ $port->state?->code ?? '—' }} - {{ $port->country?->iso2 ?? '—' }})
+                                    </flux:select.option>
                                 @endforeach
                             </flux:select>
 

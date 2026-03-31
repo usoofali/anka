@@ -27,8 +27,10 @@ new #[Title('Shipment Details')] class extends Component {
             'shipper.user',
             'consignee',
             'vehicle',
-            'originPort',
-            'destinationPort',
+            'originPort.state',
+            'originPort.country',
+            'destinationPort.state',
+            'destinationPort.country',
             'carrier',
             'invoice.items',
             'documents.documentType',
@@ -285,7 +287,8 @@ new #[Title('Shipment Details')] class extends Component {
                             </flux:text>
                             <flux:text class="font-medium">
                                 @if($shipment->originPort)
-                                    {{ $shipment->originPort->name }} ({{ $shipment->originPort->code }})
+                                    {{ $shipment->originPort->name }}
+                                    ({{ $shipment->originPort->state?->code ?? '—' }} - {{ $shipment->originPort->country?->iso2 ?? '—' }})
                                 @else
                                     —
                                 @endif
@@ -297,7 +300,8 @@ new #[Title('Shipment Details')] class extends Component {
                             </flux:text>
                             <flux:text class="font-medium">
                                 @if($shipment->destinationPort)
-                                    {{ $shipment->destinationPort->name }} ({{ $shipment->destinationPort->code }})
+                                    {{ $shipment->destinationPort->name }}
+                                    ({{ $shipment->destinationPort->state?->code ?? '—' }} - {{ $shipment->destinationPort->country?->iso2 ?? '—' }})
                                 @else
                                     —
                                 @endif

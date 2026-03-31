@@ -28,7 +28,7 @@ new #[Title('Shipments')] class extends Component {
     public function shipments(): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         return Shipment::query()
-            ->with(['shipper.user', 'vehicle', 'driver', 'invoice'])
+            ->with(['shipper.user', 'vehicle', 'driver', 'invoice', 'originPort.state', 'originPort.country'])
             ->when($this->search !== '', function ($query): void {
                 $query->where(function ($searchQuery): void {
                     $term = '%' . trim($this->search) . '%';
@@ -143,6 +143,7 @@ new #[Title('Shipments')] class extends Component {
                 <flux:table.column>{{ __('Ref / VIN / Created') }}</flux:table.column>
                 <flux:table.column>{{ __('Vehicle') }}</flux:table.column>
                 <flux:table.column>{{ __('Shipper') }}</flux:table.column>
+                <flux:table.column>{{ __('Origin Port') }}</flux:table.column>
                 <flux:table.column>{{ __('Driver') }}</flux:table.column>
                 <flux:table.column>{{ __('Invoice Total') }}</flux:table.column>
                 <flux:table.column>{{ __('Payment Status') }}</flux:table.column>
@@ -173,14 +174,61 @@ new #[Title('Shipments')] class extends Component {
                         <flux:table.cell>
                             <div class="flex flex-col">
                                 <span class="font-semibold">
-                                    {{ trim(implode(' ', array_filter([$shipment->vehicle?->year, $shipment->vehicle?->make, $shipment->vehicle?->model]))) ?: '—' }}
+                                    {{ trim($shipment->vehicle?->year) ?: '—' }}
                                 </span>
-                                <span class="text-xs text-zinc-500">
+                                <span class="font-semibold">
+                                    {{ trim($shipment->vehicle?->make) ?: '—' }}
+                                </span>
+                                <span class="font-semibold">
+                                    {{ trim($shipment->vehicle?->model) ?: '—' }}
+                                </span>
+                                @php
+                                    $vehicleColor = strtolower(trim((string) ($shipment->vehicle?->color ?? '')));
+                                    $vehicleColorClass = match ($vehicleColor) {
+                                        'red' => 'text-red-600 dark:text-red-400',
+                                        'blue' => 'text-blue-600 dark:text-blue-400',
+                                        'green' => 'text-emerald-600 dark:text-emerald-400',
+                                        'yellow' => 'text-amber-600 dark:text-amber-400',
+                                        'orange' => 'text-orange-600 dark:text-orange-400',
+                                        'purple' => 'text-violet-600 dark:text-violet-400',
+                                        'silver', 'gray', 'grey' => 'text-slate-500 dark:text-slate-300',
+                                        'charcoal' => 'text-zinc-700 dark:text-zinc-300',
+                                        'black' => 'text-zinc-950 dark:text-zinc-100',
+                                        'white' => 'text-zinc-500 dark:text-zinc-200',
+                                        'brown' => 'text-orange-600 dark:text-orange-400',
+                                        'beige' => 'text-stone-600 dark:text-stone-400',
+                                        'gold' => 'text-yellow-600 dark:text-yellow-400',
+                                        'bronze' => 'text-amber-600 dark:text-amber-400',
+                                        'chrome' => 'text-zinc-600 dark:text-zinc-400',
+                                        'matte' => 'text-zinc-600 dark:text-zinc-400',
+                                        'metallic' => 'text-zinc-600 dark:text-zinc-400',
+                                        'pearl' => 'text-zinc-600 dark:text-zinc-400',
+                                        'platinum' => 'text-zinc-600 dark:text-zinc-400',
+                                        'polished' => 'text-zinc-600 dark:text-zinc-400',
+                                        'rubber' => 'text-zinc-600 dark:text-zinc-400',
+                                        'silver' => 'text-zinc-600 dark:text-zinc-400',
+                                        'steel' => 'text-zinc-600 dark:text-zinc-400',
+                                        'titanium' => 'text-zinc-600 dark:text-zinc-400',
+                                        'nickel' => 'text-zinc-600 dark:text-zinc-400',
+                                        default => 'text-zinc-500',
+                                    };
+                                @endphp
+                                <span class="text-xs {{ $vehicleColorClass }}">
                                     {{ $shipment->vehicle?->color ?? '—' }}
                                 </span>
                             </div>
                         </flux:table.cell>
                         <flux:table.cell>{{ $shipment->shipper?->user?->name ?? '—' }}</flux:table.cell>
+                        <flux:table.cell>
+                            @if($shipment->originPort)
+                                {{ $shipment->originPort->name }}
+                                <span class="text-xs text-zinc-500">
+                                    ({{ $shipment->originPort->state?->code ?? '—' }} - {{ $shipment->originPort->country?->iso2 ?? '—' }})
+                                </span>
+                            @else
+                                —
+                            @endif
+                        </flux:table.cell>
                         <flux:table.cell>
                             @if($shipment->driver_id && $shipment->driver)
                                 <div class="flex flex-col">
@@ -192,7 +240,7 @@ new #[Title('Shipments')] class extends Component {
                             @endif
                         </flux:table.cell>
                         <flux:table.cell class="font-mono">
-                            {{ number_format((float) ($shipment->invoice?->total_amount ?? 0), 2) }}
+                            ${{ number_format((float) ($shipment->invoice?->total_amount ?? 0), 2) }}
                         </flux:table.cell>
                         <flux:table.cell>
                             <flux:badge size="sm" color="emerald" variant="subtle">
