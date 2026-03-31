@@ -405,7 +405,7 @@ new #[Title('Create Shipment')] class extends Component {
                                 @endforeach
                             </flux:select>
 
-                            <flux:select wire:model="shipping_mode" label="{{ __('Shipping Mode') }}" icon="container">
+                            <flux:select wire:model="shipping_mode" label="{{ __('Shipping Mode') }}" icon="cube">
                                 @foreach(ShippingMode::cases() as $mode)
                                     <flux:select.option value="{{ $mode->value }}">{{ $mode->name }}</flux:select.option>
                                 @endforeach
