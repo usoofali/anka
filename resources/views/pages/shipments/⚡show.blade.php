@@ -31,8 +31,10 @@ new #[Title('Shipment Details')] class extends Component {
             'destinationPort',
             'carrier',
             'invoice.items',
+            'documents.documentType',
             'documents.files',
             'activityLogs.user',
+            'trackings.workshop',
             'trackings' => static fn ($query) => $query->orderByDesc('recorded_at'),
         ]);
 
@@ -260,7 +262,7 @@ new #[Title('Shipment Details')] class extends Component {
                         {{ __('Consignee') }}
                     </flux:text>
                     <flux:text>
-                        {{ $shipment->consignee->name ?? '—' }}
+                        {{ $shipment->consignee?->name ?? '—' }}
                     </flux:text>
                 </div>
             </div>
@@ -306,7 +308,7 @@ new #[Title('Shipment Details')] class extends Component {
                                 {{ __('Carrier') }}
                             </flux:text>
                             <flux:text class="font-medium">
-                                {{ $shipment->carrier->name ?? '—' }}
+                                {{ $shipment->carrier?->name ?? '—' }}
                             </flux:text>
                         </div>
                         <div>
@@ -395,7 +397,7 @@ new #[Title('Shipment Details')] class extends Component {
                                     {{ __('Vehicle Details') }}
                                 </flux:heading>
 
-                                <div class="grid grid-cols-2 gap-y-4 gap-x-4">
+                                <div class="grid grid-cols-1 gap-y-4 gap-x-4">
                                     <div>
                                         <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1">
                                             {{ __('Body') }}
@@ -480,6 +482,23 @@ new #[Title('Shipment Details')] class extends Component {
                                                 {{ $tracking->note }}
                                             </flux:text>
                                         @endif
+                                        @php
+                                            $trackingMetadata = is_array($tracking->metadata) ? $tracking->metadata : [];
+                                        @endphp
+                                        @if(($trackingMetadata['source'] ?? null) || ($trackingMetadata['created_by'] ?? null))
+                                            <div class="mt-2 flex flex-wrap gap-2">
+                                                @if(($trackingMetadata['source'] ?? null))
+                                                    <flux:badge size="sm" color="zinc" variant="outline">
+                                                        {{ __('Source: :source', ['source' => (string) $trackingMetadata['source']]) }}
+                                                    </flux:badge>
+                                                @endif
+                                                @if(($trackingMetadata['created_by'] ?? null))
+                                                    <flux:badge size="sm" color="zinc" variant="outline">
+                                                        {{ __('Created by user #:id', ['id' => (string) $trackingMetadata['created_by']]) }}
+                                                    </flux:badge>
+                                                @endif
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             @endforeach
@@ -519,6 +538,28 @@ new #[Title('Shipment Details')] class extends Component {
                                         <flux:text size="sm" class="text-zinc-600 dark:text-zinc-300">
                                             {{ ucfirst($log->action) }}
                                         </flux:text>
+                                        @php
+                                            $properties = is_array($log->properties) ? $log->properties : [];
+                                        @endphp
+                                        @if(($properties['message'] ?? null))
+                                            <flux:text size="sm" class="mt-1">
+                                                {{ (string) $properties['message'] }}
+                                            </flux:text>
+                                        @endif
+                                        @if(($properties['source'] ?? null) || (array_key_exists('prealert_id', $properties) && $properties['prealert_id'] !== null))
+                                            <div class="mt-2 flex flex-wrap gap-2">
+                                                @if(($properties['source'] ?? null))
+                                                    <flux:badge size="sm" color="zinc" variant="outline">
+                                                        {{ __('Source: :source', ['source' => (string) $properties['source']]) }}
+                                                    </flux:badge>
+                                                @endif
+                                                @if(array_key_exists('prealert_id', $properties) && $properties['prealert_id'] !== null)
+                                                    <flux:badge size="sm" color="indigo" variant="subtle">
+                                                        {{ __('Prealert #:id', ['id' => (string) $properties['prealert_id']]) }}
+                                                    </flux:badge>
+                                                @endif
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             @endforeach
@@ -665,13 +706,13 @@ new #[Title('Shipment Details')] class extends Component {
                         @if($shipment->shipper)
                             <div class="flex items-start gap-3">
                                 <flux:avatar 
-                                    :name="$shipment->shipper->user->name ?? $shipment->shipper->company_name" 
+                                    :name="$shipment->shipper->user?->name ?? $shipment->shipper->company_name" 
                                     size="md" 
                                     class="bg-indigo-100! text-indigo-700!" 
                                 />
                                 <div>
                                     <flux:text size="sm" class="font-semibold">
-                                        {{ $shipment->shipper->company_name ?? $shipment->shipper->user->name }}
+                                        {{ $shipment->shipper->company_name ?? $shipment->shipper->user?->name }}
                                     </flux:text>
                                     <div class="flex flex-col gap-1 mt-1 text-zinc-500">
                                         @if($shipment->shipper->user?->email)

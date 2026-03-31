@@ -22,7 +22,6 @@ use App\Enums\ShippingMode;
 use App\Notifications\ShipmentCreatedNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -149,28 +148,35 @@ new #[Title('Create Shipment')] class extends Component {
                 ShipmentTracking::create([
                     'shipment_id' => $shipment->id,
                     'status' => $this->shipment_status,
-                    'location' => 'System',
-                    'notes' => __('Initial record created.'),
+                    'note' => __('Initial record created.'),
+                    'metadata' => [
+                        'source' => 'shipment_create',
+                        'created_by' => Auth::id(),
+                    ],
                     'recorded_at' => now(),
-                    'user_id' => Auth::id(),
                 ]);
 
                 // 3. Create Invoice
                 Invoice::create([
                     'shipment_id' => $shipment->id,
                     'invoice_number' => 'INV-' . strtoupper(Str::random(8)),
-                    'amount' => 0, // Should be set later or based on service
                     'status' => $this->invoice_status,
+                    'subtotal' => 0,
+                    'tax_amount' => 0,
+                    'total_amount' => 0,
                     'issued_at' => now(),
                 ]);
 
                 // 4. Create Activity Log
                 ActivityLog::create([
-                    'loggable_type' => Shipment::class,
-                    'loggable_id' => $shipment->id,
+                    'shipment_id' => $shipment->id,
                     'user_id' => Auth::id(),
                     'action' => 'created',
-                    'description' => __('Shipment created from prealert ID: ') . ($this->prealert ?: 'N/A'),
+                    'properties' => [
+                        'message' => __('Shipment created from prealert ID: ') . ($this->prealert ?: 'N/A'),
+                        'source' => 'shipment_create',
+                        'prealert_id' => $this->prealert,
+                    ],
                 ]);
 
                 // 5. Delete Prealert after conversion

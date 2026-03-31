@@ -93,10 +93,6 @@ new #[Title('Shipments')] class extends Component {
             <x-crud.page-header :heading="__('Shipments')" :subheading="__('Manage all active shipments and their status.')"
                 class="mb-0!" />
         </div>
-
-        <flux:button variant="primary" icon="plus" :href="route('shipments.create')" wire:navigate>
-            {{ __('New Shipment') }}
-        </flux:button>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 mb-6">
