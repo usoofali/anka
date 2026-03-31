@@ -2710,12 +2710,10 @@ namespace App\Models {
      * @property string|null $company
      * @property string|null $email
      * @property string|null $phone
-     * @property string $name
      * @property int $id
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Shipment> $shipments
      * @property-read int|null $shipments_count
      * @method static \Illuminate\Database\Eloquent\Builder<Driver>|Driver whereId($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<Driver>|Driver whereName($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Driver>|Driver wherePhone($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Driver>|Driver whereEmail($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Driver>|Driver whereCompany($value)

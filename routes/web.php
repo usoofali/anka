@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\RegisterGeoOptionsController;
+use App\Http\Controllers\DriverOptionsController;
 use App\Http\Controllers\ShipperOptionsController;
 use Illuminate\Support\Facades\Route;
 
@@ -44,6 +45,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         ->name('shipments.show');
 
     Route::get('/api/shippers/search', [ShipperOptionsController::class, 'index'])->name('api.shippers.search');
+    Route::get('/api/drivers/search', [DriverOptionsController::class, 'index'])->name('api.drivers.search');
 
     // Master Data
     Route::livewire('/default-shipment-settings', 'pages::default-shipment-settings.index')

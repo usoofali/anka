@@ -3,13 +3,17 @@
 declare(strict_types=1);
 
 use App\Models\Shipment;
+use App\Models\Driver;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Enums\InvoiceStatus;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use WireUi\Traits\WireUiActions;
 
 new #[Title('Shipment Details')] class extends Component {
+    use WireUiActions;
+
     public Shipment $shipment;
 
     /** Invoice item form state */
@@ -20,6 +24,14 @@ new #[Title('Shipment Details')] class extends Component {
 
     /** Simple status selector binding for invoice */
     public ?string $invoice_status_update = null;
+
+    /** Driver assignment state */
+    public bool $showAssignDriverModal = false;
+    public bool $showCreateDriverModal = false;
+    public ?int $driver_id = null;
+    public string $new_driver_company = '';
+    public string $new_driver_phone = '';
+    public string $new_driver_email = '';
 
     public function mount(Shipment $shipment): void
     {
@@ -32,6 +44,7 @@ new #[Title('Shipment Details')] class extends Component {
             'destinationPort.state',
             'destinationPort.country',
             'carrier',
+            'driver',
             'invoice.items',
             'documents.documentType',
             'documents.files',
@@ -161,6 +174,62 @@ new #[Title('Shipment Details')] class extends Component {
         $this->item_quantity = 1;
         $this->item_unit_price = '0.00';
     }
+
+    public function openAssignDriverModal(): void
+    {
+        $this->authorize('shipments.update');
+        $this->driver_id = $this->shipment->driver_id;
+        $this->showAssignDriverModal = true;
+    }
+
+    public function assignDriver(): void
+    {
+        $this->authorize('shipments.update');
+
+        $validated = $this->validate([
+            'driver_id' => ['required', 'integer', 'exists:drivers,id'],
+        ]);
+
+        $this->shipment->update([
+            'driver_id' => (int) $validated['driver_id'],
+        ]);
+
+        $this->shipment->load('driver');
+        $this->showAssignDriverModal = false;
+
+        $this->notification()->success(__('Driver assigned successfully.'));
+    }
+
+    public function openCreateDriverModal(): void
+    {
+        $this->authorize('drivers.create');
+        $this->new_driver_company = '';
+        $this->new_driver_phone = '';
+        $this->new_driver_email = '';
+        $this->showCreateDriverModal = true;
+    }
+
+    public function createDriver(): void
+    {
+        $this->authorize('drivers.create');
+
+        $validated = $this->validate([
+            'new_driver_company' => ['nullable', 'string', 'max:255'],
+            'new_driver_phone' => ['required', 'string', 'max:50'],
+            'new_driver_email' => ['nullable', 'email', 'max:255'],
+        ]);
+
+        $driver = Driver::query()->create([
+            'company' => $validated['new_driver_company'] ?: null,
+            'phone' => $validated['new_driver_phone'],
+            'email' => $validated['new_driver_email'] ?: null,
+        ]);
+
+        $this->driver_id = $driver->id;
+        $this->showCreateDriverModal = false;
+
+        $this->notification()->success(__('Driver created. You can now assign it to this shipment.'));
+    }
 }; ?>
 
 <x-crud.page-shell>
@@ -224,7 +293,7 @@ new #[Title('Shipment Details')] class extends Component {
 
                         <flux:menu.separator />
 
-                        <flux:menu.item icon="user-plus" disabled>
+                        <flux:menu.item icon="user-plus" wire:click="openAssignDriverModal">
                             {{ __('Assign Driver') }}
                         </flux:menu.item>
                     </flux:menu>
@@ -234,7 +303,7 @@ new #[Title('Shipment Details')] class extends Component {
 
         {{-- At-a-glance row --}}
         <x-crud.panel class="p-4">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div>
                     <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1">
                         {{ __('Reference') }}
@@ -265,6 +334,17 @@ new #[Title('Shipment Details')] class extends Component {
                     </flux:text>
                     <flux:text>
                         {{ $shipment->consignee?->name ?? '—' }}
+                    </flux:text>
+                </div>
+                <div>
+                    <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1">
+                        {{ __('Driver') }}
+                    </flux:text>
+                    <flux:text>
+                        {{ $shipment->driver?->company ?? '—' }}
+                        @if($shipment->driver?->phone)
+                            <span class="text-zinc-500">({{ $shipment->driver->phone }})</span>
+                        @endif
                     </flux:text>
                 </div>
             </div>
@@ -814,4 +894,64 @@ new #[Title('Shipment Details')] class extends Component {
             </div>
         </div>
     </div>
+
+    <flux:modal wire:model="showAssignDriverModal" class="max-w-xl min-h-[40vh] max-h-[65vh]">
+        <form wire:submit="assignDriver" class="space-auto-y">
+            <div class="mb-4">
+                <flux:heading size="lg">{{ __('Assign Driver') }}</flux:heading>
+                <flux:subheading>{{ __('Select an existing driver or add a new one, then assign to this shipment.') }}</flux:subheading>
+            </div>
+            @can('drivers.create')
+            <div class="flex justify-end">
+                <flux:button type="button" variant="ghost" icon="plus" wire:click="openCreateDriverModal">
+                    {{ __('Add New Driver') }}
+                </flux:button>
+            </div>
+        @endcan
+            <div class="space-y-3">
+                <x-select
+                    wire:model.live="driver_id"
+                    name="driver_id"
+                    :label="__('Driver')"
+                    :placeholder="__('Search and select driver')"
+                    option-value="id"
+                    option-label="name"
+                    :async-data="route('api.drivers.search')"
+                    searchable
+                    required
+                />
+                <flux:error name="driver_id" />
+                
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <flux:modal.close>
+                    <flux:button variant="ghost">{{ __('Cancel') }}</flux:button>
+                </flux:modal.close>
+                <flux:button type="submit" variant="primary">{{ __('Assign Driver') }}</flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
+    <flux:modal wire:model="showCreateDriverModal" class="md:max-w-2xl">
+        <form wire:submit="createDriver" class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('Create Driver') }}</flux:heading>
+                <flux:subheading>{{ __('Add a driver and auto-select it for assignment.') }}</flux:subheading>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <flux:input wire:model="new_driver_company" :label="__('Company')" icon="building-office" placeholder="e.g. Danmazari Transport LTD" />
+                <flux:input wire:model="new_driver_phone" :label="__('Phone')" icon="phone" required placeholder="+2348167768410" />
+                <flux:input wire:model="new_driver_email" :label="__('Email')" icon="envelope" type="email" placeholder="driver@example.com" />
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <flux:modal.close>
+                    <flux:button variant="ghost">{{ __('Cancel') }}</flux:button>
+                </flux:modal.close>
+                <flux:button type="submit" variant="primary">{{ __('Save Driver') }}</flux:button>
+            </div>
+        </form>
+    </flux:modal>
 </x-crud.page-shell>
