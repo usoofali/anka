@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('wallet_top_ups', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('wallet_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('shipper_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('wallet_id');
+            $table->foreignId('shipper_id');
             $table->decimal('amount', 14, 2);
             $table->string('receipt_path'); // Path to the uploaded receipt
             $table->string('status')->default('pending'); // pending, approved, rejected

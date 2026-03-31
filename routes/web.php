@@ -3,9 +3,25 @@
 use App\Http\Controllers\Auth\RegisterGeoOptionsController;
 use App\Http\Controllers\DriverOptionsController;
 use App\Http\Controllers\ShipperOptionsController;
+use App\Models\User;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', '/login')->name('home');
+Route::get('/', function () {
+    try {
+        if (! User::role('super_admin')->exists() && ! File::exists(storage_path('app/setup-complete'))) {
+            return redirect()->route('setup');
+        }
+    } catch (Throwable) {
+        return redirect()->route('setup');
+    }
+
+    return redirect()->route('login');
+})->name('home');
+
+Route::livewire('/setup', 'pages::auth.setup')
+    ->middleware('setup.access')
+    ->name('setup');
 
 Route::view('/terms', 'pages.legal.terms')->name('terms');
 Route::view('/privacy', 'pages.legal.privacy')->name('privacy');

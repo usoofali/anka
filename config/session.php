@@ -18,7 +18,9 @@ return [
     |
     */
 
-    'driver' => env('SESSION_DRIVER', 'database'),
+    'driver' => ! file_exists(storage_path('app/setup-complete')) && env('SESSION_DRIVER', 'database') === 'database'
+        ? 'file'
+        : env('SESSION_DRIVER', 'database'),
 
     /*
     |--------------------------------------------------------------------------

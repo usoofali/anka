@@ -123,4 +123,6 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'setup_enabled' => (bool) env('APP_SETUP_ENABLED', false),
+
 ];

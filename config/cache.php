@@ -15,7 +15,9 @@ return [
     |
     */
 
-    'default' => env('CACHE_STORE', 'database'),
+    'default' => ! file_exists(storage_path('app/setup-complete')) && env('CACHE_STORE', 'database') === 'database'
+        ? 'file'
+        : env('CACHE_STORE', 'database'),
 
     /*
     |--------------------------------------------------------------------------

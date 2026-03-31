@@ -32,11 +32,6 @@ class DatabaseSeeder extends Seeder
         ]);
         $admin->assignRole('super_admin');
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
-
         if (app()->environment('local')) {
             $this->command?->info('Seeded roles; admin login: admin@example.com / password (if unchanged in UserFactory)');
         }

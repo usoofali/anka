@@ -1,7 +1,24 @@
 <?php
 
 use App\Models\User;
+use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Support\Facades\File;
 use Laravel\Fortify\Features;
+
+beforeEach(function (): void {
+    $this->seed(RolePermissionSeeder::class);
+
+    $superAdmin = User::factory()->create([
+        'email' => 'super-admin@example.com',
+    ]);
+    $superAdmin->assignRole('super_admin');
+
+    File::put(storage_path('app/setup-complete'), now()->toDateTimeString());
+});
+
+afterEach(function (): void {
+    File::delete(storage_path('app/setup-complete'));
+});
 
 test('login screen can be rendered', function () {
     $response = $this->get(route('login'));
