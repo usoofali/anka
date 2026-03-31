@@ -23,6 +23,7 @@ use App\Notifications\ShipmentCreatedNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -51,6 +52,9 @@ new #[Title('Create Shipment')] class extends Component {
     public string $invoice_status = '';
     public string $payment_status = '';
     public ?string $notes = '';
+    public bool $showConsigneeModal = false;
+    public string $newConsigneeName = '';
+    public string $newConsigneeAddress = '';
 
     // Expanded Context
     public ?Vehicle $selectedVehicle = null;
@@ -208,6 +212,46 @@ new #[Title('Create Shipment')] class extends Component {
     public function redirectToShipment(array $data): void
     {
         $this->redirect(route('shipments.show', $data['id']), navigate: true);
+    }
+
+    public function createConsignee(): void
+    {
+        $this->validate([
+            'newConsigneeName' => ['required', 'string', 'max:255'],
+            'newConsigneeAddress' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        if (! $this->shipper_id) {
+            $this->notification()->error(__('Please select a shipper first.'));
+
+            return;
+        }
+
+        $consignee = Consignee::create([
+            'shipper_id' => $this->shipper_id,
+            'name' => $this->newConsigneeName,
+            'address' => $this->newConsigneeAddress,
+            'is_default' => false,
+        ]);
+
+        $this->consignee_id = $consignee->id;
+        $this->showConsigneeModal = false;
+        $this->reset(['newConsigneeName', 'newConsigneeAddress']);
+
+        $this->notification()->success(__('Consignee created successfully.'));
+    }
+
+    #[Computed]
+    public function consignees()
+    {
+        if (! $this->shipper_id) {
+            return collect();
+        }
+
+        return Consignee::where('shipper_id', $this->shipper_id)
+            ->orderByDesc('is_default')
+            ->orderBy('name')
+            ->get();
     }
 }; ?>
 
@@ -370,20 +414,32 @@ new #[Title('Create Shipment')] class extends Component {
                     <x-crud.panel class="p-6">
                         <flux:heading size="lg" class="mb-4">{{ __('Consignee Assignments') }}</flux:heading>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <flux:select wire:model="consignee_id" label="{{ __('Consignee') }}" icon="user-group" required badgeable>
-                                <flux:select.option value="">{{ __('Select Consignee') }}</flux:select.option>
-                                @foreach(Consignee::all() as $con)
-                                    <flux:select.option value="{{ $con->id }}">{{ $con->name }}</flux:select.option>
-                                @endforeach
-                            </flux:select>
-                            
-                            <flux:input 
-                                wire:model="reference_no" 
-                                label="{{ __('Reference (Final Confirmation)') }}" 
-                                icon="hashtag"
-                                readonly
-                            />
+                        <div class="grid grid-cols-1 gap-6">
+                            <flux:field>
+                                <flux:label class="mb-2">{{ __('Consignee') }}</flux:label>
+                                <div class="flex items-start gap-2">
+                                    <div class="flex-1">
+                                        <flux:select wire:model="consignee_id" :placeholder="__('Select consignee')">
+                                            @foreach($this->consignees as $consignee)
+                                                <flux:select.option :value="$consignee->id">
+                                                    {{ $consignee->name }}
+                                                    @if($consignee->is_default)
+                                                        <span class="ml-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                                                            ({{ __('Default') }})
+                                                        </span>
+                                                    @endif
+                                                </flux:select.option>
+                                            @endforeach
+                                        </flux:select>
+                                    </div>
+                                    @if($shipper_id)
+                                        <flux:button type="button" wire:click="$set('showConsigneeModal', true)" icon="plus" class="shrink-0">
+                                            {{ __('New') }}
+                                        </flux:button>
+                                    @endif
+                                </div>
+                                <flux:error name="consignee_id" />
+                            </flux:field>
                         </div>
                     </x-crud.panel>
 
@@ -453,11 +509,6 @@ new #[Title('Create Shipment')] class extends Component {
                         </div>
                     </x-crud.panel>
 
-                    <x-crud.panel class="p-6">
-                        <flux:heading size="lg" class="mb-4">{{ __('Internal Remarks') }}</flux:heading>
-                        <flux:textarea wire:model="notes" placeholder="{{ __('Add any internal handling context...') }}" rows="3" />
-                    </x-crud.panel>
-
                     <div class="flex flex-col gap-3">
                         <flux:button type="submit" variant="primary" icon="check-circle" class="w-full h-12!">
                             {{ __('Save & Initialize Shipment') }}
@@ -469,5 +520,25 @@ new #[Title('Create Shipment')] class extends Component {
                 </div>
             </div>
         </form>
+        <flux:modal wire:model.self="showConsigneeModal" class="max-w-md">
+            <form wire:submit="createConsignee" class="space-y-6">
+                <div>
+                    <flux:heading size="lg">{{ __('Add Consignee') }}</flux:heading>
+                    <flux:subheading>{{ __('Create a new consignee for the selected shipper.') }}</flux:subheading>
+                </div>
+
+                <div class="space-y-4">
+                    <flux:input wire:model="newConsigneeName" :label="__('Full Name')" required />
+                    <flux:textarea wire:model="newConsigneeAddress" :label="__('Address (Optional)')" rows="3" />
+                </div>
+
+                <div class="flex justify-end gap-2">
+                    <flux:modal.close>
+                        <flux:button variant="ghost" type="button">{{ __('Cancel') }}</flux:button>
+                    </flux:modal.close>
+                    <flux:button variant="primary" type="submit">{{ __('Add Consignee') }}</flux:button>
+                </div>
+            </form>
+        </flux:modal>
     </div>
 </x-crud.page-shell>

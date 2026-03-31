@@ -104,10 +104,6 @@ new #[Title('Prealerts')] class extends Component {
             <x-crud.page-header :heading="__('Prealerts')" :subheading="__('Incoming vehicle alerts and submissions.')"
                 class="!mb-0" />
         </div>
-
-        <flux:button variant="primary" icon="plus" :href="route('prealerts.create')" wire:navigate>
-            {{ __('New Prealert') }}
-        </flux:button>
     </div>
 
     <div class="mb-6 flex flex-wrap items-center gap-4">
