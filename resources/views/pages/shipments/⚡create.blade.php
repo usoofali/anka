@@ -191,7 +191,7 @@ new #[Title('Create Shipment')] class extends Component {
                     Prealert::where('id', $this->prealert)->delete();
                 }
 
-                // 6. Send Notifications (non-shipper roles, staff, and shipper owner)
+                // 6. Send Notifications (non-shipper roles, staff, super_admin, shipper owner)
                 $shipment->load('shipper');
 
                 $adminRoleNames = Role::query()
@@ -202,6 +202,7 @@ new #[Title('Create Shipment')] class extends Component {
                     ->role($adminRoleNames)
                     ->pluck('id')
                     ->merge(User::query()->whereHas('staff')->pluck('id'))
+                    ->merge(User::query()->whereHas('roles', fn ($q) => $q->where('name', 'super_admin'))->pluck('id'))
                     ->when($shipment->shipper?->user_id, fn ($q) => $q->push($shipment->shipper->user_id))
                     ->unique()
                     ->values();

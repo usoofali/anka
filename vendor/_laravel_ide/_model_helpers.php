@@ -3737,20 +3737,13 @@ namespace App\Models {
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
      * @property float $amount
-     * @property float $unit_price
-     * @property integer $quantity
      * @property string|null $description
-     * @property mixed $charge_item_id
      * @property mixed $invoice_id
      * @property int $id
      * @property-read \App\Models\Invoice $invoice
-     * @property-read \App\Models\ChargeItem $chargeItem
      * @method static \Illuminate\Database\Eloquent\Builder<InvoiceItem>|InvoiceItem whereId($value)
      * @method static \Illuminate\Database\Eloquent\Builder<InvoiceItem>|InvoiceItem whereInvoiceId($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<InvoiceItem>|InvoiceItem whereChargeItemId($value)
      * @method static \Illuminate\Database\Eloquent\Builder<InvoiceItem>|InvoiceItem whereDescription($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<InvoiceItem>|InvoiceItem whereQuantity($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<InvoiceItem>|InvoiceItem whereUnitPrice($value)
      * @method static \Illuminate\Database\Eloquent\Builder<InvoiceItem>|InvoiceItem whereAmount($value)
      * @method static \Illuminate\Database\Eloquent\Builder<InvoiceItem>|InvoiceItem whereCreatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<InvoiceItem>|InvoiceItem whereUpdatedAt($value)
@@ -6170,7 +6163,7 @@ namespace App\Models {
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
      * @property string|null $notes
-     * @property mixed $document_type_id
+     * @property \App\Enums\ShipmentDocumentType $document_type
      * @property mixed $shipment_id
      * @property int $id
      * @property-read \App\Models\Shipment $shipment
@@ -6178,7 +6171,7 @@ namespace App\Models {
      * @property-read int|null $files_count
      * @method static \Illuminate\Database\Eloquent\Builder<ShipmentDocument>|ShipmentDocument whereId($value)
      * @method static \Illuminate\Database\Eloquent\Builder<ShipmentDocument>|ShipmentDocument whereShipmentId($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<ShipmentDocument>|ShipmentDocument whereDocumentTypeId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<ShipmentDocument>|ShipmentDocument whereDocumentType($value)
      * @method static \Illuminate\Database\Eloquent\Builder<ShipmentDocument>|ShipmentDocument whereNotes($value)
      * @method static \Illuminate\Database\Eloquent\Builder<ShipmentDocument>|ShipmentDocument whereCreatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<ShipmentDocument>|ShipmentDocument whereUpdatedAt($value)

@@ -16,18 +16,13 @@ final class InvoiceItem extends Model
 
     protected $fillable = [
         'invoice_id',
-        'charge_item_id',
         'description',
-        'quantity',
-        'unit_price',
         'amount',
     ];
 
     protected function casts(): array
     {
         return [
-            'quantity' => 'integer',
-            'unit_price' => 'decimal:2',
             'amount' => 'decimal:2',
         ];
     }
@@ -35,10 +30,5 @@ final class InvoiceItem extends Model
     public function invoice(): BelongsTo
     {
         return $this->belongsTo(Invoice::class);
-    }
-
-    public function chargeItem(): BelongsTo
-    {
-        return $this->belongsTo(ChargeItem::class);
     }
 }

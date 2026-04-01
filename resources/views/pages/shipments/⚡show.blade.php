@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Spatie\Permission\Models\Role;
 use WireUi\Traits\WireUiActions;
 
 new #[Title('Shipment Details')] class extends Component {
@@ -27,8 +28,7 @@ new #[Title('Shipment Details')] class extends Component {
     /** Invoice item form state */
     public ?int $invoiceItemId = null;
     public string $item_description = '';
-    public int $item_quantity = 1;
-    public string $item_unit_price = '0.00';
+    public string $item_amount = '0.00';
 
     /** Simple status selector binding for invoice */
     public ?string $invoice_status_update = null;
@@ -91,26 +91,21 @@ new #[Title('Shipment Details')] class extends Component {
 
         $validated = $this->validate([
             'item_description' => ['required', 'string', 'max:255'],
-            'item_quantity' => ['required', 'integer', 'min:1'],
-            'item_unit_price' => ['required', 'numeric', 'min:0'],
+            'item_amount' => ['required', 'numeric', 'min:0'],
         ]);
 
-        $amount = (int) $validated['item_quantity'] * (float) $validated['item_unit_price'];
+        $amount = (float) $validated['item_amount'];
 
         if ($this->invoiceItemId) {
             /** @var InvoiceItem $item */
             $item = $invoice->items()->whereKey($this->invoiceItemId)->firstOrFail();
             $item->fill([
                 'description' => $validated['item_description'],
-                'quantity' => $validated['item_quantity'],
-                'unit_price' => $validated['item_unit_price'],
                 'amount' => $amount,
             ])->save();
         } else {
             $invoice->items()->create([
                 'description' => $validated['item_description'],
-                'quantity' => $validated['item_quantity'],
-                'unit_price' => $validated['item_unit_price'],
                 'amount' => $amount,
             ]);
         }
@@ -129,8 +124,7 @@ new #[Title('Shipment Details')] class extends Component {
 
         $this->invoiceItemId = $item->id;
         $this->item_description = (string) $item->description;
-        $this->item_quantity = (int) $item->quantity;
-        $this->item_unit_price = (string) $item->unit_price;
+        $this->item_amount = (string) $item->amount;
     }
 
     public function deleteItem(int $itemId): void
@@ -178,8 +172,7 @@ new #[Title('Shipment Details')] class extends Component {
     {
         $this->invoiceItemId = null;
         $this->item_description = '';
-        $this->item_quantity = 1;
-        $this->item_unit_price = '0.00';
+        $this->item_amount = '0.00';
     }
 
     public function openAssignDriverModal(): void
@@ -236,16 +229,21 @@ new #[Title('Shipment Details')] class extends Component {
                 ],
             ]);
 
-            $recipientIds = User::query()
-                ->whereHas('staff')
-                ->pluck('id');
+            $adminRoleNames = Role::query()
+                ->where('name', '!=', 'shipper')
+                ->pluck('name');
 
-            if ($this->shipment->shipper?->user_id) {
-                $recipientIds->push($this->shipment->shipper->user_id);
-            }
+            $recipientIds = User::query()
+                ->role($adminRoleNames)
+                ->pluck('id')
+                ->merge(User::query()->whereHas('staff')->pluck('id'))
+                ->merge(User::query()->whereHas('roles', fn ($q) => $q->where('name', 'super_admin'))->pluck('id'))
+                ->when($this->shipment->shipper?->user_id, fn ($q) => $q->push($this->shipment->shipper->user_id))
+                ->unique()
+                ->values();
 
             $recipients = User::query()
-                ->whereIn('id', $recipientIds->unique()->values())
+                ->whereIn('id', $recipientIds)
                 ->get();
 
             if ($recipients->isNotEmpty()) {
@@ -796,9 +794,6 @@ new #[Title('Shipment Details')] class extends Component {
                                         <flux:text size="sm" class="font-medium">
                                             {{ $item->description }}
                                         </flux:text>
-                                        <flux:text size="xs" class="text-zinc-500">
-                                            {{ $item->quantity }} × {{ number_format((float) $item->unit_price, 2) }}
-                                        </flux:text>
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <flux:text size="sm" class="font-mono font-semibold">
@@ -824,23 +819,14 @@ new #[Title('Shipment Details')] class extends Component {
                             label="{{ __('Description') }}" 
                             icon="document-text"
                         />
-                        <div class="grid grid-cols-2 gap-3">
-                            <flux:input 
-                                type="number"
-                                min="1"
-                                wire:model="item_quantity" 
-                                label="{{ __('Quantity') }}" 
-                                icon="hashtag"
-                            />
-                            <flux:input 
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                wire:model="item_unit_price" 
-                                label="{{ __('Unit Price') }}" 
-                                icon="currency-dollar"
-                            />
-                        </div>
+                        <flux:input 
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            wire:model="item_amount" 
+                            label="{{ __('Amount') }}" 
+                            icon="currency-dollar"
+                        />
                         <div class="flex gap-2">
                             <flux:button type="submit" variant="primary" icon="plus-circle" class="flex-1">
                                 {{ $invoiceItemId ? __('Update Item') : __('Add Item') }}

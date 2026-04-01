@@ -27,11 +27,13 @@ final class ShipmentDispatchedNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'shipment_id' => $this->shipment->id,
-            'reference_no' => $this->shipment->reference_no,
-            'message' => __('Shipment :ref has been dispatched (driver assigned).', [
+            'title' => __('Shipment dispatched'),
+            'body' => __('Shipment :ref has been dispatched (driver assigned).', [
                 'ref' => $this->shipment->reference_no,
             ]),
+            'shipment_id' => $this->shipment->id,
+            'reference_no' => $this->shipment->reference_no,
+            'vin' => $this->shipment->vin,
             'url' => route('shipments.show', $this->shipment, absolute: true),
         ];
     }

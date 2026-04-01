@@ -55,12 +55,14 @@ final class ShipmentCreatedNotification extends Notification implements ShouldQu
     public function toArray(object $notifiable): array
     {
         return [
-            'shipment_id' => $this->shipment->id,
-            'reference_no' => $this->shipment->reference_no,
-            'message' => __('Shipment :ref has been created.', [
+            'title' => __('Shipment created'),
+            'body' => __('Shipment :ref has been created.', [
                 'ref' => $this->shipment->reference_no,
             ]),
-            'url' => route('shipments.show', $this->shipment->id, absolute: true),
+            'shipment_id' => $this->shipment->id,
+            'reference_no' => $this->shipment->reference_no,
+            'vin' => $this->shipment->vin,
+            'url' => route('shipments.show', $this->shipment, absolute: true),
         ];
     }
 }

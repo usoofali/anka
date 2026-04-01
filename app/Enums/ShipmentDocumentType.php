@@ -7,6 +7,8 @@ namespace App\Enums;
 enum ShipmentDocumentType: string
 {
     case BillOfLading = 'bill-of-lading';
+    case TitleDocument = 'title-document';
+    case DockReceipt = 'dock-receipt';
     case CommercialInvoice = 'commercial-invoice';
     case CustomsDeclaration = 'customs-declaration';
     case PackingList = 'packing-list';
@@ -17,6 +19,8 @@ enum ShipmentDocumentType: string
     {
         return match ($this) {
             self::BillOfLading => __('Bill of lading'),
+            self::TitleDocument => __('Title document'),
+            self::DockReceipt => __('Dock receipt'),
             self::CommercialInvoice => __('Commercial invoice'),
             self::CustomsDeclaration => __('Customs declaration'),
             self::PackingList => __('Packing list'),
