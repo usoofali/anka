@@ -11,10 +11,13 @@ use App\Models\InvoiceItem;
 use App\Models\Shipment;
 use App\Models\ShipmentTracking;
 use App\Models\User;
+use App\Notifications\InvoiceStatusChangedNotification;
 use App\Notifications\ShipmentDispatchedNotification;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Spatie\Permission\Models\Role;
@@ -30,8 +33,9 @@ new #[Title('Shipment Details')] class extends Component {
     public string $item_description = '';
     public string $item_amount = '0.00';
 
-    /** Simple status selector binding for invoice */
-    public ?string $invoice_status_update = null;
+    public bool $showInvoiceStatusConfirmModal = false;
+
+    public ?string $pendingInvoiceStatus = null;
 
     /** Driver assignment state */
     public bool $showAssignDriverModal = false;
@@ -59,8 +63,13 @@ new #[Title('Shipment Details')] class extends Component {
             'trackings.workshop',
             'trackings' => static fn ($query) => $query->orderByDesc('recorded_at'),
         ]);
+    }
 
-        $this->invoice_status_update = (string) ($this->shipment->invoice?->status?->value ?? $this->shipment->invoice_status?->value ?? '');
+    public function updatedShowInvoiceStatusConfirmModal(bool $value): void
+    {
+        if (! $value) {
+            $this->pendingInvoiceStatus = null;
+        }
     }
 
     protected function getInvoice(): Invoice
@@ -90,13 +99,15 @@ new #[Title('Shipment Details')] class extends Component {
         $invoice = $this->getInvoice();
 
         $validated = $this->validate([
-            'item_description' => ['required', 'string', 'max:255'],
+            'item_description' => ['required', 'string', 'max:255', Rule::exists('charge_items', 'item')],
             'item_amount' => ['required', 'numeric', 'min:0'],
         ]);
 
         $amount = (float) $validated['item_amount'];
 
-        if ($this->invoiceItemId) {
+        $wasUpdating = (bool) $this->invoiceItemId;
+
+        if ($wasUpdating) {
             /** @var InvoiceItem $item */
             $item = $invoice->items()->whereKey($this->invoiceItemId)->firstOrFail();
             $item->fill([
@@ -113,6 +124,10 @@ new #[Title('Shipment Details')] class extends Component {
         $this->refreshInvoiceTotals($invoice);
 
         $this->resetInvoiceItemForm();
+
+        $this->notification()->success(
+            $wasUpdating ? __('Invoice item updated.') : __('Invoice item added.')
+        );
     }
 
     public function editItem(int $itemId): void
@@ -137,6 +152,7 @@ new #[Title('Shipment Details')] class extends Component {
         if ($item) {
             $item->delete();
             $this->refreshInvoiceTotals($invoice);
+            $this->notification()->success(__('Invoice item removed.'));
         }
 
         if ($this->invoiceItemId === $itemId) {
@@ -146,14 +162,116 @@ new #[Title('Shipment Details')] class extends Component {
         $this->shipment->load('invoice.items');
     }
 
-    public function updateInvoiceStatus(string $status): void
+    public function openInvoiceStatusConfirm(string $value): void
     {
-        $invoice = $this->getInvoice();
-        $invoice->status = $status;
-        $invoice->save();
+        $this->authorize('invoices.manage');
 
-        $this->invoice_status_update = $status;
-        $this->shipment->load('invoice');
+        $currentValue = $this->shipment->invoice?->status?->value ?? $this->shipment->invoice_status?->value;
+
+        if ($currentValue === $value) {
+            $this->notification()->info(__('No change'), __('The invoice is already in this status.'));
+
+            return;
+        }
+
+        $this->pendingInvoiceStatus = $value;
+        $this->showInvoiceStatusConfirmModal = true;
+    }
+
+    public function confirmInvoiceStatusChange(): void
+    {
+        $this->authorize('invoices.manage');
+
+        $validated = $this->validate([
+            'pendingInvoiceStatus' => ['required', 'string', Rule::enum(InvoiceStatus::class)],
+        ]);
+
+        $invoice = $this->getInvoice();
+        $newStatus = InvoiceStatus::from($validated['pendingInvoiceStatus']);
+
+        if ($invoice->status === $newStatus) {
+            $this->showInvoiceStatusConfirmModal = false;
+            $this->pendingInvoiceStatus = null;
+
+            return;
+        }
+
+        $fromStatus = $invoice->status;
+
+        DB::transaction(function () use ($invoice, $newStatus, $fromStatus): void {
+            $invoice->status = $newStatus;
+            $invoice->save();
+
+            $this->shipment->invoice_status = $newStatus;
+            $this->shipment->save();
+
+            ActivityLog::query()->create([
+                'shipment_id' => $this->shipment->id,
+                'user_id' => Auth::id(),
+                'action' => 'invoice_status_changed',
+                'properties' => [
+                    'from' => $fromStatus->value,
+                    'to' => $newStatus->value,
+                    'from_label' => $fromStatus->name,
+                    'to_label' => $newStatus->name,
+                    'invoice_id' => $invoice->id,
+                    'reference_no' => $this->shipment->reference_no,
+                    'source' => 'shipment_show',
+                ],
+            ]);
+        });
+
+        $recipientIds = $this->staffAndAdminNotificationRecipientIds();
+        $recipients = User::query()->whereIn('id', $recipientIds)->get();
+
+        if ($recipients->isNotEmpty()) {
+            $invoice->refresh();
+            $this->shipment->refresh();
+            Notification::send(
+                $recipients,
+                new InvoiceStatusChangedNotification($this->shipment, $invoice, $fromStatus, $newStatus)
+            );
+        }
+
+        $this->shipment->refresh()->load([
+            'shipper.user',
+            'consignee',
+            'vehicle',
+            'originPort.state',
+            'originPort.country',
+            'destinationPort.state',
+            'destinationPort.country',
+            'carrier',
+            'driver',
+            'invoice.items',
+            'documents.files',
+            'activityLogs.user',
+            'trackings.workshop',
+            'trackings' => static fn ($query) => $query->orderByDesc('recorded_at'),
+        ]);
+
+        $this->showInvoiceStatusConfirmModal = false;
+        $this->pendingInvoiceStatus = null;
+
+        $this->notification()->success(__('Invoice status updated.'));
+    }
+
+    /**
+     * @return Collection<int, int>
+     */
+    protected function staffAndAdminNotificationRecipientIds(): Collection
+    {
+        $adminRoleNames = Role::query()
+            ->where('name', '!=', 'shipper')
+            ->pluck('name');
+
+        return User::query()
+            ->role($adminRoleNames)
+            ->pluck('id')
+            ->merge(User::query()->whereHas('staff')->pluck('id'))
+            ->merge(User::query()->whereHas('roles', fn ($q) => $q->where('name', 'super_admin'))->pluck('id'))
+            ->unique()
+            ->values();
     }
 
     protected function refreshInvoiceTotals(Invoice $invoice): void
@@ -369,6 +487,19 @@ new #[Title('Shipment Details')] class extends Component {
                         <flux:menu.item icon="user-plus" wire:click="openAssignDriverModal">
                             {{ __('Assign Driver') }}
                         </flux:menu.item>
+
+                        @can('invoices.manage')
+                            <flux:menu.separator />
+                            <flux:menu.submenu :heading="__('Invoice status')" icon="document-text">
+                                @foreach(InvoiceStatus::cases() as $status)
+                                    @if(($shipment->invoice?->status?->value ?? $shipment->invoice_status?->value) !== $status->value)
+                                        <flux:menu.item wire:click="openInvoiceStatusConfirm('{{ $status->value }}')">
+                                            {{ $status->name }}
+                                        </flux:menu.item>
+                                    @endif
+                                @endforeach
+                            </flux:menu.submenu>
+                        @endcan
                     </flux:menu>
                 </flux:dropdown>
             </div>
@@ -739,46 +870,32 @@ new #[Title('Shipment Details')] class extends Component {
                                 {{ $shipment->invoice?->invoice_number ?? __('No invoice number assigned yet.') }}
                             </flux:text>
                         </div>
-                        <div class="w-40">
-                            <flux:select 
-                                wire:model="invoice_status_update" 
-                                label="{{ __('Status') }}" 
-                                icon="document-text"
-                                wire:change="updateInvoiceStatus($event.target.value)"
-                            >
-                                <flux:select.option value="">{{ __('Select') }}</flux:select.option>
-                                @foreach(InvoiceStatus::cases() as $status)
-                                    <flux:select.option value="{{ $status->value }}">{{ $status->name }}</flux:select.option>
-                                @endforeach
-                            </flux:select>
+                        <div class="shrink-0 text-right">
+                            @php
+                                $effectiveInvoiceStatus = $shipment->invoice?->status ?? $shipment->invoice_status;
+                            @endphp
+                            @if($effectiveInvoiceStatus)
+                                <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1 block">
+                                    {{ __('Status') }}
+                                </flux:text>
+                                <flux:badge color="amber" variant="subtle" size="sm" icon="document-text">
+                                    {{ $effectiveInvoiceStatus->name }}
+                                </flux:badge>
+                            @else
+                                <flux:text size="xs" class="text-zinc-500">
+                                    {{ __('No invoice status') }}
+                                </flux:text>
+                            @endif
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-3 gap-3 mb-4">
-                        <div>
-                            <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1">
-                                {{ __('Subtotal') }}
-                            </flux:text>
-                            <flux:text class="font-mono font-semibold">
-                                {{ number_format((float) ($shipment->invoice?->subtotal ?? 0), 2) }}
-                            </flux:text>
-                        </div>
-                        <div>
-                            <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1">
-                                {{ __('Tax') }}
-                            </flux:text>
-                            <flux:text class="font-mono font-semibold">
-                                {{ number_format((float) ($shipment->invoice?->tax_amount ?? 0), 2) }}
-                            </flux:text>
-                        </div>
-                        <div>
-                            <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1">
-                                {{ __('Total') }}
-                            </flux:text>
-                            <flux:text class="font-mono font-semibold text-indigo-600 dark:text-indigo-400">
-                                {{ number_format((float) ($shipment->invoice?->total_amount ?? 0), 2) }}
-                            </flux:text>
-                        </div>
+                    <div class="mb-4">
+                        <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1">
+                            {{ __('Total') }}
+                        </flux:text>
+                        <flux:text class="font-mono font-semibold text-indigo-600 dark:text-indigo-400">
+                            {{ '$'.number_format((float) ($shipment->invoice?->total_amount ?? 0), 2) }}
+                        </flux:text>
                     </div>
 
                     <div class="border border-zinc-200 dark:border-zinc-700 rounded-xl overflow-hidden mb-4">
@@ -797,10 +914,16 @@ new #[Title('Shipment Details')] class extends Component {
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <flux:text size="sm" class="font-mono font-semibold">
-                                            {{ number_format((float) $item->amount, 2) }}
+                                            {{ '$'.number_format((float) $item->amount, 2) }}
                                         </flux:text>
                                         <flux:button icon="pencil-square" size="xs" variant="ghost" wire:click="editItem({{ $item->id }})" />
-                                        <flux:button icon="trash" size="xs" variant="ghost" wire:click="deleteItem({{ $item->id }})" />
+                                        <flux:button
+                                            icon="trash"
+                                            size="xs"
+                                            variant="ghost"
+                                            class="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/40"
+                                            wire:click="deleteItem({{ $item->id }})"
+                                        />
                                     </div>
                                 </div>
                             @empty
@@ -814,11 +937,14 @@ new #[Title('Shipment Details')] class extends Component {
                     </div>
 
                     <form wire:submit.prevent="addOrUpdateItem" class="space-y-3">
-                        <flux:input 
-                            wire:model="item_description" 
-                            label="{{ __('Description') }}" 
-                            icon="document-text"
-                        />
+                        <flux:select wire:model="item_description" label="{{ __('Invoice item') }}" icon="document-text">
+                            <flux:select.option value="">{{ __('Select invoice item') }}</flux:select.option>
+                            @foreach(\App\Models\ChargeItem::query()->whereNotNull('item')->orderBy('item')->get() as $chargeItem)
+                                <flux:select.option :value="$chargeItem->item">
+                                    {{ $chargeItem->item }}
+                                </flux:select.option>
+                            @endforeach
+                        </flux:select>
                         <flux:input 
                             type="number"
                             min="0"
@@ -844,7 +970,7 @@ new #[Title('Shipment Details')] class extends Component {
                 <x-crud.panel class="p-6">
                     <flux:heading size="lg" class="mb-4 flex items-center gap-2">
                         <flux:icon.user-group class="size-5 text-indigo-500" />
-                        {{ __('Parties') }}
+                        {{ __('Shipper & Consignee') }}
                     </flux:heading>
 
                     <div class="space-y-4">
@@ -955,6 +1081,36 @@ new #[Title('Shipment Details')] class extends Component {
             </div>
         </div>
     </div>
+
+    <flux:modal wire:model="showInvoiceStatusConfirmModal" class="max-w-md">
+        <div class="space-y-4">
+            <div>
+                <flux:heading size="lg">{{ __('Change invoice status') }}</flux:heading>
+                <flux:subheading>
+                    @if($pendingInvoiceStatus)
+                        @php
+                            $pendingToStatus = InvoiceStatus::from($pendingInvoiceStatus);
+                            $fromStatusLabel = ($shipment->invoice?->status ?? $shipment->invoice_status)?->name ?? __('None');
+                        @endphp
+                        {{ __('Change from :from to :to?', [
+                            'from' => $fromStatusLabel,
+                            'to' => $pendingToStatus->name,
+                        ]) }}
+                    @else
+                        {{ __('Confirm the new invoice status for this shipment.') }}
+                    @endif
+                </flux:subheading>
+            </div>
+            <div class="flex justify-end gap-2">
+                <flux:modal.close>
+                    <flux:button variant="ghost">{{ __('Cancel') }}</flux:button>
+                </flux:modal.close>
+                <flux:button variant="primary" wire:click="confirmInvoiceStatusChange" wire:loading.attr="disabled">
+                    {{ __('Confirm') }}
+                </flux:button>
+            </div>
+        </div>
+    </flux:modal>
 
     <flux:modal wire:model="showAssignDriverModal" class="max-w-xl min-h-[40vh] max-h-[65vh]">
         <form wire:submit="assignDriver" class="space-auto-y">
