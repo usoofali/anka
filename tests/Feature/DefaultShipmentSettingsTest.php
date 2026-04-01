@@ -9,6 +9,7 @@ use App\Enums\ShipmentStatus;
 use App\Enums\ShippingMode;
 use App\Models\Carrier;
 use App\Models\DefaultShipmentSetting;
+use App\Models\PaymentMethod;
 use App\Models\Port;
 use App\Models\User;
 use Illuminate\Contracts\Auth\Authenticatable;
@@ -34,6 +35,7 @@ it('can update default shipment settings', function () {
 
     $carrier = Carrier::factory()->create();
     $port = Port::factory()->create();
+    $paymentMethod = PaymentMethod::factory()->create();
 
     actingAs($user);
 
@@ -45,6 +47,7 @@ it('can update default shipment settings', function () {
         ->set('shipment_status', ShipmentStatus::Pending->value)
         ->set('invoice_status', InvoiceStatus::Draft->value)
         ->set('payment_status', PaymentStatus::Pending->value)
+        ->set('payment_method_id', $paymentMethod->id)
         ->call('save')
         ->assertHasNoErrors();
 
@@ -56,5 +59,6 @@ it('can update default shipment settings', function () {
         ->and($setting->shipping_mode)->toBe(ShippingMode::Roro)
         ->and($setting->shipment_status)->toBe(ShipmentStatus::Pending)
         ->and($setting->invoice_status)->toBe(InvoiceStatus::Draft)
-        ->and($setting->payment_status)->toBe(PaymentStatus::Pending);
+        ->and($setting->payment_status)->toBe(PaymentStatus::Pending)
+        ->and($setting->payment_method_id)->toBe($paymentMethod->id);
 });

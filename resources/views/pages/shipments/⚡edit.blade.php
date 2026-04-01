@@ -10,6 +10,7 @@ use App\Enums\ShippingMode;
 use App\Models\ActivityLog;
 use App\Models\Carrier;
 use App\Models\Consignee;
+use App\Models\PaymentMethod;
 use App\Models\Port;
 use App\Models\Shipment;
 use Illuminate\Support\Facades\Auth;
@@ -36,6 +37,7 @@ new #[Title('Edit Shipment')] class extends Component {
     public string $shipment_status = '';
     public string $invoice_status = '';
     public string $payment_status = '';
+    public ?int $payment_method_id = null;
     public ?string $auction_receipt = '';
 
     public function mount(Shipment $shipment): void
@@ -67,6 +69,7 @@ new #[Title('Edit Shipment')] class extends Component {
         $this->shipment_status = (string) ($shipment->shipment_status?->value ?? $shipment->shipment_status ?? '');
         $this->invoice_status = (string) ($shipment->invoice_status?->value ?? $shipment->invoice_status ?? '');
         $this->payment_status = (string) ($shipment->payment_status?->value ?? $shipment->payment_status ?? '');
+        $this->payment_method_id = $shipment->payment_method_id;
     }
 
     public function updatedShipperId(): void
@@ -92,6 +95,7 @@ new #[Title('Edit Shipment')] class extends Component {
             'shipment_status' => ['required', 'string'],
             'invoice_status' => ['required', 'string'],
             'payment_status' => ['required', 'string'],
+            'payment_method_id' => ['nullable', 'integer', 'exists:payment_methods,id'],
         ]);
 
         $this->shipment->update($validated);
@@ -280,7 +284,7 @@ new #[Title('Edit Shipment')] class extends Component {
 
             <x-crud.panel class="p-6">
                 <flux:heading size="lg" class="mb-4">{{ __('Workflow Status') }}</flux:heading>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <flux:select wire:model="shipment_status" :label="__('Shipment Status')">
                         @foreach(ShipmentStatus::cases() as $status)
                             <flux:select.option value="{{ $status->value }}">{{ $status->name }}</flux:select.option>
@@ -296,6 +300,13 @@ new #[Title('Edit Shipment')] class extends Component {
                     <flux:select wire:model="payment_status" :label="__('Payment Status')">
                         @foreach(PaymentStatus::cases() as $status)
                             <flux:select.option value="{{ $status->value }}">{{ $status->name }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+
+                    <flux:select wire:model="payment_method_id" :label="__('Payment method')" icon="banknotes">
+                        <flux:select.option value="">{{ __('None') }}</flux:select.option>
+                        @foreach(PaymentMethod::query()->orderBy('name')->get() as $method)
+                            <flux:select.option value="{{ $method->id }}">{{ $method->name }}</flux:select.option>
                         @endforeach
                     </flux:select>
                 </div>

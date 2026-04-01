@@ -2037,6 +2037,7 @@ namespace App\Models {
 	 * @property int $id
 	 * @property-read \App\Models\Carrier $carrier
 	 * @property-read \App\Models\Port $originPort
+	 * @property-read \App\Models\PaymentMethod $paymentMethod
 	 * @method static \Illuminate\Database\Eloquent\Builder<DefaultShipmentSetting>|DefaultShipmentSetting whereId($value)
 	 * @method static \Illuminate\Database\Eloquent\Builder<DefaultShipmentSetting>|DefaultShipmentSetting whereCarrierId($value)
 	 * @method static \Illuminate\Database\Eloquent\Builder<DefaultShipmentSetting>|DefaultShipmentSetting whereOriginPortId($value)
@@ -5816,6 +5817,7 @@ namespace App\Models {
 	 * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ShipmentDocument> $documents
 	 * @property-read int|null $documents_count
 	 * @property-read \App\Models\Invoice $invoice
+	 * @property-read \App\Models\PaymentMethod $paymentMethod
 	 * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ActivityLog> $activityLogs
 	 * @property-read int|null $activity_logs_count
 	 * @method static \Illuminate\Database\Eloquent\Builder<Shipment>|Shipment whereId($value)

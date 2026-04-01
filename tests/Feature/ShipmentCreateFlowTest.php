@@ -12,6 +12,7 @@ use App\Models\Carrier;
 use App\Models\Consignee;
 use App\Models\DefaultShipmentSetting;
 use App\Models\Invoice;
+use App\Models\PaymentMethod;
 use App\Models\Port;
 use App\Models\Shipment;
 use App\Models\ShipmentTracking;
@@ -35,6 +36,7 @@ it('creates shipment side-effects with aligned payload fields', function () {
     $carrier = Carrier::factory()->create();
     $originPort = Port::factory()->create();
     $destinationPort = Port::factory()->create();
+    $paymentMethod = PaymentMethod::factory()->create();
 
     DefaultShipmentSetting::current()->update([
         'origin_port_id' => $originPort->id,
@@ -43,6 +45,7 @@ it('creates shipment side-effects with aligned payload fields', function () {
         'shipment_status' => ShipmentStatus::Pending->value,
         'invoice_status' => InvoiceStatus::Draft->value,
         'payment_status' => PaymentStatus::Pending->value,
+        'payment_method_id' => $paymentMethod->id,
     ]);
 
     SystemSetting::current()->update([
@@ -71,7 +74,8 @@ it('creates shipment side-effects with aligned payload fields', function () {
     $invoice = Invoice::query()->where('shipment_id', $shipment->id)->firstOrFail();
     $activityLog = ActivityLog::query()->where('shipment_id', $shipment->id)->firstOrFail();
 
-    expect($tracking->note)->toBe('Initial record created.')
+    expect($shipment->payment_method_id)->toBe($paymentMethod->id)
+        ->and($tracking->note)->toBe('Initial record created.')
         ->and($tracking->metadata)->toBeArray()
         ->and($tracking->metadata['source'] ?? null)->toBe('shipment_create')
         ->and($invoice->subtotal)->toBe('0.00')

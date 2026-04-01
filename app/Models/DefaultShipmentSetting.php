@@ -31,6 +31,7 @@ final class DefaultShipmentSetting extends Model
         'shipment_status',
         'invoice_status',
         'payment_status',
+        'payment_method_id',
     ];
 
     protected function casts(): array
@@ -66,5 +67,10 @@ final class DefaultShipmentSetting extends Model
     public function originPort(): BelongsTo
     {
         return $this->belongsTo(Port::class, 'origin_port_id');
+    }
+
+    public function paymentMethod(): BelongsTo
+    {
+        return $this->belongsTo(PaymentMethod::class);
     }
 }

@@ -45,6 +45,7 @@ class ShipmentFactory extends Factory
             'shipment_status' => ShipmentStatus::Pending->value,
             'invoice_status' => InvoiceStatus::Draft->value,
             'payment_status' => PaymentStatus::Pending->value,
+            'payment_method_id' => null,
         ];
     }
 }

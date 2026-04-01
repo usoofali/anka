@@ -10,6 +10,7 @@ use App\Models\Shipper;
 use App\Models\User;
 use App\Models\Consignee;
 use App\Models\Carrier;
+use App\Models\PaymentMethod;
 use App\Models\Port;
 use App\Models\Vehicle;
 use App\Models\ShipmentTracking;
@@ -54,6 +55,7 @@ new #[Title('Create Shipment')] class extends Component {
     public string $shipment_status = '';
     public string $invoice_status = '';
     public string $payment_status = '';
+    public ?int $payment_method_id = null;
     public ?string $notes = '';
     public bool $showConsigneeModal = false;
     public string $newConsigneeName = '';
@@ -75,6 +77,7 @@ new #[Title('Create Shipment')] class extends Component {
         $this->shipment_status = $defaults->shipment_status->value ?? ShipmentStatus::Pending->value;
         $this->invoice_status = $defaults->invoice_status->value ?? InvoiceStatus::Draft->value;
         $this->payment_status = $defaults->payment_status->value ?? PaymentStatus::Pending->value;
+        $this->payment_method_id = $defaults->payment_method_id;
 
         // 2. Override from Prealert if provided
         if ($this->prealert) {
@@ -128,6 +131,7 @@ new #[Title('Create Shipment')] class extends Component {
             'shipment_status' => 'required|string',
             'invoice_status' => 'required|string',
             'payment_status' => 'required|string',
+            'payment_method_id' => 'nullable|integer|exists:payment_methods,id',
         ]);
 
         try {
@@ -149,6 +153,7 @@ new #[Title('Create Shipment')] class extends Component {
                     'shipment_status' => $this->shipment_status,
                     'invoice_status' => $this->invoice_status,
                     'payment_status' => $this->payment_status,
+                    'payment_method_id' => $this->payment_method_id,
                 ]);
 
                 // 2. Create Initial Tracking
@@ -600,6 +605,13 @@ new #[Title('Create Shipment')] class extends Component {
                             <flux:select wire:model="payment_status" label="{{ __('Payment Status') }}" icon="credit-card">
                                 @foreach(PaymentStatus::cases() as $status)
                                     <flux:select.option value="{{ $status->value }}">{{ $status->name }}</flux:select.option>
+                                @endforeach
+                            </flux:select>
+
+                            <flux:select wire:model="payment_method_id" label="{{ __('Payment method') }}" icon="banknotes">
+                                <flux:select.option value="">{{ __('None') }}</flux:select.option>
+                                @foreach(PaymentMethod::query()->orderBy('name')->get() as $method)
+                                    <flux:select.option value="{{ $method->id }}">{{ $method->name }}</flux:select.option>
                                 @endforeach
                             </flux:select>
                         </div>

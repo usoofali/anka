@@ -56,6 +56,7 @@ new #[Title('Shipment Details')] class extends Component {
             'destinationPort.state',
             'destinationPort.country',
             'carrier',
+            'paymentMethod',
             'driver',
             'invoice.items',
             'documents.files',
@@ -110,18 +111,53 @@ new #[Title('Shipment Details')] class extends Component {
         if ($wasUpdating) {
             /** @var InvoiceItem $item */
             $item = $invoice->items()->whereKey($this->invoiceItemId)->firstOrFail();
+            $fromDescription = (string) $item->description;
+            $fromAmount = (float) $item->amount;
             $item->fill([
                 'description' => $validated['item_description'],
                 'amount' => $amount,
             ])->save();
+
+            ActivityLog::query()->create([
+                'shipment_id' => $this->shipment->id,
+                'user_id' => Auth::id(),
+                'action' => 'invoice_item_updated',
+                'properties' => [
+                    'invoice_id' => $invoice->id,
+                    'invoice_item_id' => $item->id,
+                    'reference_no' => $this->shipment->reference_no,
+                    'source' => 'shipment_show',
+                    'from_description' => $fromDescription,
+                    'to_description' => $validated['item_description'],
+                    'from_amount' => $fromAmount,
+                    'to_amount' => $amount,
+                ],
+            ]);
         } else {
-            $invoice->items()->create([
+            /** @var InvoiceItem $item */
+            $item = $invoice->items()->create([
                 'description' => $validated['item_description'],
                 'amount' => $amount,
+            ]);
+
+            ActivityLog::query()->create([
+                'shipment_id' => $this->shipment->id,
+                'user_id' => Auth::id(),
+                'action' => 'invoice_item_added',
+                'properties' => [
+                    'invoice_id' => $invoice->id,
+                    'invoice_item_id' => $item->id,
+                    'reference_no' => $this->shipment->reference_no,
+                    'source' => 'shipment_show',
+                    'description' => $validated['item_description'],
+                    'amount' => $amount,
+                ],
             ]);
         }
 
         $this->refreshInvoiceTotals($invoice);
+
+        $this->shipment->load('activityLogs.user');
 
         $this->resetInvoiceItemForm();
 
@@ -150,7 +186,24 @@ new #[Title('Shipment Details')] class extends Component {
         $item = $invoice->items()->whereKey($itemId)->first();
 
         if ($item) {
+            $properties = [
+                'invoice_id' => $invoice->id,
+                'invoice_item_id' => $item->id,
+                'reference_no' => $this->shipment->reference_no,
+                'source' => 'shipment_show',
+                'description' => (string) $item->description,
+                'amount' => (float) $item->amount,
+            ];
+
             $item->delete();
+
+            ActivityLog::query()->create([
+                'shipment_id' => $this->shipment->id,
+                'user_id' => Auth::id(),
+                'action' => 'invoice_item_removed',
+                'properties' => $properties,
+            ]);
+
             $this->refreshInvoiceTotals($invoice);
             $this->notification()->success(__('Invoice item removed.'));
         }
@@ -159,7 +212,7 @@ new #[Title('Shipment Details')] class extends Component {
             $this->resetInvoiceItemForm();
         }
 
-        $this->shipment->load('invoice.items');
+        $this->shipment->load(['invoice.items', 'activityLogs.user']);
     }
 
     public function openInvoiceStatusConfirm(string $value): void
@@ -242,6 +295,7 @@ new #[Title('Shipment Details')] class extends Component {
             'destinationPort.state',
             'destinationPort.country',
             'carrier',
+            'paymentMethod',
             'driver',
             'invoice.items',
             'documents.files',
@@ -378,6 +432,7 @@ new #[Title('Shipment Details')] class extends Component {
             'destinationPort.state',
             'destinationPort.country',
             'carrier',
+            'paymentMethod',
             'driver',
             'invoice.items',
             'documents.files',
@@ -450,6 +505,11 @@ new #[Title('Shipment Details')] class extends Component {
                         @if($shipment->payment_status)
                             <flux:badge color="emerald" variant="subtle" size="sm" icon="banknotes">
                                 {{ $shipment->payment_status->name }}
+                            </flux:badge>
+                        @endif
+                        @if($shipment->paymentMethod)
+                            <flux:badge color="zinc" variant="outline" size="sm" icon="credit-card">
+                                {{ $shipment->paymentMethod->name }}
                             </flux:badge>
                         @endif
                         @if($shipment->logistics_service)
@@ -828,13 +888,18 @@ new #[Title('Shipment Details')] class extends Component {
                                         </flux:text>
                                         @php
                                             $properties = is_array($log->properties) ? $log->properties : [];
+                                            $invoiceItemActions = ['invoice_item_added', 'invoice_item_updated', 'invoice_item_removed'];
+                                            $isInvoiceItemLog = in_array($log->action, $invoiceItemActions, true);
+                                            $showActivityMetaRow = ($properties['source'] ?? null)
+                                                || (array_key_exists('prealert_id', $properties) && $properties['prealert_id'] !== null)
+                                                || $isInvoiceItemLog;
                                         @endphp
                                         @if(($properties['message'] ?? null))
                                             <flux:text size="sm" class="mt-1">
                                                 {{ (string) $properties['message'] }}
                                             </flux:text>
                                         @endif
-                                        @if(($properties['source'] ?? null) || (array_key_exists('prealert_id', $properties) && $properties['prealert_id'] !== null))
+                                        @if($showActivityMetaRow)
                                             <div class="mt-2 flex flex-wrap gap-2">
                                                 @if(($properties['source'] ?? null))
                                                     <flux:badge size="sm" color="zinc" variant="outline">
@@ -845,6 +910,35 @@ new #[Title('Shipment Details')] class extends Component {
                                                     <flux:badge size="sm" color="indigo" variant="subtle">
                                                         {{ __('Prealert #:id', ['id' => (string) $properties['prealert_id']]) }}
                                                     </flux:badge>
+                                                @endif
+                                                @if($log->action === 'invoice_item_updated' || $log->action === 'invoice_item_added' || $log->action === 'invoice_item_removed')
+                                                    @if(filled($properties['from_description'] ?? null) || filled($properties['to_description'] ?? null))
+                                                        <flux:badge size="sm" color="amber" variant="subtle">
+                                                            {{ __('Item: :from → :to', [
+                                                                'from' => (string) ($properties['from_description'] ?? '—'),
+                                                                'to' => (string) ($properties['to_description'] ?? '—'),
+                                                            ]) }}
+                                                        </flux:badge>
+                                                    @endif
+                                                    @if(array_key_exists('from_amount', $properties) || array_key_exists('to_amount', $properties))
+                                                        <flux:badge size="sm" color="amber" variant="subtle">
+                                                            {{ __('Amount: :from → :to', [
+                                                                'from' => '$'.number_format((float) ($properties['from_amount'] ?? 0), 2),
+                                                                'to' => '$'.number_format((float) ($properties['to_amount'] ?? 0), 2),
+                                                            ]) }}
+                                                        </flux:badge>
+                                                    @endif
+                                                @elseif($isInvoiceItemLog)
+                                                    @if(filled($properties['description'] ?? null))
+                                                        <flux:badge size="sm" color="amber" variant="subtle">
+                                                            {{ __('Item: :item', ['item' => (string) $properties['description']]) }}
+                                                        </flux:badge>
+                                                    @endif
+                                                    @if(array_key_exists('amount', $properties))
+                                                        <flux:badge size="sm" color="amber" variant="subtle">
+                                                            {{ __('Amount: :amount', ['amount' => '$'.number_format((float) $properties['amount'], 2)]) }}
+                                                        </flux:badge>
+                                                    @endif
                                                 @endif
                                             </div>
                                         @endif

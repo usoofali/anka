@@ -88,6 +88,12 @@ it('adds an invoice item using a charge item code', function () {
         ->assertHasNoErrors();
 
     expect(InvoiceItem::query()->where('description', $charge->item)->where('amount', 150.5)->exists())->toBeTrue();
+
+    $this->assertDatabaseHas('activity_logs', [
+        'shipment_id' => $shipment->id,
+        'user_id' => $user->id,
+        'action' => 'invoice_item_added',
+    ]);
 });
 
 it('deletes an invoice item', function () {
@@ -108,4 +114,43 @@ it('deletes an invoice item', function () {
         ->assertHasNoErrors();
 
     expect(InvoiceItem::query()->whereKey($item->id)->exists())->toBeFalse();
+
+    $this->assertDatabaseHas('activity_logs', [
+        'shipment_id' => $shipment->id,
+        'user_id' => $user->id,
+        'action' => 'invoice_item_removed',
+    ]);
+});
+
+it('logs activity when an invoice item is updated', function () {
+    $user = User::factory()->create();
+    actingAs($user);
+
+    $charge = ChargeItem::factory()->create([
+        'item' => 'Handling',
+        'description' => 'Port handling',
+    ]);
+
+    $shipment = Shipment::factory()->create();
+    $invoice = Invoice::factory()->create(['shipment_id' => $shipment->id]);
+    $line = InvoiceItem::factory()->create([
+        'invoice_id' => $invoice->id,
+        'description' => $charge->item,
+        'amount' => 10,
+    ]);
+    $shipment->refresh();
+
+    Livewire::test('pages::shipments.show', ['shipment' => $shipment])
+        ->call('editItem', $line->id)
+        ->set('item_amount', '99.00')
+        ->call('addOrUpdateItem')
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('activity_logs', [
+        'shipment_id' => $shipment->id,
+        'user_id' => $user->id,
+        'action' => 'invoice_item_updated',
+    ]);
+
+    expect((float) $line->fresh()->amount)->toBe(99.0);
 });

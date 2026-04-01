@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\InvoiceStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\ShipmentStatus;
+use App\Models\PaymentMethod;
 use App\Models\Shipment;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
@@ -42,18 +43,23 @@ it('updates shipment fields from edit page', function () {
     $user->givePermissionTo('shipments.update');
     actingAs($user);
 
+    $methodA = PaymentMethod::factory()->create();
+    $methodB = PaymentMethod::factory()->create();
+
     $shipment = Shipment::factory()->create([
         'reference_no' => 'REF-EDIT-0001',
         'vin' => '1HGCM82633A004352',
         'shipment_status' => ShipmentStatus::Pending->value,
         'invoice_status' => InvoiceStatus::Draft->value,
         'payment_status' => PaymentStatus::Pending->value,
+        'payment_method_id' => $methodA->id,
     ]);
 
     Livewire::test('pages::shipments.edit', ['shipment' => $shipment])
         ->set('shipment_status', ShipmentStatus::Inland->value)
         ->set('invoice_status', InvoiceStatus::Completed->value)
         ->set('payment_status', PaymentStatus::Paid->value)
+        ->set('payment_method_id', $methodB->id)
         ->call('save')
         ->assertHasNoErrors();
 
@@ -64,6 +70,7 @@ it('updates shipment fields from edit page', function () {
         'shipment_status' => ShipmentStatus::Inland->value,
         'invoice_status' => InvoiceStatus::Completed->value,
         'payment_status' => PaymentStatus::Paid->value,
+        'payment_method_id' => $methodB->id,
     ]);
 });
 

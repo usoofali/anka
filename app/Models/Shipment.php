@@ -39,6 +39,7 @@ final class Shipment extends Model
         'shipment_status',
         'invoice_status',
         'payment_status',
+        'payment_method_id',
     ];
 
     protected function casts(): array
@@ -105,6 +106,11 @@ final class Shipment extends Model
     public function invoice(): HasOne
     {
         return $this->hasOne(Invoice::class);
+    }
+
+    public function paymentMethod(): BelongsTo
+    {
+        return $this->belongsTo(PaymentMethod::class);
     }
 
     public function activityLogs(): HasMany

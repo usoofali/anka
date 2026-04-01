@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Models\Carrier;
 use App\Models\DefaultShipmentSetting;
+use App\Models\PaymentMethod;
 use App\Models\Port;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -19,6 +20,7 @@ new #[Title('Default Shipment Settings')] class extends Component {
     public ?string $shipment_status = null;
     public ?string $invoice_status = null;
     public ?string $payment_status = null;
+    public ?int $payment_method_id = null;
 
     public function mount(): void
     {
@@ -47,6 +49,7 @@ new #[Title('Default Shipment Settings')] class extends Component {
             'shipment_status' => 'nullable|string',
             'invoice_status' => 'nullable|string',
             'payment_status' => 'nullable|string',
+            'payment_method_id' => 'nullable|exists:payment_methods,id',
         ]);
 
         $setting = DefaultShipmentSetting::current();
@@ -75,6 +78,7 @@ new #[Title('Default Shipment Settings')] class extends Component {
         return [
             'carriers' => Carrier::orderBy('name')->get(),
             'ports' => $ports,
+            'payment_methods' => PaymentMethod::query()->orderBy('name')->get(),
         ];
     }
 }; ?>
@@ -157,6 +161,16 @@ new #[Title('Default Shipment Settings')] class extends Component {
                             @endforeach
                         </flux:select>
                     </flux:field>
+
+                    <flux:field>
+                        <flux:label icon="banknotes">{{ __('Default payment method') }}</flux:label>
+                        <flux:select wire:model="payment_method_id" placeholder="{{ __('Choose a payment method…') }}">
+                            <flux:select.option value="">{{ __('None') }}</flux:select.option>
+                            @foreach ($payment_methods as $method)
+                                <flux:select.option value="{{ $method->id }}">{{ $method->name }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                    </flux:field>
                 </div>
 
                 <div class="flex justify-end pt-4 border-t border-zinc-200 dark:border-zinc-700">
@@ -165,4 +179,6 @@ new #[Title('Default Shipment Settings')] class extends Component {
             </form>
         </x-crud.panel>
     </x-crud.page-shell>
+</div>
+d.page-shell>
 </div>

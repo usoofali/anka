@@ -37,6 +37,7 @@ final class MergeShipmentDefaults
         'shipment_status',
         'invoice_status',
         'payment_status',
+        'payment_method_id',
     ];
 
     /**
