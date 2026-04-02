@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\PrealertStatus;
 use App\Models\Carrier;
 use App\Models\Consignee;
 use App\Models\Port;
@@ -15,6 +16,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use WireUi\Traits\WireUiActions;
 
 new #[Title('Edit Prealert')] class extends Component {
     use WithFileUploads;
@@ -136,7 +138,6 @@ new #[Title('Edit Prealert')] class extends Component {
             'consignee_id' => $this->consignee_id,
             'vin' => $this->vin,
             'vehicle_id' => $this->vehicle?->id,
-            'carrier_id' => $this->carrier_id,
             'destination_port_id' => (int) $this->destination_port_id ?: null,
             'carrier_id' => (int) $this->carrier_id ?: null,
             'gatepass_pin' => $this->gatepass_pin,

@@ -542,6 +542,13 @@ new #[Title('Shipment Details')] class extends Component {
                             </flux:menu.item>
                         @endif
 
+                        @can('invoices.manage')
+                            <flux:menu.item icon="document-arrow-down" :href="route('shipments.invoice.download', $shipment)">
+                                {{ __('Download Invoice') }}
+                            </flux:menu.item>
+                        @endcan
+
+
                         <flux:menu.separator />
 
                         <flux:menu.item icon="user-plus" wire:click="openAssignDriverModal">

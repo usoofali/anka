@@ -64,7 +64,12 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         ->whereNumber('shipment')
         ->name('shipments.show');
 
+    Route::get('/shipments/{shipment}/invoice', [App\Http\Controllers\ShipmentInvoiceController::class, 'download'])
+        ->whereNumber('shipment')
+        ->name('shipments.invoice.download');
+
     Route::get('/api/shippers/search', [ShipperOptionsController::class, 'index'])->name('api.shippers.search');
+
     Route::get('/api/drivers/search', [DriverOptionsController::class, 'index'])->name('api.drivers.search');
     Route::get('/import-templates/geo/{entity}', [ImportTemplateController::class, 'geo'])->name('import-templates.geo');
 

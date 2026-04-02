@@ -26,6 +26,7 @@ final class SystemSetting extends Model
         'logo_path',
         'address',
         'phone',
+        'email',
         'zipcode',
         'country_id',
         'state_id',
@@ -126,6 +127,32 @@ final class SystemSetting extends Model
 
         if (Str::startsWith($logo, '/')) {
             return url($logo);
+        }
+
+        return null;
+    }
+
+    public function logoBase64(): ?string
+    {
+        $path = null;
+
+        if (is_string($this->logo_path) && trim($this->logo_path) !== '') {
+            $path = Storage::disk('public')->path(trim($this->logo_path));
+        } elseif (is_string($this->logo) && trim($this->logo) !== '') {
+            $logo = trim($this->logo);
+            if (Str::startsWith($logo, 'data:image/')) {
+                return $logo;
+            }
+            if (! Str::startsWith($logo, ['http://', 'https://', '/'])) {
+                $path = Storage::disk('public')->path($logo);
+            }
+        }
+
+        if ($path && file_exists($path)) {
+            $type = pathinfo($path, PATHINFO_EXTENSION);
+            $data = file_get_contents($path);
+
+            return 'data:image/' . $type . ';base64,' . base64_encode($data);
         }
 
         return null;

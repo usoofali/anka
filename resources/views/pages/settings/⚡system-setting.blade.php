@@ -23,6 +23,7 @@ new #[Title('System settings')] class extends Component {
     public TemporaryUploadedFile|null $logo_file = null;
     public string $address = '';
     public string $phone = '';
+    public string $email = '';
     public string $zipcode = '';
     public ?int $country_id = null;
     public ?int $state_id = null;
@@ -45,6 +46,7 @@ new #[Title('System settings')] class extends Component {
         $this->logo_path = $setting->logo_path;
         $this->address = $setting->address ?? '';
         $this->phone = $setting->phone ?? '';
+        $this->email = $setting->email ?? '';
         $this->zipcode = $setting->zipcode ?? '';
         $this->country_id = $setting->country_id;
         $this->state_id = $setting->state_id;
@@ -83,6 +85,7 @@ new #[Title('System settings')] class extends Component {
             'logo_file' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:4096'],
             'address' => ['nullable', 'string'],
             'phone' => ['nullable', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'],
             'zipcode' => ['nullable', 'string', 'max:255'],
             'country_id' => ['nullable', 'integer', 'exists:countries,id'],
             'state_id' => ['nullable', 'integer', 'exists:states,id'],
@@ -192,6 +195,7 @@ new #[Title('System settings')] class extends Component {
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <flux:input wire:model="company_name" :label="__('Company name')" />
                 <flux:input wire:model="phone" :label="__('Phone')" />
+                <flux:input wire:model="email" type="email" :label="__('Email')" />
                 <flux:input wire:model="zipcode" :label="__('Zip code')" />
                 <flux:input wire:model="logo_file" type="file" accept="image/*" :label="__('Company logo file')" />
             </div>
