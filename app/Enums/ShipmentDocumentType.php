@@ -8,7 +8,8 @@ enum ShipmentDocumentType: string
 {
     case BillOfLading = 'bill-of-lading';
     case TitleDocument = 'title-document';
-    case DockReceipt = 'dock-receipt';
+    case StampDockReceipt = 'stamp-dock-receipt';
+    case PhotosAndVideos = 'photos-and-videos';
     case CommercialInvoice = 'commercial-invoice';
     case CustomsDeclaration = 'customs-declaration';
     case PackingList = 'packing-list';
@@ -20,7 +21,8 @@ enum ShipmentDocumentType: string
         return match ($this) {
             self::BillOfLading => __('Bill of lading'),
             self::TitleDocument => __('Title document'),
-            self::DockReceipt => __('Dock receipt'),
+            self::StampDockReceipt => __('Stamp dock receipt'),
+            self::PhotosAndVideos => __('Photos and videos'),
             self::CommercialInvoice => __('Commercial invoice'),
             self::CustomsDeclaration => __('Customs declaration'),
             self::PackingList => __('Packing list'),
@@ -35,5 +37,18 @@ enum ShipmentDocumentType: string
     public static function values(): array
     {
         return array_map(fn (self $case): string => $case->value, self::cases());
+    }
+
+    /**
+     * Shipment status to apply after a successful attach batch of this document type.
+     */
+    public function targetShipmentStatusAfterAttachment(): ?ShipmentStatus
+    {
+        return match ($this) {
+            self::TitleDocument => ShipmentStatus::Inland,
+            self::StampDockReceipt => ShipmentStatus::DeliveredToPort,
+            self::BillOfLading => ShipmentStatus::CargoLoaded,
+            default => null,
+        };
     }
 }

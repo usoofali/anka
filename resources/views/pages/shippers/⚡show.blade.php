@@ -110,7 +110,7 @@ new #[Title('Shipper')] class extends Component {
     {
         return Shipment::query()
             ->where('shipper_id', $this->shipper->id)
-            ->with(['vehicle', 'invoice.payment', 'originPort.state', 'originPort.country', 'driver'])
+            ->with(['vehicle', 'invoice.payment', 'originPort.state', 'originPort.country', 'driver', 'workshop'])
             ->when($this->search !== '', function ($query): void {
                 $query->where(function ($searchQuery): void {
                     $term = '%'.trim($this->search).'%';
@@ -562,7 +562,7 @@ new #[Title('Shipper')] class extends Component {
                         </flux:table.cell>
                         <flux:table.cell>
                             <flux:badge size="sm" color="zinc" variant="subtle">
-                                {{ $shipment->shipment_status?->name ?? '—' }}
+                                {{ $shipment->shipmentStatusDisplay() }}
                             </flux:badge>
                         </flux:table.cell>
                         <flux:table.cell>

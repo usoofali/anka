@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\VehicleIs;
 use Database\Factories\VehicleFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -57,6 +58,7 @@ final class Vehicle extends Model
     protected function casts(): array
     {
         return [
+            'vehicle_is' => VehicleIs::class,
             'is_insurance' => 'boolean',
             'api_snapshot' => 'array',
             'api_fetched_at' => 'datetime',

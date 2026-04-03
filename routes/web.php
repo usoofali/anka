@@ -3,6 +3,8 @@
 use App\Http\Controllers\Auth\RegisterGeoOptionsController;
 use App\Http\Controllers\DriverOptionsController;
 use App\Http\Controllers\ImportTemplateController;
+use App\Http\Controllers\ShipmentDocumentFileDownloadController;
+use App\Http\Controllers\ShipmentInvoiceController;
 use App\Http\Controllers\ShipperOptionsController;
 use App\Models\User;
 use Illuminate\Support\Facades\File;
@@ -64,9 +66,14 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         ->whereNumber('shipment')
         ->name('shipments.show');
 
-    Route::get('/shipments/{shipment}/invoice', [App\Http\Controllers\ShipmentInvoiceController::class, 'download'])
+    Route::get('/shipments/{shipment}/invoice', [ShipmentInvoiceController::class, 'download'])
         ->whereNumber('shipment')
         ->name('shipments.invoice.download');
+
+    Route::get('/shipments/{shipment}/documents/files/{file}', ShipmentDocumentFileDownloadController::class)
+        ->whereNumber('shipment')
+        ->whereNumber('file')
+        ->name('shipments.documents.files.download');
 
     Route::get('/api/shippers/search', [ShipperOptionsController::class, 'index'])->name('api.shippers.search');
 

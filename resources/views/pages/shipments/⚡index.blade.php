@@ -28,7 +28,7 @@ new #[Title('Shipments')] class extends Component {
     public function shipments(): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         return Shipment::query()
-            ->with(['shipper.user', 'vehicle', 'driver', 'invoice', 'originPort.state', 'originPort.country'])
+            ->with(['shipper.user', 'vehicle', 'driver', 'invoice', 'originPort.state', 'originPort.country', 'workshop'])
             ->when($this->search !== '', function ($query): void {
                 $query->where(function ($searchQuery): void {
                     $term = '%' . trim($this->search) . '%';
@@ -249,7 +249,7 @@ new #[Title('Shipments')] class extends Component {
                         </flux:table.cell>
                         <flux:table.cell>
                             <flux:badge size="sm" color="zinc" variant="subtle">
-                                {{ $shipment->shipment_status?->name ?? '—' }}
+                                {{ $shipment->shipmentStatusDisplay() }}
                             </flux:badge>
                         </flux:table.cell>
                         <flux:table.cell>

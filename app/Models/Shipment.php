@@ -40,6 +40,8 @@ final class Shipment extends Model
         'invoice_status',
         'payment_status',
         'payment_method_id',
+        'workshop_id',
+        'shipment_status_before_workshop',
     ];
 
     protected function casts(): array
@@ -50,6 +52,7 @@ final class Shipment extends Model
             'shipment_status' => ShipmentStatus::class,
             'invoice_status' => InvoiceStatus::class,
             'payment_status' => PaymentStatus::class,
+            'shipment_status_before_workshop' => ShipmentStatus::class,
         ];
     }
 
@@ -116,5 +119,33 @@ final class Shipment extends Model
     public function activityLogs(): HasMany
     {
         return $this->hasMany(ActivityLog::class);
+    }
+
+    /**
+     * Human-readable status for UI: when at workshop, prefer the linked workshop name.
+     */
+    public function shipmentStatusDisplay(): string
+    {
+        if ($this->shipment_status === null) {
+            return '—';
+        }
+
+        if ($this->shipment_status === ShipmentStatus::AtWorkshop) {
+            $this->loadMissing('workshop');
+            $workshopName = $this->workshop?->name;
+            if ($workshopName !== null && $workshopName !== '') {
+                return $workshopName;
+            }
+        }
+
+        return $this->shipment_status->name;
+    }
+
+    /**
+     * @return BelongsTo<Workshop, $this>
+     */
+    public function workshop(): BelongsTo
+    {
+        return $this->belongsTo(Workshop::class);
     }
 }
