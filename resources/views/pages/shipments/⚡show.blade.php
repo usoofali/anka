@@ -5,10 +5,12 @@ declare(strict_types=1);
 use App\Enums\InvoiceStatus;
 use App\Enums\ShipmentStatus;
 use App\Models\ActivityLog;
+use App\Models\ChargeItem;
 use App\Models\Driver;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Shipment;
+use App\Services\Invoice\InvoiceLineAmountResolver;
 use App\Models\ShipmentTracking;
 use App\Models\User;
 use App\Notifications\InvoiceStatusChangedNotification;
@@ -18,6 +20,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Spatie\Permission\Models\Role;
@@ -48,6 +51,7 @@ new #[Title('Shipment Details')] class extends Component {
     public function mount(Shipment $shipment): void
     {
         $this->shipment = $shipment->load([
+            'shipper',
             'shipper.user',
             'consignee',
             'vehicle',
@@ -95,16 +99,69 @@ new #[Title('Shipment Details')] class extends Component {
         return $invoice;
     }
 
+    public function updatedItemDescription(?string $value): void
+    {
+        if ($value === null || $value === '') {
+            $this->item_amount = '0.00';
+
+            return;
+        }
+
+        $chargeItem = ChargeItem::query()->where('item', $value)->first();
+        if ($chargeItem === null) {
+            return;
+        }
+
+        $this->shipment->loadMissing('shipper');
+        $resolver = app(InvoiceLineAmountResolver::class);
+
+        if ($chargeItem->apply_customer_discount) {
+            $resolved = $resolver->resolveDiscountLine($chargeItem, $this->shipment->shipper);
+            $this->item_amount = $resolved['net'];
+        } else {
+            $this->item_amount = number_format((float) $chargeItem->default_amount, 2, '.', '');
+        }
+    }
+
+    #[Computed]
+    public function invoiceItemAmountReadonly(): bool
+    {
+        if ($this->item_description === '') {
+            return false;
+        }
+
+        $chargeItem = ChargeItem::query()->where('item', $this->item_description)->first();
+
+        return (bool) ($chargeItem?->apply_customer_discount);
+    }
+
     public function addOrUpdateItem(): void
     {
         $invoice = $this->getInvoice();
 
         $validated = $this->validate([
             'item_description' => ['required', 'string', 'max:255', Rule::exists('charge_items', 'item')],
-            'item_amount' => ['required', 'numeric', 'min:0'],
+            'item_amount' => [
+                Rule::requiredIf(fn () => ! $this->chargeItemForInvoiceForm()?->apply_customer_discount),
+                'nullable',
+                'numeric',
+                'min:0',
+            ],
         ]);
 
-        $amount = (float) $validated['item_amount'];
+        $chargeItem = ChargeItem::query()->where('item', $validated['item_description'])->firstOrFail();
+        $this->shipment->loadMissing('shipper');
+        $resolver = app(InvoiceLineAmountResolver::class);
+
+        if ($chargeItem->apply_customer_discount) {
+            $resolved = $resolver->resolveDiscountLine($chargeItem, $this->shipment->shipper);
+        } else {
+            $resolved = $resolver->resolveStandardLine((float) $validated['item_amount']);
+        }
+
+        $net = (float) $resolved['net'];
+        $gross = (float) $resolved['gross'];
+        $discount = (float) $resolved['discount'];
 
         $wasUpdating = (bool) $this->invoiceItemId;
 
@@ -115,7 +172,9 @@ new #[Title('Shipment Details')] class extends Component {
             $fromAmount = (float) $item->amount;
             $item->fill([
                 'description' => $validated['item_description'],
-                'amount' => $amount,
+                'gross_amount' => $gross,
+                'discount_amount' => $discount,
+                'amount' => $net,
             ])->save();
 
             ActivityLog::query()->create([
@@ -130,14 +189,16 @@ new #[Title('Shipment Details')] class extends Component {
                     'from_description' => $fromDescription,
                     'to_description' => $validated['item_description'],
                     'from_amount' => $fromAmount,
-                    'to_amount' => $amount,
+                    'to_amount' => $net,
                 ],
             ]);
         } else {
             /** @var InvoiceItem $item */
             $item = $invoice->items()->create([
                 'description' => $validated['item_description'],
-                'amount' => $amount,
+                'gross_amount' => $gross,
+                'discount_amount' => $discount,
+                'amount' => $net,
             ]);
 
             ActivityLog::query()->create([
@@ -150,7 +211,7 @@ new #[Title('Shipment Details')] class extends Component {
                     'reference_no' => $this->shipment->reference_no,
                     'source' => 'shipment_show',
                     'description' => $validated['item_description'],
-                    'amount' => $amount,
+                    'amount' => $net,
                 ],
             ]);
         }
@@ -175,7 +236,26 @@ new #[Title('Shipment Details')] class extends Component {
 
         $this->invoiceItemId = $item->id;
         $this->item_description = (string) $item->description;
-        $this->item_amount = (string) $item->amount;
+
+        $chargeItem = ChargeItem::query()->where('item', $item->description)->first();
+        $this->shipment->loadMissing('shipper');
+        $resolver = app(InvoiceLineAmountResolver::class);
+
+        if ($chargeItem?->apply_customer_discount) {
+            $resolved = $resolver->resolveDiscountLine($chargeItem, $this->shipment->shipper);
+            $this->item_amount = $resolved['net'];
+        } else {
+            $this->item_amount = number_format((float) $item->amount, 2, '.', '');
+        }
+    }
+
+    private function chargeItemForInvoiceForm(): ?ChargeItem
+    {
+        if ($this->item_description === '') {
+            return null;
+        }
+
+        return ChargeItem::query()->where('item', $this->item_description)->first();
     }
 
     public function deleteItem(int $itemId): void
@@ -1013,18 +1093,30 @@ new #[Title('Shipment Details')] class extends Component {
                                             {{ $item->description }}
                                         </flux:text>
                                     </div>
-                                    <div class="flex items-center gap-2">
-                                        <flux:text size="sm" class="font-mono font-semibold">
-                                            {{ '$'.number_format((float) $item->amount, 2) }}
-                                        </flux:text>
-                                        <flux:button icon="pencil-square" size="xs" variant="ghost" wire:click="editItem({{ $item->id }})" />
-                                        <flux:button
-                                            icon="trash"
-                                            size="xs"
-                                            variant="ghost"
-                                            class="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/40"
-                                            wire:click="deleteItem({{ $item->id }})"
-                                        />
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex flex-col items-end gap-0.5">
+                                            @if((float) $item->discount_amount > 0)
+                                                <flux:text size="xs" class="text-zinc-500 line-through font-mono">
+                                                    {{ '$'.number_format((float) $item->gross_amount, 2) }}
+                                                </flux:text>
+                                                <flux:text size="xs" class="text-emerald-600 dark:text-emerald-400">
+                                                    −{{ '$'.number_format((float) $item->discount_amount, 2) }}
+                                                </flux:text>
+                                            @endif
+                                            <flux:text size="sm" class="font-mono font-semibold">
+                                                {{ '$'.number_format((float) $item->amount, 2) }}
+                                            </flux:text>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <flux:button icon="pencil-square" size="xs" variant="ghost" wire:click="editItem({{ $item->id }})" />
+                                            <flux:button
+                                                icon="trash"
+                                                size="xs"
+                                                variant="ghost"
+                                                class="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/40"
+                                                wire:click="deleteItem({{ $item->id }})"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             @empty
@@ -1038,7 +1130,7 @@ new #[Title('Shipment Details')] class extends Component {
                     </div>
 
                     <form wire:submit.prevent="addOrUpdateItem" class="space-y-3">
-                        <flux:select wire:model="item_description" label="{{ __('Invoice item') }}" icon="document-text">
+                        <flux:select wire:model.live="item_description" label="{{ __('Invoice item') }}" icon="document-text">
                             <flux:select.option value="">{{ __('Select invoice item') }}</flux:select.option>
                             @foreach(\App\Models\ChargeItem::query()->whereNotNull('item')->orderBy('item')->get() as $chargeItem)
                                 <flux:select.option :value="$chargeItem->item">
@@ -1046,13 +1138,14 @@ new #[Title('Shipment Details')] class extends Component {
                                 </flux:select.option>
                             @endforeach
                         </flux:select>
-                        <flux:input 
+                        <flux:input
                             type="number"
                             min="0"
                             step="0.01"
-                            wire:model="item_amount" 
-                            label="{{ __('Amount') }}" 
+                            wire:model="item_amount"
+                            :label="__('Amount')"
                             icon="currency-dollar"
+                            :readonly="$this->invoiceItemAmountReadonly"
                         />
                         <div class="flex gap-2">
                             <flux:button type="submit" variant="primary" icon="plus-circle" class="flex-1">

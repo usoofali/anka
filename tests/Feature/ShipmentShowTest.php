@@ -154,3 +154,71 @@ it('logs activity when an invoice item is updated', function () {
 
     expect((float) $line->fresh()->amount)->toBe(99.0);
 });
+
+it('applies shipper discount for charge items flagged for customer discount', function () {
+    $user = User::factory()->create();
+    actingAs($user);
+
+    $charge = ChargeItem::factory()->create([
+        'item' => 'DiscountedFreight',
+        'default_amount' => 50,
+        'apply_customer_discount' => true,
+    ]);
+
+    $shipment = Shipment::factory()->create();
+    $shipment->shipper->update(['discount_amount' => 10]);
+
+    Livewire::test('pages::shipments.show', ['shipment' => $shipment->fresh(['shipper'])])
+        ->set('item_description', $charge->item)
+        ->call('addOrUpdateItem')
+        ->assertHasNoErrors();
+
+    $item = InvoiceItem::query()->where('description', $charge->item)->first();
+    expect($item)->not->toBeNull()
+        ->and((float) $item->gross_amount)->toBe(50.0)
+        ->and((float) $item->discount_amount)->toBe(10.0)
+        ->and((float) $item->amount)->toBe(40.0);
+});
+
+it('ignores tampered amount when saving discount-flagged charge items', function () {
+    $user = User::factory()->create();
+    actingAs($user);
+
+    $charge = ChargeItem::factory()->create([
+        'item' => 'LockedPriceLine',
+        'default_amount' => 80,
+        'apply_customer_discount' => true,
+    ]);
+
+    $shipment = Shipment::factory()->create();
+    $shipment->shipper->update(['discount_amount' => 15]);
+
+    Livewire::test('pages::shipments.show', ['shipment' => $shipment->fresh(['shipper'])])
+        ->set('item_description', $charge->item)
+        ->set('item_amount', '999.00')
+        ->call('addOrUpdateItem')
+        ->assertHasNoErrors();
+
+    $item = InvoiceItem::query()->where('description', $charge->item)->first();
+    expect($item)->not->toBeNull()
+        ->and((float) $item->gross_amount)->toBe(80.0)
+        ->and((float) $item->discount_amount)->toBe(15.0)
+        ->and((float) $item->amount)->toBe(65.0);
+});
+
+it('makes invoice amount field readonly state when discount-flagged charge item is selected', function () {
+    $user = User::factory()->create();
+    actingAs($user);
+
+    $charge = ChargeItem::factory()->create([
+        'item' => 'ReadonlyAmountItem',
+        'default_amount' => 25,
+        'apply_customer_discount' => true,
+    ]);
+
+    $shipment = Shipment::factory()->create();
+
+    Livewire::test('pages::shipments.show', ['shipment' => $shipment])
+        ->set('item_description', $charge->item)
+        ->assertSet('invoiceItemAmountReadonly', true);
+});

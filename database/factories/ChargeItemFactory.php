@@ -20,6 +20,8 @@ class ChargeItemFactory extends Factory
         return [
             'item' => fake()->words(2, true),
             'description' => fake()->optional()->sentence(),
+            'default_amount' => fake()->randomFloat(2, 25, 500),
+            'apply_customer_discount' => false,
         ];
     }
 }

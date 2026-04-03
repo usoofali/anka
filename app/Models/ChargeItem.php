@@ -16,5 +16,15 @@ final class ChargeItem extends Model
     protected $fillable = [
         'item',
         'description',
+        'default_amount',
+        'apply_customer_discount',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'default_amount' => 'decimal:2',
+            'apply_customer_discount' => 'boolean',
+        ];
+    }
 }

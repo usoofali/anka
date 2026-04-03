@@ -17,12 +17,16 @@ final class InvoiceItem extends Model
     protected $fillable = [
         'invoice_id',
         'description',
+        'gross_amount',
+        'discount_amount',
         'amount',
     ];
 
     protected function casts(): array
     {
         return [
+            'gross_amount' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
             'amount' => 'decimal:2',
         ];
     }

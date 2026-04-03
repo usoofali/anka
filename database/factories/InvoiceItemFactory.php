@@ -20,10 +20,14 @@ class InvoiceItemFactory extends Factory
      */
     public function definition(): array
     {
+        $amount = fake()->randomFloat(2, 10, 500);
+
         return [
             'invoice_id' => Invoice::factory(),
             'description' => fake()->sentence(),
-            'amount' => fake()->randomFloat(2, 10, 500),
+            'gross_amount' => $amount,
+            'discount_amount' => 0,
+            'amount' => $amount,
         ];
     }
 }

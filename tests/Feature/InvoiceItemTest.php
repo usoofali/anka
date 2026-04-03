@@ -11,6 +11,8 @@ it('persists invoice items with description and amount only', function () {
     $item = InvoiceItem::query()->create([
         'invoice_id' => $invoice->id,
         'description' => 'Freight charge',
+        'gross_amount' => 123.45,
+        'discount_amount' => 0,
         'amount' => 123.45,
     ]);
 

@@ -29,6 +29,7 @@ class ShipperFactory extends Factory
             'country_id' => $city->state->country_id,
             'state_id' => $city->state_id,
             'city_id' => $city->id,
+            'discount_amount' => 0,
         ];
     }
 }

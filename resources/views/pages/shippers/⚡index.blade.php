@@ -55,6 +55,8 @@ new #[Title('Shippers')] class extends Component {
 
     public string $address = '';
 
+    public string $discount_amount = '0.00';
+
     public function mount(Request $request): void
     {
         $this->authorize('viewAny', Shipper::class);
@@ -112,15 +114,27 @@ new #[Title('Shippers')] class extends Component {
                 'country_id' => $this->country_id,
                 'state_id' => $this->state_id,
                 'city_id' => $this->city_id,
+                'discount_amount' => $this->discount_amount,
             ],
-            app(UpdateShipperRequest::class)->rules(),
+            [
+                ...app(UpdateShipperRequest::class)->rules(),
+                'discount_amount' => ['required', 'numeric', 'min:0', 'max:999999.99'],
+            ],
         );
         $validator->after(function (\Illuminate\Validation\Validator $v): void {
             ShipperGeoValidator::assertHierarchy($v);
         });
         $validated = $validator->validate();
 
-        $shipper->update($validated);
+        $shipper->update([
+            'company_name' => $validated['company_name'],
+            'phone' => $validated['phone'],
+            'address' => $validated['address'],
+            'country_id' => $validated['country_id'],
+            'state_id' => $validated['state_id'],
+            'city_id' => $validated['city_id'],
+            'discount_amount' => $validated['discount_amount'],
+        ]);
 
         $this->showEditModal = false;
         $this->resetEditForm();
@@ -478,6 +492,7 @@ new #[Title('Shippers')] class extends Component {
         $this->country_id = $shipper->country_id !== null ? (int) $shipper->country_id : null;
         $this->state_id = $shipper->state_id !== null ? (int) $shipper->state_id : null;
         $this->city_id = $shipper->city_id !== null ? (int) $shipper->city_id : null;
+        $this->discount_amount = number_format((float) $shipper->discount_amount, 2, '.', '');
     }
 
     private function resetEditForm(): void
@@ -491,6 +506,7 @@ new #[Title('Shippers')] class extends Component {
         $this->country_id = null;
         $this->state_id = null;
         $this->city_id = null;
+        $this->discount_amount = '0.00';
     }
 }; ?>
 
@@ -519,17 +535,35 @@ new #[Title('Shippers')] class extends Component {
                 @forelse ($shippers as $shipper)
                     <flux:table.row :key="$shipper->id">
                         <flux:table.cell>
-                            <div class="flex items-center gap-3">
-                                <div class="flex size-9 items-center justify-center rounded-lg bg-primary-50 text-primary-600 dark:bg-primary-950/30 dark:text-primary-400">
-                                    <flux:icon.user variant="mini" />
+                            @can('view', $shipper)
+                                <a
+                                    href="{{ route('shippers.show', $shipper) }}"
+                                    wire:navigate
+                                    class="flex items-center gap-3 rounded-lg outline-none ring-offset-2 transition-colors hover:opacity-95 focus-visible:ring-2 focus-visible:ring-indigo-500 dark:ring-offset-zinc-900"
+                                >
+                                    <div class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-600 dark:bg-primary-950/30 dark:text-primary-400">
+                                        <flux:icon.user variant="mini" />
+                                    </div>
+                                    <div class="flex min-w-0 flex-col">
+                                        <span class="font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300">{{ $shipper->user?->name ?: '—' }}</span>
+                                        @if (filled($shipper->user?->email))
+                                            <span class="text-xs text-zinc-500 dark:text-zinc-400">{{ $shipper->user?->email }}</span>
+                                        @endif
+                                    </div>
+                                </a>
+                            @else
+                                <div class="flex items-center gap-3">
+                                    <div class="flex size-9 items-center justify-center rounded-lg bg-primary-50 text-primary-600 dark:bg-primary-950/30 dark:text-primary-400">
+                                        <flux:icon.user variant="mini" />
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="font-semibold text-zinc-900 dark:text-zinc-100">{{ $shipper->user?->name }}</span>
+                                        @if (filled($shipper->user?->email))
+                                            <span class="text-xs text-zinc-500 dark:text-zinc-400">{{ $shipper->user?->email }}</span>
+                                        @endif
+                                    </div>
                                 </div>
-                                <div class="flex flex-col">
-                                    <span class="font-semibold text-zinc-900 dark:text-zinc-100">{{ $shipper->user?->name }}</span>
-                                    @if (filled($shipper->user?->email))
-                                        <span class="text-xs text-zinc-500 dark:text-zinc-400">{{ $shipper->user?->email }}</span>
-                                    @endif
-                                </div>
-                            </div>
+                            @endcan
                         </flux:table.cell>
                         <flux:table.cell>
                             <div class="flex items-center gap-2">
@@ -651,6 +685,15 @@ new #[Title('Shippers')] class extends Component {
                             autocomplete="street-address" 
                             icon="map-pin"
                             placeholder="{{ __('123 Business Way, Suite 100') }}"
+                        />
+                        <flux:input
+                            wire:model="discount_amount"
+                            :label="__('Per-line shipper discount (USD)')"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            icon="tag"
+                            :description="__('Applied only to charge items marked “apply shipper discount”. Default 0.')"
                         />
                     </flux:card>
                 </div>

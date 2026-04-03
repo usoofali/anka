@@ -24,7 +24,15 @@ final class Shipper extends Model
         'country_id',
         'state_id',
         'city_id',
+        'discount_amount',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'discount_amount' => 'decimal:2',
+        ];
+    }
 
     public function user(): BelongsTo
     {
