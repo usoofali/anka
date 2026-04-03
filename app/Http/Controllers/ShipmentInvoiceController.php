@@ -11,7 +11,6 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Http;
 use Symfony\Component\HttpFoundation\Response;
 
-
 final class ShipmentInvoiceController extends Controller
 {
     use AuthorizesRequests;
@@ -34,6 +33,7 @@ final class ShipmentInvoiceController extends Controller
             'carrier',
             'paymentMethod',
             'invoice.items',
+            'invoice.payment',
         ]);
 
         if (! $shipment->invoice) {
@@ -43,14 +43,14 @@ final class ShipmentInvoiceController extends Controller
         $settings = SystemSetting::current();
         $settings->loadMissing(['city', 'state', 'country']);
 
-        $qrText = url('/track/' . $shipment->reference_no);
-        $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" . urlencode($qrText);
+        $qrText = url('/track/'.$shipment->reference_no);
+        $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data='.urlencode($qrText);
         $qrCodeBase64 = null;
 
         try {
             $qrResponse = Http::get($qrUrl);
             if ($qrResponse->successful()) {
-                $qrCodeBase64 = 'data:image/png;base64,' . base64_encode($qrResponse->body());
+                $qrCodeBase64 = 'data:image/png;base64,'.base64_encode($qrResponse->body());
             }
         } catch (\Exception $e) {
             // Skip QR if API fails
@@ -63,6 +63,6 @@ final class ShipmentInvoiceController extends Controller
             'qrCode' => $qrCodeBase64,
         ]);
 
-        return $pdf->download($shipment->reference_no . '.pdf');
+        return $pdf->download('Invoice:'.$shipment->reference_no.'.pdf');
     }
 }

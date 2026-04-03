@@ -8215,6 +8215,9 @@ namespace App\Models {
     /**
      * App\Models\SystemSetting
      *
+     * @property string $signing_customer_label
+     * @property string $signing_company_label
+     * @property string|null $invoice_terms
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
      * @property string $preferred_mailer
@@ -8258,6 +8261,9 @@ namespace App\Models {
      * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting wherePreferredMailer($value)
      * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting whereCreatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting whereUpdatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting whereInvoiceTerms($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting whereSigningCompanyLabel($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting whereSigningCustomerLabel($value)
      * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<SystemSetting>|SystemSetting query()

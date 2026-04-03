@@ -4,7 +4,6 @@ use App\Models\Invoice;
 use App\Models\Shipment;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
-use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     $this->seed(RolePermissionSeeder::class);
@@ -28,7 +27,7 @@ test('authorized users can download the shipment invoice', function () {
 
     $response->assertOk();
     $response->assertHeader('Content-Type', 'application/pdf');
-    $response->assertHeader('Content-Disposition', 'attachment; filename=SHIP-12345.pdf');
+    $response->assertHeader('Content-Disposition', 'attachment; filename="Invoice:SHIP-12345.pdf"');
 });
 
 test('unauthorized users cannot download the shipment invoice', function () {
@@ -73,5 +72,5 @@ test('can download invoice even with null dates', function () {
 
     $response->assertOk();
     $response->assertHeader('Content-Type', 'application/pdf');
-    $response->assertHeader('Content-Disposition', 'attachment; filename=NULL-DATES.pdf');
+    $response->assertHeader('Content-Disposition', 'attachment; filename="Invoice:NULL-DATES.pdf"');
 });
