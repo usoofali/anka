@@ -8,15 +8,18 @@ use App\Enums\VehicleIs;
 use App\Models\Shipment;
 use App\Models\ShipmentDocument;
 use App\Models\ShipmentDocumentFile;
+use App\Models\ShipmentTracking;
 use App\Models\Staff;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\Workshop;
 use App\Notifications\ShipmentDocumentAttachedNotification;
+use App\Support\ShipmentTrackingPresenter;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
 
 use function Pest\Laravel\actingAs;
@@ -129,8 +132,16 @@ it('stores attached documents and notifies shipper and staff', function (): void
     $shipment->refresh();
     expect($shipment->shipment_status)->toBe(ShipmentStatus::CargoLoaded);
 
-    Notification::assertSentTo($shipperOwner, ShipmentDocumentAttachedNotification::class, function ($notification, array $channels): bool {
-        return in_array('mail', $channels, true) && in_array('database', $channels, true);
+    Notification::assertSentTo($shipperOwner, ShipmentDocumentAttachedNotification::class, function (ShipmentDocumentAttachedNotification $notification, array $channels) use ($shipperOwner): bool {
+        if (! in_array('mail', $channels, true) || ! in_array('database', $channels, true)) {
+            return false;
+        }
+        $payload = $notification->toArray($shipperOwner);
+        expect($payload['download_urls'])->toBeArray()->not->toBeEmpty()
+            ->and($payload['download_urls'][0]['url'] ?? '')->toContain('signature=');
+        expect($payload['title'])->toBe(ShipmentDocumentAttachedNotification::documentAttachedTitle(ShipmentDocumentType::BillOfLading->label()));
+
+        return true;
     });
 
     Notification::assertSentTo($staffUser, ShipmentDocumentAttachedNotification::class, function ($notification, array $channels): bool {
@@ -354,4 +365,88 @@ it('forbids shippers from workshop actions', function (): void {
         ->set('toWorkshopWorkshopId', $workshop->id)
         ->call('saveToWorkshop')
         ->assertForbidden();
+});
+
+it('allows guest download with a valid signed url', function (): void {
+    $shipment = Shipment::factory()->create();
+    $relativePath = 'shipment-documents/'.$shipment->id.'/guest.pdf';
+    Storage::disk('local')->put($relativePath, 'secret');
+
+    $document = ShipmentDocument::factory()->create(['shipment_id' => $shipment->id]);
+    $file = ShipmentDocumentFile::factory()->create([
+        'shipment_document_id' => $document->id,
+        'path' => $relativePath,
+    ]);
+
+    $url = URL::temporarySignedRoute(
+        'shipments.documents.files.download.signed',
+        now()->addHour(),
+        ['shipment' => $shipment->id, 'file' => $file->id],
+    );
+
+    $this->get($url)->assertSuccessful();
+});
+
+it('rejects signed download without a valid signature', function (): void {
+    $shipment = Shipment::factory()->create();
+    $document = ShipmentDocument::factory()->create(['shipment_id' => $shipment->id]);
+    $file = ShipmentDocumentFile::factory()->create([
+        'shipment_document_id' => $document->id,
+        'path' => 'x/y.pdf',
+    ]);
+
+    $this->get("/shipments/{$shipment->id}/documents/files/{$file->id}/signed")
+        ->assertForbidden();
+});
+
+it('returns not found when signed url targets wrong shipment for the file', function (): void {
+    $shipmentA = Shipment::factory()->create();
+    $shipmentB = Shipment::factory()->create();
+    $relativePath = 'shipment-documents/'.$shipmentB->id.'/f.pdf';
+    Storage::disk('local')->put($relativePath, 'x');
+
+    $document = ShipmentDocument::factory()->create(['shipment_id' => $shipmentB->id]);
+    $file = ShipmentDocumentFile::factory()->create([
+        'shipment_document_id' => $document->id,
+        'path' => $relativePath,
+    ]);
+
+    $url = URL::temporarySignedRoute(
+        'shipments.documents.files.download.signed',
+        now()->addHour(),
+        ['shipment' => $shipmentA->id, 'file' => $file->id],
+    );
+
+    $this->get($url)->assertNotFound();
+});
+
+it('builds tracking presenter download links from document attach metadata', function (): void {
+    $shipment = Shipment::factory()->create();
+    $relativePath = 'shipment-documents/'.$shipment->id.'/a.pdf';
+    Storage::disk('local')->put($relativePath, 'x');
+
+    $document = ShipmentDocument::factory()->create(['shipment_id' => $shipment->id]);
+    $file = ShipmentDocumentFile::factory()->create([
+        'shipment_document_id' => $document->id,
+        'path' => $relativePath,
+        'original_name' => 'doc.pdf',
+    ]);
+
+    $tracking = new ShipmentTracking([
+        'shipment_id' => $shipment->id,
+        'status' => ShipmentStatus::CargoLoaded,
+        'metadata' => [
+            'source' => 'shipment_show_attach_document',
+            'shipment_document_file_ids' => [$file->id],
+            'file_names' => ['doc.pdf'],
+            'document_type_label' => 'Bill of lading',
+        ],
+    ]);
+
+    $badges = app(ShipmentTrackingPresenter::class)->badges($tracking, $shipment);
+    $withHref = array_values(array_filter($badges, fn (array $b): bool => ! empty($b['href'])));
+
+    expect($withHref)->not->toBeEmpty()
+        ->and($withHref[0]['href'])->toContain('signature=')
+        ->and($withHref[0]['href'])->toContain('/shipments/'.$shipment->id.'/documents/files/'.$file->id.'/signed');
 });

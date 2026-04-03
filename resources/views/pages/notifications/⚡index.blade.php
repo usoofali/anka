@@ -6,9 +6,13 @@ use Illuminate\Notifications\DatabaseNotification;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
+use WireUi\Traits\WireUiActions;
 
 new #[Title('Notifications')] class extends Component {
+    use WireUiActions;
     use WithPagination;
+
+    public bool $showDeleteAllNotificationsModal = false;
 
     public function markAsRead(string $id): void
     {
@@ -23,18 +27,54 @@ new #[Title('Notifications')] class extends Component {
         }
     }
 
+    public function markAllAsRead(): void
+    {
+        $user = auth()->user();
+        if ($user === null) {
+            return;
+        }
+
+        $updated = $user->unreadNotifications()->update(['read_at' => now()]);
+        if ($updated > 0) {
+            $this->notification()->success(__('All notifications marked as read.'));
+        }
+    }
+
+    public function openDeleteAllNotificationsModal(): void
+    {
+        $this->showDeleteAllNotificationsModal = true;
+    }
+
+    public function deleteAllNotifications(): void
+    {
+        $user = auth()->user();
+        if ($user === null) {
+            return;
+        }
+
+        $user->notifications()->delete();
+        $this->showDeleteAllNotificationsModal = false;
+        $this->resetPage();
+        $this->notification()->success(__('All notifications deleted.'));
+    }
+
     /**
-     * @return array{notifications: \Illuminate\Contracts\Pagination\LengthAwarePaginator<DatabaseNotification>}
+     * @return array{
+     *     notifications: \Illuminate\Contracts\Pagination\LengthAwarePaginator<DatabaseNotification>|null,
+     *     unreadNotificationsCount: int
+     * }
      */
     public function with(): array
     {
-        $notifications = auth()->user()
+        $user = auth()->user();
+        $notifications = $user
             ?->notifications()
             ->latest()
             ->paginate(20);
 
         return [
             'notifications' => $notifications,
+            'unreadNotificationsCount' => $user !== null ? $user->unreadNotifications()->count() : 0,
         ];
     }
 }; ?>
@@ -43,7 +83,31 @@ new #[Title('Notifications')] class extends Component {
     <x-crud.page-header
         :heading="__('Notifications')"
         :subheading="__('Stay updated with account activity and shipment events.')"
-    />
+    >
+        @if (! $notifications->isEmpty())
+            <x-slot name="actions">
+                <div class="flex flex-wrap items-center gap-2">
+                    @if ($unreadNotificationsCount > 0)
+                        <flux:button
+                            variant="ghost"
+                            icon="check-badge"
+                            wire:click="markAllAsRead"
+                            wire:loading.attr="disabled"
+                        >
+                            {{ __('Mark all as read') }}
+                        </flux:button>
+                    @endif
+                    <flux:button
+                        variant="danger"
+                        icon="trash"
+                        wire:click="openDeleteAllNotificationsModal"
+                    >
+                        {{ __('Delete all') }}
+                    </flux:button>
+                </div>
+            </x-slot>
+        @endif
+    </x-crud.page-header>
 
     @if ($notifications->isEmpty())
         <x-crud.empty-state
@@ -119,5 +183,20 @@ new #[Title('Notifications')] class extends Component {
             </flux:table>
         </x-crud.panel>
     @endif
+
+    <flux:modal wire:model.self="showDeleteAllNotificationsModal" class="max-w-md">
+        <div class="space-y-4">
+            <flux:heading size="lg">{{ __('Delete all notifications?') }}</flux:heading>
+            <flux:subheading>{{ __('This removes every notification from your account. This cannot be undone.') }}</flux:subheading>
+            <div class="flex justify-end gap-2">
+                <flux:modal.close>
+                    <flux:button variant="ghost" type="button">{{ __('Cancel') }}</flux:button>
+                </flux:modal.close>
+                <flux:button variant="danger" wire:click="deleteAllNotifications" wire:loading.attr="disabled">
+                    {{ __('Delete all') }}
+                </flux:button>
+            </div>
+        </div>
+    </flux:modal>
 </x-crud.page-shell>
 

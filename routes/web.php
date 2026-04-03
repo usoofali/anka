@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\RegisterGeoOptionsController;
 use App\Http\Controllers\DriverOptionsController;
 use App\Http\Controllers\ImportTemplateController;
 use App\Http\Controllers\ShipmentDocumentFileDownloadController;
+use App\Http\Controllers\ShipmentDocumentFileSignedDownloadController;
 use App\Http\Controllers\ShipmentInvoiceController;
 use App\Http\Controllers\ShipperOptionsController;
 use App\Models\User;
@@ -28,6 +29,13 @@ Route::livewire('/setup', 'pages::auth.setup')
 
 Route::view('/terms', 'pages.legal.terms')->name('terms');
 Route::view('/privacy', 'pages.legal.privacy')->name('privacy');
+
+Route::middleware(['web', 'signed', 'throttle:60,1'])->group(function (): void {
+    Route::get('/shipments/{shipment}/documents/files/{file}/signed', ShipmentDocumentFileSignedDownloadController::class)
+        ->whereNumber('shipment')
+        ->whereNumber('file')
+        ->name('shipments.documents.files.download.signed');
+});
 
 Route::middleware(['web', 'throttle:120,1'])->group(function (): void {
     Route::get('/register/geo/countries', [RegisterGeoOptionsController::class, 'countries'])->name('register.geo.countries');

@@ -21,6 +21,8 @@ use App\Models\Workshop;
 use App\Notifications\InvoiceStatusChangedNotification;
 use App\Notifications\ShipmentDispatchedNotification;
 use App\Notifications\ShipmentDocumentAttachedNotification;
+use App\Support\ShipmentActivityLogPresenter;
+use App\Support\ShipmentTrackingPresenter;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -217,7 +219,7 @@ new #[Title('Shipment Details')] class extends Component {
                 'shipment_id' => $this->shipment->id,
                 'user_id' => Auth::id(),
                 'action' => 'invoice_item_updated',
-                'properties' => [
+                'properties' => array_filter([
                     'invoice_id' => $invoice->id,
                     'invoice_item_id' => $item->id,
                     'reference_no' => $this->shipment->reference_no,
@@ -226,7 +228,9 @@ new #[Title('Shipment Details')] class extends Component {
                     'to_description' => $validated['item_description'],
                     'from_amount' => $fromAmount,
                     'to_amount' => $net,
-                ],
+                    'gross_amount' => $gross !== 0.0 ? $gross : null,
+                    'discount_amount' => $discount !== 0.0 ? $discount : null,
+                ], fn ($v) => $v !== null),
             ]);
         } else {
             /** @var InvoiceItem $item */
@@ -241,14 +245,16 @@ new #[Title('Shipment Details')] class extends Component {
                 'shipment_id' => $this->shipment->id,
                 'user_id' => Auth::id(),
                 'action' => 'invoice_item_added',
-                'properties' => [
+                'properties' => array_filter([
                     'invoice_id' => $invoice->id,
                     'invoice_item_id' => $item->id,
                     'reference_no' => $this->shipment->reference_no,
                     'source' => 'shipment_show',
                     'description' => $validated['item_description'],
                     'amount' => $net,
-                ],
+                    'gross_amount' => $gross !== 0.0 ? $gross : null,
+                    'discount_amount' => $discount !== 0.0 ? $discount : null,
+                ], fn ($v) => $v !== null),
             ]);
         }
 
@@ -302,14 +308,16 @@ new #[Title('Shipment Details')] class extends Component {
         $item = $invoice->items()->whereKey($itemId)->first();
 
         if ($item) {
-            $properties = [
+            $properties = array_filter([
                 'invoice_id' => $invoice->id,
                 'invoice_item_id' => $item->id,
                 'reference_no' => $this->shipment->reference_no,
                 'source' => 'shipment_show',
                 'description' => (string) $item->description,
                 'amount' => (float) $item->amount,
-            ];
+                'gross_amount' => (float) $item->gross_amount !== 0.0 ? (float) $item->gross_amount : null,
+                'discount_amount' => (float) $item->discount_amount !== 0.0 ? (float) $item->discount_amount : null,
+            ], fn ($v) => $v !== null);
 
             $item->delete();
 
@@ -468,6 +476,10 @@ new #[Title('Shipment Details')] class extends Component {
         $this->shipment->loadMissing('shipper');
 
         DB::transaction(function () use ($driverId, $driver): void {
+            $driverLabel = filled($driver->company)
+                ? (string) $driver->company
+                : (filled($driver->phone) ? (string) $driver->phone : (string) $driver->id);
+
             $this->shipment->update([
                 'driver_id' => $driverId,
                 'shipment_status' => ShipmentStatus::Dispatched,
@@ -480,14 +492,11 @@ new #[Title('Shipment Details')] class extends Component {
                 'metadata' => [
                     'source' => 'shipment_show_assign_driver',
                     'driver_id' => $driverId,
+                    'driver_label' => $driverLabel,
                     'created_by' => Auth::id(),
                 ],
                 'recorded_at' => now(),
             ]);
-
-            $driverLabel = filled($driver->company)
-                ? (string) $driver->company
-                : (filled($driver->phone) ? (string) $driver->phone : (string) $driver->id);
 
             ActivityLog::query()->create([
                 'shipment_id' => $this->shipment->id,
@@ -642,14 +651,19 @@ new #[Title('Shipment Details')] class extends Component {
                 'notes' => $this->attachDocumentNotes !== '' ? $this->attachDocumentNotes : null,
             ]);
 
+            $attachedFileIds = [];
+            $attachedFileNames = [];
+
             foreach ($this->attachFiles as $uploaded) {
                 $path = $uploaded->store('shipment-documents/'.$this->shipment->id, 'local');
-                ShipmentDocumentFile::query()->create([
+                $createdFile = ShipmentDocumentFile::query()->create([
                     'shipment_document_id' => $document->id,
                     'path' => $path,
                     'original_name' => $uploaded->getClientOriginalName(),
                     'uploaded_by' => Auth::id(),
                 ]);
+                $attachedFileIds[] = $createdFile->id;
+                $attachedFileNames[] = $uploaded->getClientOriginalName();
                 $fileCount++;
             }
 
@@ -677,7 +691,7 @@ new #[Title('Shipment Details')] class extends Component {
                 'document_type' => $documentType->value,
                 'document_type_label' => $documentType->label(),
                 'file_count' => $fileCount,
-                'file_names' => array_map(fn ($f) => $f->getClientOriginalName(), $this->attachFiles),
+                'file_names' => $attachedFileNames,
                 'reference_no' => $this->shipment->reference_no,
                 'source' => 'shipment_show_attach_document',
                 'uploaded_by' => Auth::id(),
@@ -717,6 +731,9 @@ new #[Title('Shipment Details')] class extends Component {
                     'source' => 'shipment_show_attach_document',
                     'shipment_document_id' => $document->id,
                     'document_type' => $documentType->value,
+                    'document_type_label' => $documentType->label(),
+                    'shipment_document_file_ids' => $attachedFileIds,
+                    'file_names' => $attachedFileNames,
                     'vehicle_is' => $vehicleIsLabel,
                     'created_by' => Auth::id(),
                 ],
@@ -771,6 +788,7 @@ new #[Title('Shipment Details')] class extends Component {
         $workshopId = (int) $validated['toWorkshopWorkshopId'];
 
         DB::transaction(function () use ($workshopId): void {
+            $workshop = Workshop::query()->findOrFail($workshopId);
             $before = $this->shipment->shipment_status;
             $this->shipment->shipment_status_before_workshop = $before;
             $this->shipment->workshop_id = $workshopId;
@@ -783,7 +801,9 @@ new #[Title('Shipment Details')] class extends Component {
                 'action' => 'shipment_sent_to_workshop',
                 'properties' => [
                     'workshop_id' => $workshopId,
+                    'workshop_name' => $workshop->name,
                     'from_shipment_status' => $before?->value,
+                    'from_shipment_status_label' => $before?->name,
                     'reference_no' => $this->shipment->reference_no,
                     'source' => 'shipment_show',
                 ],
@@ -796,6 +816,9 @@ new #[Title('Shipment Details')] class extends Component {
                 'note' => __('Shipment sent to workshop.'),
                 'metadata' => [
                     'source' => 'shipment_show_to_workshop',
+                    'workshop_name' => $workshop->name,
+                    'from_shipment_status' => $before?->value,
+                    'from_shipment_status_label' => $before?->name,
                     'created_by' => Auth::id(),
                 ],
                 'recorded_at' => now(),
@@ -845,6 +868,7 @@ new #[Title('Shipment Details')] class extends Component {
                 'action' => 'shipment_returned_from_workshop',
                 'properties' => [
                     'to_shipment_status' => $stored->value,
+                    'to_shipment_status_label' => $stored->name,
                     'reference_no' => $this->shipment->reference_no,
                     'source' => 'shipment_show',
                 ],
@@ -857,6 +881,8 @@ new #[Title('Shipment Details')] class extends Component {
                 'note' => __('Shipment returned from workshop.'),
                 'metadata' => [
                     'source' => 'shipment_show_from_workshop',
+                    'to_shipment_status' => $stored->value,
+                    'to_shipment_status_label' => $stored->name,
                     'created_by' => Auth::id(),
                 ],
                 'recorded_at' => now(),
@@ -899,6 +925,10 @@ new #[Title('Shipment Details')] class extends Component {
             ->firstOrFail();
 
         DB::transaction(function () use ($document): void {
+            $docTypeLabel = $document->document_type?->label();
+            $docTypeValue = $document->document_type?->value;
+            $documentId = $document->id;
+
             foreach ($document->files as $file) {
                 Storage::disk('local')->delete($file->path);
                 $file->delete();
@@ -911,8 +941,9 @@ new #[Title('Shipment Details')] class extends Component {
                 'user_id' => Auth::id(),
                 'action' => 'document_removed',
                 'properties' => [
-                    'shipment_document_id' => $document->id,
-                    'document_type' => $document->document_type?->value,
+                    'shipment_document_id' => $documentId,
+                    'document_type' => $docTypeValue,
+                    'document_type_label' => $docTypeLabel,
                     'reference_no' => $this->shipment->reference_no,
                     'source' => 'shipment_show',
                 ],
@@ -1045,13 +1076,13 @@ new #[Title('Shipment Details')] class extends Component {
     <div class="space-y-6">
         {{-- Header & Summary --}}
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div class="flex items-center gap-3">
-                <div class="rounded-lg bg-zinc-100 p-2 dark:bg-zinc-800">
+            <div class="flex items-start gap-3 sm:items-center">
+                {{-- <div class="shrink-0 rounded-lg bg-zinc-100 p-2 dark:bg-zinc-800">
                     <flux:icon.document-text class="size-6 text-zinc-600 dark:text-zinc-400" />
-                </div>
-                <div>
+                </div> --}}
+                <div class="min-w-0 flex-1">
                     <x-crud.page-header 
-                        :heading="__('Shipment: ') . $shipment->reference_no" 
+                        :heading="__('SHIPMENT #') . $shipment->reference_no" 
                         :subheading="__('View full shipment, tracking, and financial details.')"
                     />
                     <div class="mt-2 flex flex-wrap gap-2">
@@ -1089,7 +1120,7 @@ new #[Title('Shipment Details')] class extends Component {
                 </div>
             </div>
 
-            <div class="flex flex-wrap gap-2">
+            <div class="flex flex-wrap justify-end gap-2">
                 <flux:dropdown align="end" position="bottom">
                     <flux:button variant="outline" icon="ellipsis-horizontal">
                         {{ __('Actions') }}
@@ -1386,6 +1417,9 @@ new #[Title('Shipment Details')] class extends Component {
                             {{ __('No tracking events have been recorded for this shipment yet.') }}
                         </flux:text>
                     @else
+                        @php
+                            $trackingPresenter = app(ShipmentTrackingPresenter::class);
+                        @endphp
                         <div class="space-y-4">
                             @foreach($shipment->trackings as $index => $tracking)
                                 <div class="flex gap-3">
@@ -1425,20 +1459,24 @@ new #[Title('Shipment Details')] class extends Component {
                                             </flux:text>
                                         @endif
                                         @php
-                                            $trackingMetadata = is_array($tracking->metadata) ? $tracking->metadata : [];
+                                            $trackingDetailBadges = $trackingPresenter->badges($tracking, $shipment);
                                         @endphp
-                                        @if(($trackingMetadata['source'] ?? null) || ($trackingMetadata['created_by'] ?? null))
-                                            <div class="mt-2 flex flex-wrap gap-2">
-                                                @if(($trackingMetadata['source'] ?? null))
-                                                    <flux:badge size="sm" color="zinc" variant="outline">
-                                                        {{ __('Source: :source', ['source' => (string) $trackingMetadata['source']]) }}
-                                                    </flux:badge>
-                                                @endif
-                                                @if(($trackingMetadata['created_by'] ?? null))
-                                                    <flux:badge size="sm" color="zinc" variant="outline">
-                                                        {{ __('Created by user #:id', ['id' => (string) $trackingMetadata['created_by']]) }}
-                                                    </flux:badge>
-                                                @endif
+                                        @if(count($trackingDetailBadges) > 0)
+                                            <div class="mt-2 flex flex-wrap items-center gap-2">
+                                                @foreach($trackingDetailBadges as $tb)
+                                                    @if(! empty($tb['href']))
+                                                        <a
+                                                            href="{{ $tb['href'] }}"
+                                                            class="inline-flex items-center gap-1 rounded-md border border-indigo-200 bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-800 hover:bg-indigo-100 dark:border-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-200 dark:hover:bg-indigo-900/40"
+                                                        >
+                                                            {{ $tb['text'] }}
+                                                        </a>
+                                                    @else
+                                                        <flux:badge size="sm" color="zinc" variant="{{ $tb['variant'] ?? 'subtle' }}">
+                                                            {{ $tb['text'] }}
+                                                        </flux:badge>
+                                                    @endif
+                                                @endforeach
                                             </div>
                                         @endif
                                     </div>
@@ -1460,6 +1498,9 @@ new #[Title('Shipment Details')] class extends Component {
                             {{ __('No activity has been recorded for this shipment yet.') }}
                         </flux:text>
                     @else
+                        @php
+                            $activityLogPresenter = app(ShipmentActivityLogPresenter::class);
+                        @endphp
                         <div class="space-y-3">
                             @foreach($shipment->activityLogs->sortByDesc('created_at') as $log)
                                 <div class="flex items-start gap-3 border-b border-zinc-100 dark:border-zinc-800 pb-3 last:border-0 last:pb-0">
@@ -1477,63 +1518,19 @@ new #[Title('Shipment Details')] class extends Component {
                                                 {{ $log->created_at?->diffForHumans() }}
                                             </flux:text>
                                         </div>
-                                        <flux:text size="sm" class="text-zinc-600 dark:text-zinc-300">
-                                            {{ ucfirst($log->action) }}
+                                        <flux:text size="sm" class="font-semibold text-zinc-800 dark:text-zinc-200 mt-0.5">
+                                            {{ $activityLogPresenter->title($log) }}
                                         </flux:text>
                                         @php
-                                            $properties = is_array($log->properties) ? $log->properties : [];
-                                            $invoiceItemActions = ['invoice_item_added', 'invoice_item_updated', 'invoice_item_removed'];
-                                            $isInvoiceItemLog = in_array($log->action, $invoiceItemActions, true);
-                                            $showActivityMetaRow = ($properties['source'] ?? null)
-                                                || (array_key_exists('prealert_id', $properties) && $properties['prealert_id'] !== null)
-                                                || $isInvoiceItemLog;
+                                            $activityBadges = $activityLogPresenter->badges($log);
                                         @endphp
-                                        @if(($properties['message'] ?? null))
-                                            <flux:text size="sm" class="mt-1">
-                                                {{ (string) $properties['message'] }}
-                                            </flux:text>
-                                        @endif
-                                        @if($showActivityMetaRow)
+                                        @if(count($activityBadges) > 0)
                                             <div class="mt-2 flex flex-wrap gap-2">
-                                                @if(($properties['source'] ?? null))
-                                                    <flux:badge size="sm" color="zinc" variant="outline">
-                                                        {{ __('Source: :source', ['source' => (string) $properties['source']]) }}
+                                                @foreach($activityBadges as $ab)
+                                                    <flux:badge size="sm" color="zinc" variant="{{ $ab['variant'] ?? 'subtle' }}">
+                                                        {{ $ab['text'] }}
                                                     </flux:badge>
-                                                @endif
-                                                @if(array_key_exists('prealert_id', $properties) && $properties['prealert_id'] !== null)
-                                                    <flux:badge size="sm" color="indigo" variant="subtle">
-                                                        {{ __('Prealert #:id', ['id' => (string) $properties['prealert_id']]) }}
-                                                    </flux:badge>
-                                                @endif
-                                                @if($log->action === 'invoice_item_updated' || $log->action === 'invoice_item_added' || $log->action === 'invoice_item_removed')
-                                                    @if(filled($properties['from_description'] ?? null) || filled($properties['to_description'] ?? null))
-                                                        <flux:badge size="sm" color="amber" variant="subtle">
-                                                            {{ __('Item: :from → :to', [
-                                                                'from' => (string) ($properties['from_description'] ?? '—'),
-                                                                'to' => (string) ($properties['to_description'] ?? '—'),
-                                                            ]) }}
-                                                        </flux:badge>
-                                                    @endif
-                                                    @if(array_key_exists('from_amount', $properties) || array_key_exists('to_amount', $properties))
-                                                        <flux:badge size="sm" color="amber" variant="subtle">
-                                                            {{ __('Amount: :from → :to', [
-                                                                'from' => '$'.number_format((float) ($properties['from_amount'] ?? 0), 2),
-                                                                'to' => '$'.number_format((float) ($properties['to_amount'] ?? 0), 2),
-                                                            ]) }}
-                                                        </flux:badge>
-                                                    @endif
-                                                @elseif($isInvoiceItemLog)
-                                                    @if(filled($properties['description'] ?? null))
-                                                        <flux:badge size="sm" color="amber" variant="subtle">
-                                                            {{ __('Item: :item', ['item' => (string) $properties['description']]) }}
-                                                        </flux:badge>
-                                                    @endif
-                                                    @if(array_key_exists('amount', $properties))
-                                                        <flux:badge size="sm" color="amber" variant="subtle">
-                                                            {{ __('Amount: :amount', ['amount' => '$'.number_format((float) $properties['amount'], 2)]) }}
-                                                        </flux:badge>
-                                                    @endif
-                                                @endif
+                                                @endforeach
                                             </div>
                                         @endif
                                     </div>
@@ -1799,7 +1796,7 @@ new #[Title('Shipment Details')] class extends Component {
                                                             size="sm"
                                                             variant="outline"
                                                             icon="arrow-down-tray"
-                                                            :href="route('shipments.documents.files.download', [$shipment, $docFile])"
+                                                            :href="\App\Support\ShipmentDocumentSignedDownloadUrl::for($shipment, $docFile)"
                                                         >
                                                             {{ __('Download') }}
                                                         </flux:button>

@@ -5,9 +5,11 @@
 </p>
 @endif
 
-# {{ __('Hello :name!', ['name' => $notifiable->name]) }}
+# {{ $notificationTitle }}
 
-{{ __('A document has been attached to your shipment.') }}
+{{ __('Hello :name!', ['name' => $notifiable->name]) }}
+
+{{ __('Your shipment :ref has new file(s) attached.', ['ref' => $shipment->reference_no]) }}
 
 **{{ __('Details') }}**
 - **{{ __('Reference') }}:** {{ $shipment->reference_no }}
@@ -16,6 +18,15 @@
 
 @if ($fromShipmentStatus && $toShipmentStatus && $fromShipmentStatus !== $toShipmentStatus)
 - **{{ __('Shipment status') }}:** {{ $fromShipmentStatus->name }} → {{ $toShipmentStatus->name }}
+@endif
+
+@if ($downloadLinks !== [])
+**{{ __('Download') }}**
+@foreach ($downloadLinks as $link)
+<x-mail::button :url="$link['url']">
+{{ __('Download: :name', ['name' => $link['name']]) }}
+</x-mail::button>
+@endforeach
 @endif
 
 <x-mail::button :url="route('shipments.show', $shipment, absolute: true)">

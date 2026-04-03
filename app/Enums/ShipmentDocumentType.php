@@ -10,11 +10,6 @@ enum ShipmentDocumentType: string
     case TitleDocument = 'title-document';
     case StampDockReceipt = 'stamp-dock-receipt';
     case PhotosAndVideos = 'photos-and-videos';
-    case CommercialInvoice = 'commercial-invoice';
-    case CustomsDeclaration = 'customs-declaration';
-    case PackingList = 'packing-list';
-    case BillOfSale = 'bill-of-sale';
-    case Other = 'other';
 
     public function label(): string
     {
@@ -23,11 +18,6 @@ enum ShipmentDocumentType: string
             self::TitleDocument => __('Title document'),
             self::StampDockReceipt => __('Stamp dock receipt'),
             self::PhotosAndVideos => __('Photos and videos'),
-            self::CommercialInvoice => __('Commercial invoice'),
-            self::CustomsDeclaration => __('Customs declaration'),
-            self::PackingList => __('Packing list'),
-            self::BillOfSale => __('Bill of sale'),
-            self::Other => __('Other'),
         };
     }
 
