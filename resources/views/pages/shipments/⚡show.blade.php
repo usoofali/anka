@@ -1188,49 +1188,87 @@ new #[Title('Shipment Details')] class extends Component {
 
         {{-- At-a-glance row --}}
         <x-crud.panel class="p-4">
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <div>
-                    <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1">
-                        {{ __('Reference') }}
-                    </flux:text>
-                    <flux:text class="font-mono font-semibold">
-                        {{ $shipment->reference_no }}
-                    </flux:text>
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-12">
+                <div class="md:col-span-3">
+                    <div class="space-y-3">
+                        <div>
+                            <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1">
+                                {{ __('VIN') }}
+                            </flux:text>
+                            <flux:text class="font-mono">
+                                {{ $shipment->vin ?? '—' }}
+                            </flux:text>
+                        </div>
+                        <div>
+                            <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1">
+                                {{ __('Lot number') }}
+                            </flux:text>
+                            <flux:text class="font-mono">
+                                {{ $shipment->vehicle?->lot_number ?? '—' }}
+                            </flux:text>
+                        </div>
+                        <div>
+                            <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1">
+                                {{ __('Auction') }}
+                            </flux:text>
+                            <flux:text>
+                                @if(filled($shipment->vehicle?->auction_name))
+                                    {{ \Illuminate\Support\Str::upper($shipment->vehicle->auction_name) }}
+                                @else
+                                    —
+                                @endif
+                            </flux:text>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1">
-                        {{ __('VIN') }}
-                    </flux:text>
-                    <flux:text class="font-mono">
-                        {{ $shipment->vin ?? '—' }}
-                    </flux:text>
-                </div>
-                <div>
-                    <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1">
-                        {{ __('Shipper') }}
-                    </flux:text>
-                    <flux:text>
-                        {{ optional($shipment->shipper?->user)->name ?? '—' }}
-                    </flux:text>
-                </div>
-                <div>
-                    <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1">
-                        {{ __('Consignee') }}
-                    </flux:text>
-                    <flux:text>
-                        {{ $shipment->consignee?->name ?? '—' }}
-                    </flux:text>
-                </div>
-                <div>
-                    <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1">
-                        {{ __('Driver') }}
-                    </flux:text>
-                    <flux:text>
-                        {{ $shipment->driver?->company ?? '—' }}
-                        @if($shipment->driver?->phone)
-                            <span class="text-zinc-500">({{ $shipment->driver->phone }})</span>
+                <div class="md:col-span-9">
+                    <div class="space-y-4">
+                        @if($shipment->shipper)
+                            <div class="flex items-start gap-3">
+                                <div>
+                                    <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1">
+                                        {{ __('Shipper') }}
+                                    </flux:text>
+                                    <flux:text size="sm" class="font-semibold">
+                                        {{ $shipment->shipper->company_name ?? $shipment->shipper->user?->name }}
+                                    </flux:text>
+                                    <div class="flex flex-col gap-1 mt-1 text-zinc-500">
+                                        @if($shipment->shipper->user?->email)
+                                            <div class="flex items-center gap-1.5">
+                                                <flux:icon.envelope class="size-3.5" />
+                                                <flux:text size="xs">{{ $shipment->shipper->user->email }}</flux:text>
+                                            </div>
+                                        @endif
+                                        @if($shipment->shipper->phone)
+                                            <div class="flex items-center gap-1.5">
+                                                <flux:icon.phone class="size-3.5" />
+                                                <flux:text size="xs">{{ $shipment->shipper->phone }}</flux:text>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
                         @endif
-                    </flux:text>
+
+                        @if($shipment->consignee)
+                            <div class="@if($shipment->shipper) border-t border-zinc-100 dark:border-zinc-800 pt-3 @endif">
+                                <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1">
+                                    {{ __('Consignee') }}
+                                </flux:text>
+                                <flux:text size="sm" class="font-medium">
+                                    {{ $shipment->consignee->name }}@if(filled($shipment->consignee->address))
+                                        <span class="font-normal text-zinc-600 dark:text-zinc-400">({{ $shipment->consignee->address }})</span>
+                                    @endif
+                                </flux:text>
+                            </div>
+                        @endif
+
+                        @if(! $shipment->shipper && ! $shipment->consignee)
+                            <flux:text size="sm" class="text-zinc-500">
+                                {{ __('No shipper or consignee on this shipment.') }}
+                            </flux:text>
+                        @endif
+                    </div>
                 </div>
             </div>
         </x-crud.panel>
@@ -1286,6 +1324,25 @@ new #[Title('Shipment Details')] class extends Component {
                             </flux:text>
                             <flux:text class="font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
                                 {{ $shipment->gatepass_pin ?? '—' }}
+                            </flux:text>
+                        </div>
+                        <div>
+                            <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1">
+                                {{ __('Driver') }}
+                            </flux:text>
+                            <flux:text class="font-medium">
+                                {{ $shipment->driver?->company ?? '—' }}
+                                @if($shipment->driver?->phone)
+                                    <span class="text-zinc-500">({{ $shipment->driver->phone }})</span>
+                                @endif
+                            </flux:text>
+                        </div>
+                        <div>
+                            <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1">
+                                {{ __('Location') }}
+                            </flux:text>
+                            <flux:text class="font-medium">
+                                {{ \Illuminate\Support\Str::upper($shipment->vehicle?->location ?? '—') }}
                             </flux:text>
                         </div>
                     </div>
@@ -1385,11 +1442,31 @@ new #[Title('Shipment Details')] class extends Component {
                                     </div>
                                     <div>
                                         <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1">
+                                            {{ __('Vehicle is?') }}
+                                        </flux:text>
+                                        <flux:text class="font-medium">
+                                            {{ $shipment->vehicle->vehicle_is?->label() ?? '—' }}
+                                        </flux:text>
+                                    </div>
+                                    <div>
+                                        <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1">
                                             {{ __('Damage') }}
                                         </flux:text>
                                         <flux:badge color="rose" variant="subtle" size="sm">
                                             {{ $shipment->vehicle->primary_damage ?? 'None' }}
                                         </flux:badge>
+                                    </div>
+                                    <div>
+                                        <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1">
+                                            {{ __('Key') }}
+                                        </flux:text>
+                                        <flux:text class="font-medium">
+                                            @if($shipment->vehicle->car_keys === '1' || $shipment->vehicle->car_keys === 1)
+                                                {{ __('Yes') }}
+                                            @else
+                                                {{ __('No') }}
+                                            @endif
+                                        </flux:text>
                                     </div>
                                     <div>
                                         <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1">
@@ -1404,6 +1481,127 @@ new #[Title('Shipment Details')] class extends Component {
                         </div>
                     </div>
                 @endif
+
+                {{-- Invoice & Items --}}
+                <x-crud.panel class="p-6 bg-zinc-50 dark:bg-zinc-800/60 border-zinc-200 dark:border-zinc-700">
+                    <div class="flex items-start justify-between gap-3 mb-4">
+                        <div>
+                            <flux:heading size="lg" class="flex items-center gap-2">
+                                <flux:icon.receipt-percent class="size-5 text-indigo-500" />
+                                {{ __('Invoice') }}
+                            </flux:heading>
+                            <flux:text size="sm" class="text-zinc-500 mt-1">
+                                {{ $shipment->invoice?->invoice_number ?? __('No invoice number assigned yet.') }}
+                            </flux:text>
+                        </div>
+                        <div class="shrink-0 text-right">
+                            @php
+                                $effectiveInvoiceStatus = $shipment->invoice?->status ?? $shipment->invoice_status;
+                            @endphp
+                            @if($effectiveInvoiceStatus)
+                                <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1 block">
+                                    {{ __('Status') }}
+                                </flux:text>
+                                <flux:badge color="amber" variant="subtle" size="sm" icon="document-text">
+                                    {{ $effectiveInvoiceStatus->name }}
+                                </flux:badge>
+                            @else
+                                <flux:text size="xs" class="text-zinc-500">
+                                    {{ __('No invoice status') }}
+                                </flux:text>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1">
+                            {{ __('Total') }}
+                        </flux:text>
+                        <flux:text class="font-mono font-semibold text-indigo-600 dark:text-indigo-400">
+                            {{ '$'.number_format((float) ($shipment->invoice?->total_amount ?? 0), 2) }}
+                        </flux:text>
+                    </div>
+
+                    <div class="border border-zinc-200 dark:border-zinc-700 rounded-xl overflow-hidden mb-4">
+                        <div class="bg-zinc-100 dark:bg-zinc-800 px-3 py-2 flex items-center justify-between">
+                            <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-500">
+                                {{ __('Invoice Items') }}
+                            </flux:text>
+                        </div>
+                        <div class="max-h-56 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800">
+                            @forelse($shipment->invoice?->items ?? collect() as $item)
+                                <div class="px-3 py-2 flex items-center justify-between gap-3">
+                                    <div class="flex-1">
+                                        <flux:text size="sm" class="font-medium">
+                                            {{ $item->description }}
+                                        </flux:text>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex flex-col items-end gap-0.5">
+                                            @if((float) $item->discount_amount > 0)
+                                                <flux:text size="xs" class="text-zinc-500 line-through font-mono">
+                                                    {{ '$'.number_format((float) $item->gross_amount, 2) }}
+                                                </flux:text>
+                                                <flux:text size="xs" class="text-emerald-600 dark:text-emerald-400">
+                                                    −{{ '$'.number_format((float) $item->discount_amount, 2) }}
+                                                </flux:text>
+                                            @endif
+                                            <flux:text size="sm" class="font-mono font-semibold">
+                                                {{ '$'.number_format((float) $item->amount, 2) }}
+                                            </flux:text>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <flux:button icon="pencil-square" size="xs" variant="ghost" wire:click="editItem({{ $item->id }})" />
+                                            <flux:button
+                                                icon="trash"
+                                                size="xs"
+                                                variant="ghost"
+                                                class="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/40"
+                                                wire:click="deleteItem({{ $item->id }})"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="px-3 py-4">
+                                    <flux:text size="sm" class="text-zinc-500">
+                                        {{ __('No invoice items yet. Add the first charge below.') }}
+                                    </flux:text>
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+
+                    <form wire:submit.prevent="addOrUpdateItem" class="space-y-3">
+                        <flux:select wire:model.live="item_description" label="{{ __('Invoice item') }}" icon="document-text">
+                            <flux:select.option value="">{{ __('Select invoice item') }}</flux:select.option>
+                            @foreach(\App\Models\ChargeItem::query()->whereNotNull('item')->orderBy('item')->get() as $chargeItem)
+                                <flux:select.option :value="$chargeItem->item">
+                                    {{ $chargeItem->item }}
+                                </flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            wire:model="item_amount"
+                            :label="__('Amount')"
+                            icon="currency-dollar"
+                            :readonly="$this->invoiceItemAmountReadonly"
+                        />
+                        <div class="flex gap-2">
+                            <flux:button type="submit" variant="primary" icon="plus-circle" class="flex-1">
+                                {{ $invoiceItemId ? __('Update Item') : __('Add Item') }}
+                            </flux:button>
+                            @if($invoiceItemId)
+                                <flux:button type="button" variant="ghost" class="flex-none" wire:click="$set('invoiceItemId', null)">
+                                    {{ __('Cancel') }}
+                                </flux:button>
+                            @endif
+                        </div>
+                    </form>
+                </x-crud.panel>
 
                 {{-- Tracking Timeline --}}
                 <x-crud.panel class="p-6">
@@ -1543,177 +1741,6 @@ new #[Title('Shipment Details')] class extends Component {
 
             {{-- Right rail --}}
             <div class="space-y-6">
-                {{-- Invoice & Items --}}
-                <x-crud.panel class="p-6 bg-zinc-50 dark:bg-zinc-800/60 border-zinc-200 dark:border-zinc-700">
-                    <div class="flex items-start justify-between gap-3 mb-4">
-                        <div>
-                            <flux:heading size="lg" class="flex items-center gap-2">
-                                <flux:icon.receipt-percent class="size-5 text-indigo-500" />
-                                {{ __('Invoice') }}
-                            </flux:heading>
-                            <flux:text size="sm" class="text-zinc-500 mt-1">
-                                {{ $shipment->invoice?->invoice_number ?? __('No invoice number assigned yet.') }}
-                            </flux:text>
-                        </div>
-                        <div class="shrink-0 text-right">
-                            @php
-                                $effectiveInvoiceStatus = $shipment->invoice?->status ?? $shipment->invoice_status;
-                            @endphp
-                            @if($effectiveInvoiceStatus)
-                                <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1 block">
-                                    {{ __('Status') }}
-                                </flux:text>
-                                <flux:badge color="amber" variant="subtle" size="sm" icon="document-text">
-                                    {{ $effectiveInvoiceStatus->name }}
-                                </flux:badge>
-                            @else
-                                <flux:text size="xs" class="text-zinc-500">
-                                    {{ __('No invoice status') }}
-                                </flux:text>
-                            @endif
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1">
-                            {{ __('Total') }}
-                        </flux:text>
-                        <flux:text class="font-mono font-semibold text-indigo-600 dark:text-indigo-400">
-                            {{ '$'.number_format((float) ($shipment->invoice?->total_amount ?? 0), 2) }}
-                        </flux:text>
-                    </div>
-
-                    <div class="border border-zinc-200 dark:border-zinc-700 rounded-xl overflow-hidden mb-4">
-                        <div class="bg-zinc-100 dark:bg-zinc-800 px-3 py-2 flex items-center justify-between">
-                            <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-500">
-                                {{ __('Invoice Items') }}
-                            </flux:text>
-                        </div>
-                        <div class="max-h-56 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800">
-                            @forelse($shipment->invoice?->items ?? collect() as $item)
-                                <div class="px-3 py-2 flex items-center justify-between gap-3">
-                                    <div class="flex-1">
-                                        <flux:text size="sm" class="font-medium">
-                                            {{ $item->description }}
-                                        </flux:text>
-                                    </div>
-                                    <div class="flex items-center gap-3">
-                                        <div class="flex flex-col items-end gap-0.5">
-                                            @if((float) $item->discount_amount > 0)
-                                                <flux:text size="xs" class="text-zinc-500 line-through font-mono">
-                                                    {{ '$'.number_format((float) $item->gross_amount, 2) }}
-                                                </flux:text>
-                                                <flux:text size="xs" class="text-emerald-600 dark:text-emerald-400">
-                                                    −{{ '$'.number_format((float) $item->discount_amount, 2) }}
-                                                </flux:text>
-                                            @endif
-                                            <flux:text size="sm" class="font-mono font-semibold">
-                                                {{ '$'.number_format((float) $item->amount, 2) }}
-                                            </flux:text>
-                                        </div>
-                                        <div class="flex items-center gap-2">
-                                            <flux:button icon="pencil-square" size="xs" variant="ghost" wire:click="editItem({{ $item->id }})" />
-                                            <flux:button
-                                                icon="trash"
-                                                size="xs"
-                                                variant="ghost"
-                                                class="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/40"
-                                                wire:click="deleteItem({{ $item->id }})"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            @empty
-                                <div class="px-3 py-4">
-                                    <flux:text size="sm" class="text-zinc-500">
-                                        {{ __('No invoice items yet. Add the first charge below.') }}
-                                    </flux:text>
-                                </div>
-                            @endforelse
-                        </div>
-                    </div>
-
-                    <form wire:submit.prevent="addOrUpdateItem" class="space-y-3">
-                        <flux:select wire:model.live="item_description" label="{{ __('Invoice item') }}" icon="document-text">
-                            <flux:select.option value="">{{ __('Select invoice item') }}</flux:select.option>
-                            @foreach(\App\Models\ChargeItem::query()->whereNotNull('item')->orderBy('item')->get() as $chargeItem)
-                                <flux:select.option :value="$chargeItem->item">
-                                    {{ $chargeItem->item }}
-                                </flux:select.option>
-                            @endforeach
-                        </flux:select>
-                        <flux:input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            wire:model="item_amount"
-                            :label="__('Amount')"
-                            icon="currency-dollar"
-                            :readonly="$this->invoiceItemAmountReadonly"
-                        />
-                        <div class="flex gap-2">
-                            <flux:button type="submit" variant="primary" icon="plus-circle" class="flex-1">
-                                {{ $invoiceItemId ? __('Update Item') : __('Add Item') }}
-                            </flux:button>
-                            @if($invoiceItemId)
-                                <flux:button type="button" variant="ghost" class="flex-none" wire:click="$set('invoiceItemId', null)">
-                                    {{ __('Cancel') }}
-                                </flux:button>
-                            @endif
-                        </div>
-                    </form>
-                </x-crud.panel>
-
-                {{-- Shipper & Consignee --}}
-                <x-crud.panel class="p-6">
-                    <flux:heading size="lg" class="mb-4 flex items-center gap-2">
-                        <flux:icon.user-group class="size-5 text-indigo-500" />
-                        {{ __('Shipper & Consignee') }}
-                    </flux:heading>
-
-                    <div class="space-y-4">
-                        @if($shipment->shipper)
-                            <div class="flex items-start gap-3">
-                                <flux:avatar 
-                                    :name="$shipment->shipper->user?->name ?? $shipment->shipper->company_name" 
-                                    size="md" 
-                                    class="bg-indigo-100! text-indigo-700!" 
-                                />
-                                <div>
-                                    <flux:text size="sm" class="font-semibold">
-                                        {{ $shipment->shipper->company_name ?? $shipment->shipper->user?->name }}
-                                    </flux:text>
-                                    <div class="flex flex-col gap-1 mt-1 text-zinc-500">
-                                        @if($shipment->shipper->user?->email)
-                                            <div class="flex items-center gap-1.5">
-                                                <flux:icon.envelope class="size-3.5" />
-                                                <flux:text size="xs">{{ $shipment->shipper->user->email }}</flux:text>
-                                            </div>
-                                        @endif
-                                        @if($shipment->shipper->phone)
-                                            <div class="flex items-center gap-1.5">
-                                                <flux:icon.phone class="size-3.5" />
-                                                <flux:text size="xs">{{ $shipment->shipper->phone }}</flux:text>
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
-
-                        @if($shipment->consignee)
-                            <div class="border-t border-zinc-100 dark:border-zinc-800 pt-3 mt-2">
-                                <flux:text size="xs" class="uppercase tracking-widest font-bold text-zinc-400 mb-1">
-                                    {{ __('Consignee') }}
-                                </flux:text>
-                                <flux:text size="sm" class="font-medium">
-                                    {{ $shipment->consignee->name }}
-                                </flux:text>
-                            </div>
-                        @endif
-                    </div>
-                </x-crud.panel>
-
                 {{-- Documents & Auction Receipt --}}
                 <x-crud.panel class="p-6">
                     <flux:heading size="lg" class="mb-4 flex items-center gap-2">
